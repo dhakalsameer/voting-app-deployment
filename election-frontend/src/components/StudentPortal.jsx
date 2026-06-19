@@ -665,16 +665,12 @@ function ProfileCard() {
   const { student, authedFetch, saveSession } = usePortal();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(student.name || "");
-  const [year, setYear] = useState(student.year || "");
-  const [gender, setGender] = useState(student.gender || "");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const missingFields = !student.year || !student.gender;
 
   const startEdit = () => {
     setName(student.name || "");
-    setYear(student.year || "");
-    setGender(student.gender || "");
     setErr("");
     setEditing(true);
   };
@@ -685,7 +681,7 @@ function ProfileCard() {
     try {
       const updated = await authedFetch("/api/auth/me", {
         method: "PATCH",
-        body: JSON.stringify({ name, year, gender }),
+        body: JSON.stringify({ name }),
       });
       const token = localStorage.getItem("portal_token");
       saveSession(token, updated);
@@ -747,34 +743,6 @@ function ProfileCard() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Year</span>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="">Select…</option>
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>{y} year</option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Gender</span>
-              <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="">Select…</option>
-                {GENDERS.map((g) => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
 
           {err && <p className="text-xs font-medium text-red-600">{err}</p>}
 
@@ -788,7 +756,7 @@ function ProfileCard() {
             </button>
             <button
               onClick={save}
-              disabled={saving || !year || !gender}
+              disabled={saving}
               className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
             >
               {saving ? "Saving…" : "Save"}

@@ -2,6 +2,7 @@ import ElectionControl from "./ElectionControl";
 import RegisterCandidate from "./RegisterCandidate";
 import VerifyVoter from "./VerifyVoter";
 import GenerateCodes from "./GenerateCodes";
+import StudentList from "./StudentList";
 
 export default function AdminDashboard() {
   return (
@@ -15,6 +16,9 @@ export default function AdminDashboard() {
           </div>
           <div className="p-4 border border-gray-200 rounded-lg">
             <GenerateCodes />
+          </div>
+          <div className="p-4 border border-gray-200 rounded-lg">
+            <StudentList />
           </div>
           <div className="p-4 border border-gray-200 rounded-lg">
             <VerifyVoter />

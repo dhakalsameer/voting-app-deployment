@@ -5,9 +5,12 @@ import {
   getProfile,
   updateProfile,
   verifyCode,
+  listStudents,
+  adminUpdateStudent,
 } from "../controllers/authController.js";
 import { uploadMiddleware, uploadPhoto } from "../controllers/uploadController.js";
 import { requireStudentAuth } from "../middleware/auth.js";
+import { verifyAdmin } from "../middleware/admin.js";
 
 const router = express.Router();
 
@@ -25,5 +28,9 @@ router.post(
   uploadMiddleware,
   uploadPhoto
 );
+
+// Admin-only endpoints
+router.get("/admin/students", verifyAdmin, listStudents);
+router.patch("/admin/students/:id", verifyAdmin, adminUpdateStudent);
 
 export default router;

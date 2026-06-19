@@ -198,13 +198,82 @@ export const getProfile = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { student_id } = req.user;
+    const { name } = req.body;
+
+    // Students can only update their name, not year or gender
+    const result = await db.query(
+      `UPDATE students
+       SET name = COALESCE($1, name),
+           updated_at = NOW()
+       WHERE student_id = $2
+       RETURNING student_id, name, year, gender, image_cid,
+                 wallet_address, wallet_verified, eligible_to_vote, registered`,
+      [name || null, student_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    return res.json(shape(result.rows[0]));
+  } catch (error) {
+    console.error("updateProfile error:", error);
+    return res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
+/**
+ * Admin: list all registered students, optionally filter by year.
+ * Query: ?year=1st
+ */
+export const listStudents = async (req, res) => {
+  try {
+    const { year } = req.query;
+    let sql = `SELECT student_id, name, year, gender, image_cid,
+                      wallet_address, wallet_verified, eligible_to_vote, registered, created_at
+               FROM students`;
+    const params = [];
+
+    if (year) {
+      if (!VALID_YEARS.includes(year)) {
+        return res.status(400).json({
+          error: `year must be one of ${VALID_YEARS.join(", ")}`,
+        });
+      }
+      sql += ` WHERE year = $1`;
+      params.push(year);
+    }
+
+    sql += ` ORDER BY COALESCE(year, ''), student_id`;
+
+    const result = await db.query(sql, params);
+    return res.json({
+      count: result.rows.length,
+      students: result.rows.map(shape),
+    });
+  } catch (error) {
+    console.error("listStudents error:", error);
+    return res.status(500).json({ error: "Failed to list students" });
+  }
+};
+
+/**
+ * Admin: update a student's year/gender/name by student_id.
+ * Body: { name?, year?, gender? }
+ */
+export const adminUpdateStudent = async (req, res) => {
+  try {
+    const student_id = req.params.id;
     const { name, year, gender } = req.body;
 
     if (year && !VALID_YEARS.includes(year)) {
-      return res.status(400).json({ error: `year must be one of ${VALID_YEARS.join(", ")}` });
+      return res.status(400).json({
+        error: `year must be one of ${VALID_YEARS.join(", ")}`,
+      });
     }
     if (gender && !VALID_GENDERS.includes(gender)) {
-      return res.status(400).json({ error: `gender must be one of ${VALID_GENDERS.join(", ")}` });
+      return res.status(400).json({
+        error: `gender must be one of ${VALID_GENDERS.join(", ")}`,
+      });
     }
 
     const result = await db.query(
@@ -224,8 +293,8 @@ export const updateProfile = async (req, res) => {
     }
     return res.json(shape(result.rows[0]));
   } catch (error) {
-    console.error("updateProfile error:", error);
-    return res.status(500).json({ error: "Failed to update profile" });
+    console.error("adminUpdateStudent error:", error);
+    return res.status(500).json({ error: "Failed to update student" });
   }
 };
 
