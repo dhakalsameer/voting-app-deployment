@@ -14,41 +14,79 @@ function generateCode() {
   return code;
 }
 
+const VALID_YEARS = ["1st", "2nd", "3rd", "4th"];
+const VALID_GENDERS = ["male", "female", "other"];
+
 /**
  * POST /api/admin/generate-codes
- * Body: { studentIds: string[] }
+ * Body: { students: [{student_id, name?, year?, gender?}] }
  *
  * Bulk generates one unique registration code per student ID.
+ * If name/year/gender are provided, the student record is created/updated
+ * with those details (registered stays false until the student self-registers).
  * Returns a list of { student_id, code } pairs.
  * If a code already exists for a student_id, it is skipped (idempotent).
  */
 export const generateCodes = async (req, res) => {
   try {
-    const { studentIds } = req.body;
+    const { students } = req.body;
 
-    if (!Array.isArray(studentIds) || studentIds.length === 0) {
-      return res.status(400).json({ error: "studentIds must be a non-empty array" });
+    if (!Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ error: "students must be a non-empty array" });
     }
 
-    // Trim and upper-case for consistency
-    const normalized = [...new Set(studentIds.map((id) => String(id).trim()).filter(Boolean))];
+    const seen = new Set();
+    const normalized = [];
+    for (const s of students) {
+      const id = String(s.student_id || "").trim().toUpperCase();
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+
+      const year = s.year ? String(s.year).trim().toLowerCase() : null;
+      const gender = s.gender ? String(s.gender).trim().toLowerCase() : null;
+      if (year && !VALID_YEARS.includes(year)) {
+        return res.status(400).json({ error: `Invalid year "${year}" for ${id}. Must be one of: ${VALID_YEARS.join(", ")}` });
+      }
+      if (gender && !VALID_GENDERS.includes(gender)) {
+        return res.status(400).json({ error: `Invalid gender "${gender}" for ${id}. Must be one of: ${VALID_GENDERS.join(", ")}` });
+      }
+
+      normalized.push({
+        student_id: id,
+        name: s.name ? String(s.name).trim() : null,
+        year,
+        gender,
+      });
+    }
 
     if (normalized.length === 0) {
-      return res.status(400).json({ error: "No valid studentIds provided" });
+      return res.status(400).json({ error: "No valid students provided" });
     }
 
     const inserted = [];
 
-    for (const studentId of normalized) {
+    for (const student of normalized) {
+      // Upsert student record (keep existing data if already present)
+      await db.query(
+        `INSERT INTO students (student_id, name, year, gender, registered)
+         VALUES ($1, $2, $3, $4, false)
+         ON CONFLICT (student_id) DO UPDATE SET
+           name = COALESCE(students.name, EXCLUDED.name),
+           year = COALESCE(students.year, EXCLUDED.year),
+           gender = COALESCE(students.gender, EXCLUDED.gender),
+           updated_at = NOW()
+         WHERE students.registered = false OR students.name IS NULL`,
+        [student.student_id, student.name, student.year, student.gender]
+      );
+
       // Check if a code already exists for this student
       const existing = await db.query(
         "SELECT code FROM registration_codes WHERE student_id = $1 AND used = false LIMIT 1",
-        [studentId]
+        [student.student_id]
       );
 
       if (existing.rows.length > 0) {
-        // Already has an unused code — return it instead of creating a duplicate
-        inserted.push({ student_id: studentId, code: existing.rows[0].code });
+        inserted.push({ student_id: student.student_id, code: existing.rows[0].code });
         continue;
       }
 
@@ -59,12 +97,11 @@ export const generateCodes = async (req, res) => {
         try {
           await db.query(
             "INSERT INTO registration_codes (student_id, code) VALUES ($1, $2)",
-            [studentId, code]
+            [student.student_id, code]
           );
-          inserted.push({ student_id: studentId, code });
+          inserted.push({ student_id: student.student_id, code });
           break;
         } catch (err) {
-          // If unique violation, retry with a new code
           if (err.code === "23505") {
             code = generateCode();
             attempts++;

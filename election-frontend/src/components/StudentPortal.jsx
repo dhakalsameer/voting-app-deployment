@@ -156,7 +156,6 @@ function RegisterView({ onSwitchToLogin }) {
 
   const [studentId, setStudentId] = useState("");
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
@@ -167,7 +166,6 @@ function RegisterView({ onSwitchToLogin }) {
     setStep(1);
     setStudentId("");
     setCode("");
-    setName("");
     setPassword("");
     setConfirm("");
     setError("");
@@ -227,7 +225,6 @@ function RegisterView({ onSwitchToLogin }) {
         body: JSON.stringify({
           student_id: studentId.trim().toUpperCase(),
           code: code.trim().toUpperCase(),
-          name: name.trim(),
           password,
           wallet: address,
           signature,

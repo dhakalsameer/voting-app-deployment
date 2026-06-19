@@ -15,11 +15,18 @@ export default function GenerateCodes() {
   const [generatedCount, setGeneratedCount] = useState(0);
   const textareaRef = useRef(null);
 
-  const parseStudentIds = (text) =>
-    text
-      .split(/[\n,\r]+/)
-      .map((s) => s.trim().toUpperCase())
-      .filter(Boolean);
+  const parseStudents = (text) => {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    return lines.map((line) => {
+      const cols = line.split(",").map((c) => c.trim());
+      return {
+        student_id: cols[0]?.toUpperCase() || "",
+        name: cols[1] || "",
+        year: cols[2] || "",
+        gender: cols[3] || "",
+      };
+    }).filter((s) => s.student_id);
+  };
 
   const loadCodes = useCallback(async () => {
     if (!wallet) return;
@@ -41,9 +48,9 @@ export default function GenerateCodes() {
   }, [wallet, loadCodes]);
 
   const handleGenerate = async () => {
-    const studentIds = parseStudentIds(studentIdsText);
-    if (studentIds.length === 0) {
-      setError("Enter at least one student ID");
+    const students = parseStudents(studentIdsText);
+    if (students.length === 0) {
+      setError("Enter at least one valid student record");
       return;
     }
     setError("");
@@ -53,7 +60,7 @@ export default function GenerateCodes() {
       const res = await fetch(`${API_URL}/api/admin/generate-codes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminWallet: wallet, studentIds }),
+        body: JSON.stringify({ adminWallet: wallet, students }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation failed");
@@ -105,15 +112,15 @@ export default function GenerateCodes() {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[240px] rounded border border-slate-200 bg-slate-50 p-4 space-y-3">
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Student IDs</span>
-            <span className="ml-1 text-xs text-slate-400">(one per line or comma-separated)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Students</span>
+            <span className="ml-1 text-xs text-slate-400">(CSV: ID, name, year, gender — one per line)</span>
           </label>
           <textarea
             ref={textareaRef}
             value={studentIdsText}
             onChange={(e) => setStudentIdsText(e.target.value)}
             rows={5}
-            placeholder="GU001&#10;GU002&#10;GU003"
+            placeholder="GU001,John Doe,1st,male&#10;GU002,Jane Smith,2nd,female&#10;GU003,Ram Thapa,3rd,male"
             className="w-full rounded border border-slate-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none"
           />
           {error && <p className="text-xs font-medium text-red-600">{error}</p>}
