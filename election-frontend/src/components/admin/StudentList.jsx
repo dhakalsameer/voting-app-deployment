@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { API_URL } from "../../config";
+import { AuthContext } from "../../context/AuthContextValue";
 
 const YEARS = ["1st", "2nd", "3rd", "4th"];
 const GENDERS = [
@@ -9,6 +10,7 @@ const GENDERS = [
 ];
 
 export default function StudentList() {
+  const { wallet } = useContext(AuthContext);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,10 +20,12 @@ export default function StudentList() {
   const [saving, setSaving] = useState(false);
 
   const fetchStudents = async () => {
+    if (!wallet) return;
     setLoading(true);
     setError("");
     try {
       const url = new URL(`${API_URL}/api/auth/admin/students`);
+      url.searchParams.append("adminWallet", wallet);
       if (yearFilter) url.searchParams.append("year", yearFilter);
       const res = await fetch(url);
       const data = await res.json();
@@ -35,8 +39,8 @@ export default function StudentList() {
   };
 
   useEffect(() => {
-    fetchStudents();
-  }, [yearFilter]);
+    if (wallet) fetchStudents();
+  }, [yearFilter, wallet]);
 
   const startEdit = (s) => {
     setEditingId(s.student_id);
@@ -53,10 +57,13 @@ export default function StudentList() {
   };
 
   const saveEdit = async (studentId) => {
+    if (!wallet) return;
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`${API_URL}/api/auth/admin/students/${studentId}`, {
+      const url = new URL(`${API_URL}/api/auth/admin/students/${studentId}`);
+      url.searchParams.append("adminWallet", wallet);
+      const res = await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
@@ -73,6 +80,17 @@ export default function StudentList() {
       setSaving(false);
     }
   };
+
+  if (!wallet) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-slate-800">Registered Students</h3>
+        <p className="text-sm text-slate-500">
+          Please connect your MetaMask wallet to view and manage students.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
