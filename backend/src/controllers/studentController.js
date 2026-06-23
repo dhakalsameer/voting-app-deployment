@@ -5,15 +5,34 @@ const VALID_YEARS = ["1st", "2nd", "3rd", "4th"];
 const VALID_GENDERS = ["male", "female", "other"];
 
 export const createStudent = async (req, res) => {
-  const { student_id, name, wallet_address, image_cid } = req.body;
+  try {
+    const { student_id, name, wallet_address, image_cid } = req.body;
+    const year = req.body.year || req.body.registration_year || null;
+    const gender = req.body.gender || null;
 
-  const result = await db.query(
-    `INSERT INTO students (student_id, name, wallet_address, image_cid)
-     VALUES ($1,$2,$3,$4) RETURNING *`,
-    [student_id, name, wallet_address, image_cid]
-  );
+    if (!student_id || !name) {
+      return res.status(400).json({ error: "student_id and name are required" });
+    }
 
-  res.json(result.rows[0]);
+    const result = await db.query(
+      `INSERT INTO students (student_id, name, year, gender, wallet_address, image_cid)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       ON CONFLICT (student_id) DO UPDATE SET
+         name = EXCLUDED.name,
+         year = COALESCE(students.year, EXCLUDED.year),
+         gender = COALESCE(students.gender, EXCLUDED.gender),
+         wallet_address = COALESCE(students.wallet_address, EXCLUDED.wallet_address),
+         image_cid = COALESCE(students.image_cid, EXCLUDED.image_cid),
+         updated_at = NOW()
+       RETURNING *`,
+      [student_id.toUpperCase(), name, year, gender, wallet_address || null, image_cid || null]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("createStudent error:", error);
+    res.status(500).json({ error: "Failed to create/update student" });
+  }
 };
 
 export const getStudents = async (req, res) => {

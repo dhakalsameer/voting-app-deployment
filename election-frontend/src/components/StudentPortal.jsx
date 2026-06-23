@@ -90,51 +90,51 @@ function LoginView({ onSwitchToRegister }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-black text-slate-800">Student Login</h2>
-      <p className="text-sm text-slate-500">Sign in with your student ID and portal password.</p>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <h2 className="text-2xl font-black text-slate-100 uppercase tracking-wider">Student Login</h2>
+      <p className="text-sm text-slate-400 leading-relaxed">Sign in with your student ID and portal password.</p>
 
       <label className="block">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Student ID</span>
+        <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Student ID</span>
         <input
           type="text"
           required
           value={studentId}
           onChange={(e) => setStudentId(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+          className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:shadow-neon-glow focus:outline-none placeholder-slate-700 font-mono text-base transition-all"
           placeholder="e.g. 21001"
         />
       </label>
 
       <label className="block">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Password</span>
+        <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Password</span>
         <input
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+          className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:shadow-neon-glow focus:outline-none placeholder-slate-700 text-base transition-all"
           placeholder="••••••••"
         />
       </label>
 
-      {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+      {error && <p className="text-xs text-rose-400 font-mono font-medium">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
+        className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
         {loading ? "Signing in…" : "Sign In"}
       </button>
 
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-400">
         New student?{" "}
-        <button type="button" onClick={onSwitchToRegister} className="font-bold text-blue-600 hover:underline">
+        <button type="button" onClick={onSwitchToRegister} className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer">
           Create an account
         </button>
       </p>
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-slate-500">
         Need a registration code? Contact the IT Club admin.
       </p>
     </form>
@@ -158,6 +158,7 @@ function RegisterView({ onSwitchToLogin }) {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [name, setName] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -168,6 +169,7 @@ function RegisterView({ onSwitchToLogin }) {
     setCode("");
     setPassword("");
     setConfirm("");
+    setName("");
     setError("");
   };
 
@@ -242,17 +244,17 @@ function RegisterView({ onSwitchToLogin }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {step < 4 && (
         <div>
-          <h2 className="text-2xl font-black text-slate-800">Student Registration</h2>
-          <p className="text-sm text-slate-500">Register with your admin-provided registration code.</p>
+          <h2 className="text-2xl font-black text-slate-100 uppercase tracking-wider">Student Registration</h2>
+          <p className="text-sm text-slate-400 mt-1">Register with your admin-provided registration code.</p>
         </div>
       )}
 
       {/* Progress pills */}
       {step < 4 && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 py-2">
           {[
             { n: 1, label: "Code" },
             { n: 2, label: "Details" },
@@ -260,12 +262,14 @@ function RegisterView({ onSwitchToLogin }) {
           ].map((s) => (
             <div
               key={s.n}
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
-                step === s.n ? "bg-blue-600 text-white" : step > s.n ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider border ${
+                step === s.n ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-neon-glow" : step > s.n ? "bg-emerald-500/5 border-emerald-500/25 text-emerald-400/70" : "bg-[#0d1510] border-[#1e3a2b] text-slate-500"
               }`}
             >
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-current text-[9px]">
-                <span className={step > s.n ? "text-emerald-700" : step === s.n ? "text-white" : "text-slate-400"}>✓</span>
+              <span className={`flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
+                step >= s.n ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-600"
+              }`}>
+                {step > s.n ? "✓" : s.n}
               </span>
               {s.label}
             </div>
@@ -275,42 +279,42 @@ function RegisterView({ onSwitchToLogin }) {
 
       {/* ── Step 1: Verify Code ── */}
       {step === 1 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Student ID</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Student ID</span>
             <input
               type="text"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value.toUpperCase())}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 font-mono text-base transition-all"
               placeholder="e.g. GU001"
             />
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Registration Code</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Registration Code</span>
             <input
               type="text"
               value={code}
               onChange={(e) => setCode(formatCode(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-mono tracking-widest focus:border-blue-500 focus:outline-none"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 font-mono tracking-widest focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all"
               placeholder="XXXX-XXXX-XXXX"
             />
           </label>
 
-          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+          {error && <p className="text-sm text-rose-400 font-mono font-medium">{error}</p>}
 
           <button
             onClick={verifyCode}
             disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-3 font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
+            className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading ? "Verifying…" : "Verify Code"}
+            {loading ? "Verifying Code…" : "Verify Code"}
           </button>
 
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-slate-400">
             Already registered?{" "}
-            <button type="button" onClick={onSwitchToLogin} className="font-bold text-blue-600 hover:underline">
+            <button type="button" onClick={onSwitchToLogin} className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer">
               Sign in
             </button>
           </p>
@@ -319,53 +323,53 @@ function RegisterView({ onSwitchToLogin }) {
 
       {/* ── Step 2: Details ── */}
       {step === 2 && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Full Name</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Full Name</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all"
               placeholder="Your full name"
             />
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Password</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Password</span>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all"
               placeholder="At least 6 characters"
             />
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Confirm Password</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Confirm Password</span>
             <input
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all"
               placeholder="Re-enter password"
             />
           </label>
 
-          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+          {error && <p className="text-sm text-rose-400 font-mono font-medium">{error}</p>}
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="flex-1 rounded-lg border border-slate-200 py-3 font-bold text-slate-700 hover:bg-slate-50"
+              className="flex-1 rounded-xl border border-[#1e3a2b] py-3 text-sm font-black uppercase tracking-wider text-slate-300 hover:bg-[#0f1c15] transition-all active:scale-98 cursor-pointer"
             >
               Back
             </button>
             <button
               onClick={confirmDetails}
-              className="flex-1 rounded-lg bg-emerald-600 py-3 font-bold text-white hover:bg-emerald-700"
+              className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 transition-all active:scale-98 cursor-pointer"
             >
               Next
             </button>
@@ -375,39 +379,39 @@ function RegisterView({ onSwitchToLogin }) {
 
       {/* ── Step 3: Wallet + Sign ── */}
       {step === 3 && (
-        <div className="space-y-3">
-          <p className="text-sm text-slate-600">
-            Connect your MetaMask wallet and sign a message to prove ownership.
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300 leading-relaxed bg-[#0a140f] p-3.5 border border-[#1e3a2b] rounded-xl">
+            🔒 Connect your MetaMask wallet and sign a security signature to link this browser session to your cryptographic ID.
           </p>
 
           {!wallet ? (
             <button
               onClick={connectWallet}
-              className="w-full rounded-lg bg-indigo-600 py-3 font-bold text-white hover:bg-indigo-700"
+              className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow transition-all cursor-pointer"
             >
-              Connect MetaMask
+              Connect MetaMask Wallet
             </button>
           ) : (
-            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-              <p className="text-sm font-mono text-slate-700 break-all">{wallet}</p>
-              <p className="text-xs text-slate-500 mt-1">Wallet connected</p>
+            <div className="rounded-xl bg-[#0a140f] border border-[#1e3a2b] p-4 text-center">
+              <p className="text-sm font-mono text-emerald-400 break-all">{wallet}</p>
+              <p className="text-xs font-mono text-slate-500 mt-1 uppercase">Secure Wallet Connected</p>
             </div>
           )}
 
-          {error && <p className="text-sm text-red-600 font-medium">{error}</p>}
+          {error && <p className="text-sm text-rose-400 font-mono font-medium">{error}</p>}
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="flex-1 rounded-lg border border-slate-200 py-3 font-bold text-slate-700 hover:bg-slate-50"
+              className="flex-1 rounded-xl border border-[#1e3a2b] py-3 text-sm font-black uppercase tracking-wider text-slate-300 hover:bg-[#0f1c15] transition-all active:scale-98 cursor-pointer"
             >
               Back
             </button>
             <button
               onClick={signAndRegister}
               disabled={loading || !wallet}
-              className="flex-1 rounded-lg bg-emerald-600 py-3 font-bold text-white hover:bg-emerald-700 disabled:bg-slate-300"
+              className="flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-98 cursor-pointer"
             >
               {loading ? "Registering…" : "Sign & Register"}
             </button>
@@ -417,17 +421,19 @@ function RegisterView({ onSwitchToLogin }) {
 
       {/* ── Step 4: Success ── */}
       {step === 4 && (
-        <div className="space-y-4 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-2xl font-black">
+        <div className="space-y-5 text-center py-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500 text-emerald-400 text-2xl font-black shadow-neon-glow animate-float">
             ✓
           </div>
-          <h3 className="text-xl font-black text-emerald-800">Registration Complete!</h3>
-          <p className="text-sm text-slate-600">
-            Your account has been created and your registration code has been marked as used.
-          </p>
+          <div>
+            <h3 className="text-2xl font-black text-emerald-400 uppercase tracking-tight">Registration Complete!</h3>
+            <p className="text-sm text-slate-400 mt-1 leading-relaxed px-4">
+              Your cryptographic profile has been successfully sealed. The verification code has been permanently archived.
+            </p>
+          </div>
           <button
             onClick={reset}
-            className="rounded-lg bg-blue-600 px-6 py-2.5 font-bold text-white hover:bg-blue-700"
+            className="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow transition-all cursor-pointer"
           >
             Go to Dashboard
           </button>
@@ -458,14 +464,14 @@ function Avatar({ student, size = 96 }) {
         src={url}
         alt={student.name}
         style={{ width: size, height: size }}
-        className="rounded-xl border-2 border-white object-cover shadow-sm"
+        className="rounded-2xl border-2 border-emerald-500/20 object-cover shadow-neon-glow"
       />
     );
   }
   return (
     <div
       style={{ width: size, height: size }}
-      className="flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-2xl font-black text-white shadow-sm"
+      className="flex items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-2xl font-black text-slate-950 shadow-neon-glow"
     >
       {initials}
     </div>
@@ -516,40 +522,42 @@ function PhotoUploadCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-black text-slate-800">📸 Profile Photo</h3>
-      <p className="mt-1 text-sm text-slate-500">
-        Uploaded photos are pinned to IPFS; only the CID is stored on the server.
+    <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b]">
+      <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">📸 Profile Photo</h3>
+      <p className="mt-1 text-sm text-slate-400 leading-relaxed">
+        Uploaded photos are pinned to IPFS; only the cryptographic CID is stored on the server cache.
       </p>
 
-      <div className="mt-4 flex items-center gap-4">
+      <div className="mt-5 flex items-center gap-4">
         {preview ? (
           <img
             src={preview}
             alt="preview"
             style={{ width: 80, height: 80 }}
-            className="rounded-xl border-2 border-slate-200 object-cover"
+            className="rounded-2xl border border-emerald-500/30 object-cover shadow-neon-glow"
           />
         ) : (
           <Avatar student={student} size={80} />
         )}
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          onChange={onFileChange}
-          className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-bold file:text-blue-700 hover:file:bg-blue-100"
-        />
+        <div className="flex-1 min-w-0">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            onChange={onFileChange}
+            className="block w-full text-sm text-slate-400 file:mr-3 file:rounded-xl file:border-0 file:bg-emerald-500/10 file:border-emerald-500/20 file:px-3.5 file:py-2.5 file:text-sm file:font-bold file:text-emerald-400 file:uppercase hover:file:bg-emerald-500/25 transition-all file:cursor-pointer"
+          />
+        </div>
       </div>
 
-      {msg && <p className="mt-3 text-sm font-medium text-emerald-700">{msg}</p>}
-      {err && <p className="mt-3 text-sm font-medium text-red-600">{err}</p>}
+      {msg && <p className="mt-3 text-sm font-mono font-medium text-emerald-400">{msg}</p>}
+      {err && <p className="mt-3 text-sm font-mono font-medium text-rose-400">{err}</p>}
 
       <button
         onClick={upload}
         disabled={uploading || !file}
-        className="mt-4 w-full rounded-lg bg-blue-600 py-2.5 font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
+        className="mt-5 w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
       >
-        {uploading ? "Uploading to IPFS…" : "Upload Photo"}
+        {uploading ? "Uploading to IPFS Network…" : "Upload Photo"}
       </button>
     </div>
   );
@@ -598,30 +606,228 @@ function WalletLinkCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-black text-slate-800">🔗 Wallet Link</h3>
-      <p className="mt-1 text-sm text-slate-500">
-        Connect your Ethereum wallet to verify identity and vote on-chain.
+    <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b]">
+      <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">🔗 Wallet Link</h3>
+      <p className="mt-1 text-sm text-slate-400 leading-relaxed">
+        Connect your Ethereum wallet to verify identity signatures and enable smart contract interactions.
       </p>
 
-      <div className="mt-4 rounded-xl bg-slate-50 p-4">
+      <div className="mt-5 rounded-2xl bg-[#0a140f] border border-[#1e3a2b]/80 p-4 text-center">
         {student.wallet_address ? (
-          <p className="break-all text-sm font-mono text-slate-700">{student.wallet_address}</p>
+          <p className="break-all font-mono text-sm text-emerald-400">{student.wallet_address}</p>
         ) : (
-          <p className="text-sm italic text-slate-400">No wallet linked yet.</p>
+          <p className="text-sm italic text-slate-500">No blockchain wallet linked yet.</p>
         )}
       </div>
 
-      {msg && <p className="mt-3 text-sm font-medium text-emerald-700">{msg}</p>}
-      {err && <p className="mt-3 text-sm font-medium text-red-600">{err}</p>}
+      {msg && <p className="mt-3 text-sm font-mono font-medium text-emerald-400">{msg}</p>}
+      {err && <p className="mt-3 text-sm font-mono font-medium text-rose-400">{err}</p>}
 
       <button
         onClick={linkWallet}
         disabled={loading}
-        className="mt-4 w-full rounded-lg bg-indigo-600 py-2.5 font-bold text-white hover:bg-indigo-700 disabled:bg-slate-300"
+        className="mt-5 w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
       >
-        {loading ? "Signing…" : student.wallet_address ? "Re-link Wallet" : "Link MetaMask Wallet"}
+        {loading ? "Signing Payload…" : student.wallet_address ? "Re-link Wallet Address" : "Link MetaMask Wallet"}
       </button>
+    </div>
+  );
+}
+
+function CandidateApplicationCard() {
+  const { student, authedFetch } = usePortal();
+  const [status, setStatus] = useState("loading"); // loading, none, pending, approved, rejected
+  const [applying, setApplying] = useState(false);
+  const [position, setPosition] = useState(0);
+  const [manifesto, setManifesto] = useState("");
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const positions = [
+    { value: 0, label: "President", icon: "👤" },
+    { value: 1, label: "Secretary", icon: "📝" },
+    { value: 2, label: "General Member", icon: "🤝" },
+  ];
+
+  const checkStatus = async () => {
+    try {
+      const res = await fetch(
+        `${API_URL}/api/candidates?applied_by=${student.student_id}`
+      );
+      const data = await res.json();
+      const mine = data.find((c) => c.applied_by === student.student_id);
+      if (mine) setStatus(mine.status);
+      else setStatus("none");
+    } catch {
+      setStatus("none");
+    }
+  };
+
+  useEffect(() => {
+    if (student?.student_id) checkStatus();
+  }, [student?.student_id]);
+
+  const submit = async () => {
+    setErr("");
+    setMsg("");
+    setApplying(true);
+    try {
+      const posLabel = positions[position].label;
+      await authedFetch("/api/candidates/apply", {
+        method: "POST",
+        body: JSON.stringify({
+          position: posLabel,
+          manifesto: manifesto.trim(),
+          // name, year, gender are pulled from the DB student record by the backend
+        }),
+      });
+      setMsg("✅ Application submitted! Pending election committee review.");
+      setStatus("pending");
+    } catch (e) {
+      setErr(e.message || "Application failed");
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const isEligible = Boolean(student.eligible_to_vote);
+
+  if (status === "loading") {
+    return (
+      <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b] animate-pulse">
+        <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">📤 Candidate Application</h3>
+        <p className="mt-2 text-sm text-slate-500">Checking your application status…</p>
+      </div>
+    );
+  }
+
+  if (status === "pending") {
+    return (
+      <div className="glass-panel p-6 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+        <h3 className="text-base font-bold text-amber-400 uppercase tracking-wide">⏳ Application Submitted</h3>
+        <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+          Your candidate application is under review by the election committee. You will be notified once the admin approves or rejects your application.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "approved") {
+    return (
+      <div className="glass-panel p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
+        <h3 className="text-base font-bold text-emerald-400 uppercase tracking-wide">🎉 Application Approved</h3>
+        <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+          Congratulations! Your candidate application has been approved. You are now officially on the ballot.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <div className="glass-panel p-6 rounded-2xl border border-rose-500/20 bg-rose-500/5">
+        <h3 className="text-base font-bold text-rose-400 uppercase tracking-wide">❌ Application Rejected</h3>
+        <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+          Your candidate application was not approved by the election committee.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b]">
+      <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">📤 Candidate Application</h3>
+      <p className="mt-1 text-sm text-slate-400 leading-relaxed">
+        Apply to run for an elected position. Only verified voters can apply.
+      </p>
+
+      {!isEligible && (
+        <p className="mt-4 rounded-xl bg-amber-950/20 border border-amber-500/20 px-4 py-2.5 text-sm text-amber-400 leading-relaxed">
+          ⚠️ You must be verified and added to the Merkle whitelist before applying as a candidate. Complete the verification steps above.
+        </p>
+      )}
+
+      {isEligible && (
+        <div className="mt-5 space-y-4">
+          {/* Auto-filled profile info from DB — prevents manipulation */}
+          <div className="rounded-xl border border-[#1e3a2b]/80 bg-[#0a140f] p-4 space-y-2">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 mb-2">Your Profile (auto-filled from registry)</p>
+            <div className="grid grid-cols-3 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-slate-500 uppercase">Name</p>
+                <p className="font-bold text-emerald-400 truncate">{student.name}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase">Year</p>
+                <p className="font-bold text-emerald-400">{student.year || "—"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase">Gender</p>
+                <p className="font-bold text-emerald-400 capitalize">{student.gender || "—"}</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 italic mt-1">
+              This information comes from your student record and cannot be changed during the application.
+            </p>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Position</span>
+            <div className="grid grid-cols-3 gap-2 mt-1">
+              {positions.map((pos) => (
+                <button
+                  key={pos.value}
+                  type="button"
+                  onClick={() => setPosition(pos.value)}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs uppercase tracking-wider font-bold transition-all cursor-pointer ${
+                    position === pos.value
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-neon-glow"
+                      : "border-[#1e3a2b] bg-[#0d1510] text-slate-500 hover:text-slate-300 hover:bg-[#0f1c15]"
+                  }`}
+                >
+                  <span className="text-lg">{pos.icon}</span>
+                  <span className="text-center leading-tight">{pos.label}</span>
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
+              Manifesto / Statement (optional)
+            </span>
+            <textarea
+              value={manifesto}
+              onChange={(e) => setManifesto(e.target.value)}
+              rows={3}
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all resize-none"
+              placeholder="Why should the IT Club elect you?"
+            />
+          </label>
+
+          {err && <p className="text-sm font-mono text-rose-400">{err}</p>}
+          {msg && <p className="text-sm font-mono text-emerald-400">{msg}</p>}
+
+          <button
+            onClick={submit}
+            disabled={applying}
+            className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 hover:shadow-neon-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            {applying ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                Submitting Application…
+              </span>
+            ) : (
+              "Submit Application"
+            )}
+          </button>
+
+          <p className="text-xs text-slate-600 text-center italic">
+            By submitting, you confirm that all auto-filled details match your student record.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -636,19 +842,19 @@ function StatusCard() {
   ];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h3 className="text-lg font-black text-slate-800">📋 Verification Status</h3>
-      <ul className="mt-4 space-y-2">
+    <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b]">
+      <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">📋 Verification Status</h3>
+      <ul className="mt-4 space-y-3">
         {steps.map((s, i) => (
           <li key={i} className="flex items-center gap-3">
             <span
-              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-black ${
-                s.done ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-black border ${
+                s.done ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-neon-glow" : "bg-[#0d1510] border-[#1e3a2b] text-slate-500"
               }`}
             >
               {s.done ? "✓" : i + 1}
             </span>
-            <span className={`text-sm ${s.done ? "font-semibold text-slate-800" : "text-slate-500"}`}>
+            <span className={`text-sm ${s.done ? "font-bold text-slate-100" : "text-slate-500"}`}>
               {s.label}
             </span>
           </li>
@@ -691,13 +897,13 @@ function ProfileCard() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="glass-panel p-6 rounded-2xl border border-[#1e3a2b]">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-black text-slate-800">👤 Profile</h3>
+        <h3 className="text-base font-bold text-slate-100 uppercase tracking-wide">👤 Student Profile</h3>
         {!editing && (
           <button
             onClick={startEdit}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-[#1e3a2b] bg-[#0d1510] px-3.5 py-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider hover:bg-[#0f1c15] transition-all cursor-pointer"
           >
             Edit
           </button>
@@ -705,56 +911,56 @@ function ProfileCard() {
       </div>
 
       <div className="mt-4 flex items-center gap-4">
-        <Avatar student={student} size={72} />
+        <Avatar student={student} size={64} />
         <div>
-          <p className="text-base font-black text-slate-800">{student.name}</p>
-          <p className="text-xs text-slate-500">ID: {student.student_id}</p>
+          <p className="text-base font-bold text-slate-100">{student.name}</p>
+          <p className="text-xs font-mono text-slate-500">ID: {student.student_id}</p>
         </div>
       </div>
 
       {missingFields && !editing && (
-        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-          Your profile is incomplete. Click <strong>Edit</strong> to add your year and gender.
+        <p className="mt-4 rounded-xl bg-amber-950/20 border border-amber-500/20 px-4 py-2.5 text-xs text-amber-400 leading-relaxed">
+          ⚠️ Your profile is incomplete. Click <strong>Edit</strong> to finalize your credentials.
         </p>
       )}
 
       {!editing ? (
-        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-[10px] font-black uppercase tracking-wider text-slate-400">Year</dt>
-            <dd className="font-semibold text-slate-800">{student.year ? `${student.year} year` : "—"}</dd>
+        <dl className="mt-5 grid grid-cols-2 gap-4 text-xs">
+          <div className="bg-[#0a140f] p-3 rounded-xl border border-[#1e3a2b]/30">
+            <dt className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">Year</dt>
+            <dd className="font-bold text-slate-200 mt-1">{student.year ? `${student.year} year` : "—"}</dd>
           </div>
-          <div>
-            <dt className="text-[10px] font-black uppercase tracking-wider text-slate-400">Gender</dt>
-            <dd className="font-semibold capitalize text-slate-800">{student.gender || "—"}</dd>
+          <div className="bg-[#0a140f] p-3 rounded-xl border border-[#1e3a2b]/30">
+            <dt className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">Gender</dt>
+            <dd className="font-bold capitalize text-slate-200 mt-1">{student.gender || "—"}</dd>
           </div>
         </dl>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-4">
           <label className="block">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Full Name</span>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">Full Name</span>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-[#1e3a2b] bg-[#0d1510] text-slate-100 px-3.5 py-2.5 focus:border-emerald-500 focus:outline-none placeholder-slate-700 text-base transition-all"
             />
           </label>
 
-          {err && <p className="text-xs font-medium text-red-600">{err}</p>}
+          {err && <p className="text-sm font-mono text-rose-400">{err}</p>}
 
           <div className="flex gap-2">
             <button
               onClick={() => setEditing(false)}
               disabled={saving}
-              className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="flex-1 rounded-xl border border-[#1e3a2b] py-2.5 text-sm font-black uppercase tracking-wider text-slate-300 hover:bg-[#0f1c15] disabled:opacity-40 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={save}
               disabled={saving}
-              className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
+              className="flex-1 rounded-xl bg-emerald-500 py-2.5 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-emerald-400 disabled:opacity-40 cursor-pointer"
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -770,15 +976,17 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white shadow-lg">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Student Portal</p>
-        <h2 className="mt-1 text-2xl font-black">Welcome, {student.name}</h2>
-        <p className="text-sm opacity-90">ID: {student.student_id}</p>
+      <div className="rounded-3xl bg-gradient-to-r from-emerald-500/20 to-teal-600/20 border border-emerald-500/30 p-6 text-white shadow-neon-glow relative overflow-hidden">
+        <div className="absolute -top-12 -right-12 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl"></div>
+        <p className="text-xs font-mono font-bold uppercase tracking-widest text-emerald-400">Secure Student Portal</p>
+        <h2 className="mt-1.5 text-2xl font-black uppercase tracking-tight text-white">Welcome, {student.name}</h2>
+        <p className="text-sm text-slate-400 font-mono mt-0.5">VOTER ID: {student.student_id}</p>
+        
         <button
           onClick={logout}
-          className="mt-4 rounded-lg bg-white/20 px-4 py-1.5 text-xs font-bold hover:bg-white/30"
+          className="mt-4 rounded-xl border border-[#1e3a2b] bg-[#080f0b] px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-all cursor-pointer"
         >
-          Sign out
+          Sign out session
         </button>
       </div>
 
@@ -786,6 +994,8 @@ function Dashboard() {
       <PhotoUploadCard />
       <StatusCard />
       <WalletLinkCard />
+      <CandidateApplicationCard />
+      <CandidateSelfRegister />
     </div>
   );
 }
@@ -800,19 +1010,21 @@ function PortalInner({ onClose }) {
   }, [student]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/60 p-4 backdrop-blur-sm sm:items-center">
-      <div className="relative my-4 w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl sm:my-0 max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-[#080f0b]/80 p-0 sm:p-4 backdrop-blur-md animate-fade-in">
+      <div className="glass-panel relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-neon-intense sm:my-0 max-h-[92dvh] sm:max-h-[calc(100vh-2rem)] overflow-y-auto border border-[#1e3a2b] safe-bottom">
         <button
           onClick={onClose}
-          className="sticky top-0 -mt-2 -mr-2 ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+          className="sticky top-0 -mt-2 -mr-2 ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/25 hover:text-white transition-all cursor-pointer shadow-sm"
           aria-label="Close portal"
         >
           ✕
         </button>
 
-        {view === "dashboard" && <Dashboard />}
-        {view === "login" && <LoginView onSwitchToRegister={() => setView("register")} />}
-        {view === "register" && <RegisterView onSwitchToLogin={() => setView("login")} />}
+        <div className="mt-4">
+          {view === "dashboard" && <Dashboard />}
+          {view === "login" && <LoginView onSwitchToRegister={() => setView("register")} />}
+          {view === "register" && <RegisterView onSwitchToLogin={() => setView("login")} />}
+        </div>
       </div>
     </div>
   );

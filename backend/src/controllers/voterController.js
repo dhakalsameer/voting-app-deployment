@@ -1,6 +1,11 @@
 import { db } from "../db.js";
 import { electionContract, electionContractV3 } from "../blockchain/electionContract.js";
-import { generateMerkleProof, generateMerkleRoot } from "../services/merkleService.js";
+import {
+  generateMerkleProof,
+  generateMerkleRoot,
+  generateIdentityMerkleRoot,
+  generateIdentityMerkleProof,
+} from "../services/merkleService.js";
 
 export const getMe = async (req, res) => {
   try {
@@ -125,16 +130,29 @@ export const bulkVerifyVoters = async (req, res) => {
     let txHash = null;
 
     if (version === "v3") {
-      // For V3, we update the Merkle Root on chain
+      // For V3, update both Voter and Identity Merkle Roots on chain
       const allEligibleResult = await db.query(
-        `SELECT wallet_address FROM students WHERE eligible_to_vote = true AND wallet_address IS NOT NULL`
+        `SELECT wallet_address, name, year, gender FROM students WHERE eligible_to_vote = true AND wallet_address IS NOT NULL`
       );
       const allWallets = allEligibleResult.rows.map(r => r.wallet_address);
       const root = generateMerkleRoot(allWallets);
 
-      console.log("Updating Merkle Root to:", root);
-      const tx = await electionContractV3.setMerkleRoot(root);
-      const receipt = await tx.wait();
+      const identities = allEligibleResult.rows.map(r => ({
+        address: r.wallet_address,
+        name: r.name,
+        year: Number(r.year),
+        isFemale: r.gender?.toLowerCase() === "female",
+      }));
+      const identityRoot = generateIdentityMerkleRoot(identities);
+
+      console.log("Updating Voter Merkle Root to:", root);
+      console.log("Updating Identity Merkle Root to:", identityRoot);
+
+      const tx1 = await electionContractV3.setMerkleRoot(root);
+      await tx1.wait();
+
+      const tx2 = await electionContractV3.setIdentityMerkleRoot(identityRoot);
+      const receipt = await tx2.wait();
       txHash = receipt.hash;
     } else {
       // V1 logic
@@ -199,6 +217,66 @@ export const revokeVoter = async (req, res) => {
     return res.status(500).json({
       error: error.reason || error.message || "Voter revoke failed",
     });
+  }
+};
+
+export const getIdentityProof = async (req, res) => {
+  try {
+    const { wallet } = req.query;
+
+    if (!wallet) {
+      return res.status(400).json({ error: "wallet query parameter is required" });
+    }
+
+    // Fetch this student's identity and all eligible voters
+    const studentResult = await db.query(
+      `SELECT wallet_address, name, year, gender
+       FROM students
+       WHERE LOWER(wallet_address) = LOWER($1)
+         AND eligible_to_vote = true`,
+      [wallet]
+    );
+
+    if (studentResult.rows.length === 0) {
+      return res.status(403).json({ error: "Student not found or not eligible" });
+    }
+
+    const student = studentResult.rows[0];
+
+    const allResult = await db.query(
+      `SELECT wallet_address, name, year, gender
+       FROM students
+       WHERE eligible_to_vote = true
+         AND wallet_address IS NOT NULL`
+    );
+
+    const identities = allResult.rows.map(r => ({
+      address: r.wallet_address,
+      name: r.name,
+      year: Number(r.year),
+      isFemale: r.gender?.toLowerCase() === "female",
+    }));
+
+    const targetIdentity = {
+      address: student.wallet_address,
+      name: student.name,
+      year: Number(student.year),
+      isFemale: student.gender?.toLowerCase() === "female",
+    };
+
+    const proof = generateIdentityMerkleProof(identities, targetIdentity);
+
+    return res.json({
+      proof,
+      identity: {
+        name: student.name,
+        year: Number(student.year),
+        isFemale: targetIdentity.isFemale,
+      },
+    });
+  } catch (error) {
+    console.error("getIdentityProof error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

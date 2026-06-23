@@ -29,12 +29,12 @@ function CandidateOption({ candidate, selected, onSelect }) {
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full overflow-hidden rounded-lg border-2 bg-white text-left transition-all hover:border-blue-300 hover:shadow-md ${
-        selected ? "border-blue-500 bg-blue-50 shadow-md" : "border-gray-200"
+      className={`w-full overflow-hidden rounded-lg border-2 bg-white text-left transition-all hover:border-green-300 hover:shadow-md ${
+        selected ? "border-green-500 bg-green-50 shadow-md" : "border-green-200"
       }`}
     >
       <div className="flex gap-4 p-4">
-        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-green-100/40">
           {imageUrl && !imageError ? (
             <img
               src={imageUrl}
@@ -43,7 +43,7 @@ function CandidateOption({ candidate, selected, onSelect }) {
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-blue-100 text-xl font-bold text-blue-700">
+            <div className="flex h-full w-full items-center justify-center bg-green-100 text-xl font-bold text-green-700">
               {initials || "?"}
             </div>
           )}
@@ -52,11 +52,11 @@ function CandidateOption({ candidate, selected, onSelect }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="break-words text-base font-bold text-gray-900">{candidate.name}</p>
-              <p className="text-sm font-medium text-blue-700">{getPositionLabel(candidate.position)}</p>
+              <p className="break-words text-base font-bold text-green-950">{candidate.name}</p>
+              <p className="text-sm font-medium text-green-700">{getPositionLabel(candidate.position)}</p>
             </div>
             {selected && (
-              <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-bold text-white">
+              <span className="rounded-full bg-green-600 px-3 py-1 text-xs font-bold text-white">
                 Selected
               </span>
             )}
@@ -64,20 +64,20 @@ function CandidateOption({ candidate, selected, onSelect }) {
 
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <div>
-              <dt className="text-gray-500">Year</dt>
-              <dd className="font-semibold text-gray-800">Year {candidate.year || "N/A"}</dd>
+              <dt className="text-green-700/70">Year</dt>
+              <dd className="font-semibold text-green-900">Year {candidate.year || "N/A"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Student ID</dt>
-              <dd className="break-words font-semibold text-gray-800">{candidate.studentId || "N/A"}</dd>
+              <dt className="text-green-700/70">Student ID</dt>
+              <dd className="break-words font-semibold text-green-900">{candidate.studentId || "N/A"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Candidate ID</dt>
-              <dd className="font-semibold text-gray-800">#{candidate.id}</dd>
+              <dt className="text-green-700/70">Candidate ID</dt>
+              <dd className="font-semibold text-green-900">#{candidate.id}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Category</dt>
-              <dd className="font-semibold text-gray-800">
+              <dt className="text-green-700/70">Category</dt>
+              <dd className="font-semibold text-green-900">
                 {candidate.isFemale ? "Female Candidate" : "Open Candidate"}
               </dd>
             </div>
@@ -202,7 +202,7 @@ export default function VotingPanel() {
         {/* General Members */}
         <section>
           <h3 className="text-lg font-semibold mb-3 border-b pb-1">General Members (Select 7)</h3>
-          <p className="text-sm text-gray-500 mb-2">Selected: {selection.members.length}/7</p>
+          <p className="text-sm text-green-700/70 mb-2">Selected: {selection.members.length}/7</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {candidates.filter(c => c.position === 2).map(c => (
               <CandidateOption
@@ -218,7 +218,7 @@ export default function VotingPanel() {
         <button 
           onClick={castVote}
           disabled={loading || !wallet}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors shadow-lg"
+          className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-green-700 disabled:bg-green-300 transition-colors shadow-lg"
         >
           {loading ? "Processing Vote..." : "Submit My Vote"}
         </button>

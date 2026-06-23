@@ -31,3 +31,44 @@ export function generateMerkleProof(allWallets, targetWallet) {
   const leaf = keccak256(ethers.solidityPacked(["address"], [ethers.getAddress(targetWallet)]));
   return tree.getHexProof(leaf);
 }
+
+/**
+ * Generates an Identity Merkle Root from an array of verified voter identities.
+ * Leaf: keccak256(abi.encodePacked(address, name, year, isFemale))
+ * @param {{address: string, name: string, year: number, isFemale: boolean}[]} identities
+ * @returns {string} The Identity Merkle Root (hex)
+ */
+export function generateIdentityMerkleRoot(identities) {
+  if (!identities || identities.length === 0) return ethers.ZeroHash;
+
+  const leaves = identities.map(id =>
+    keccak256(ethers.solidityPacked(
+      ["address", "string", "uint8", "bool"],
+      [ethers.getAddress(id.address), id.name, id.year, id.isFemale]
+    ))
+  );
+  const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+  return tree.getHexRoot();
+}
+
+/**
+ * Generates an Identity Merkle Proof for a specific verified voter identity.
+ * Leaf: keccak256(abi.encodePacked(address, name, year, isFemale))
+ * @param {{address: string, name: string, year: number, isFemale: boolean}[]} allIdentities
+ * @param {{address: string, name: string, year: number, isFemale: boolean}} targetIdentity
+ * @returns {string[]} The Identity Merkle Proof (array of hex strings)
+ */
+export function generateIdentityMerkleProof(allIdentities, targetIdentity) {
+  const leaves = allIdentities.map(id =>
+    keccak256(ethers.solidityPacked(
+      ["address", "string", "uint8", "bool"],
+      [ethers.getAddress(id.address), id.name, id.year, id.isFemale]
+    ))
+  );
+  const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+  const leaf = keccak256(ethers.solidityPacked(
+    ["address", "string", "uint8", "bool"],
+    [ethers.getAddress(targetIdentity.address), targetIdentity.name, targetIdentity.year, targetIdentity.isFemale]
+  ));
+  return tree.getHexProof(leaf);
+}

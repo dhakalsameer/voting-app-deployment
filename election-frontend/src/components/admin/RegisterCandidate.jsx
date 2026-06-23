@@ -1,59 +1,61 @@
 import { useState } from "react";
-import { getContractV3 } from "../../contract";
+import { useToast } from "../ui/Toast";
+import SectionHeader from "../ui/SectionHeader";
 
+/**
+ * @deprecated Candidate registration is now self-service via the contract's
+ * registerCandidate() function. Students register themselves on-chain during
+ * the Registration phase using their identity Merkle proof. Admin approval
+ * in the backend still marks the application as approved in the database,
+ * but the on-chain registration step is performed by the candidate.
+ */
 export default function RegisterCandidate() {
-  const [name, setName] = useState("");
-  const [position, setPosition] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const { success } = useToast();
 
-  const handleRegister = async () => {
-    if (!name.trim()) {
-      return alert("Enter the candidate name");
-    }
+  const handleCopyGuidance = () => {
+    const text = `Candidate registration is now self-service.
 
-    setLoading(true);
-    try {
-      const contract = await getContractV3();
-      const tx = await contract.addCandidate(name.trim(), position);
+Students must:
+1. Apply via the student portal
+2. Wait for admin approval in the DB
+3. Self-register on-chain during the Registration phase using their identity Merkle proof
 
-      await tx.wait();
-      alert("Candidate registered on-chain");
-      setName("");
-    } catch (err) {
-      console.error("Registration error:", err);
-      alert(err.reason || err.shortMessage || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
+The contract function is: registerCandidate(guid, name, year, isFemale, imageCID, position, proof)`;
+    navigator.clipboard.writeText(text);
+    success("Guidance copied to clipboard");
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-xl font-semibold">Register Candidate</h3>
+    <div className="space-y-5 sm:space-y-6">
+      <SectionHeader
+        icon="ℹ️"
+        title="Candidate Registration"
+        subtitle="Self-Service Flow"
+      />
 
-      <div className="flex flex-col gap-3">
-        <input
-          className="rounded border p-2"
-          placeholder="Candidate Name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <select
-          className="rounded border p-2"
-          value={position}
-          onChange={(event) => setPosition(Number(event.target.value))}
-        >
-          <option value={0}>President</option>
-          <option value={1}>Secretary</option>
-          <option value={2}>General Member</option>
-        </select>
+      <div className="rounded-xl border border-app bg-app-input p-5 space-y-4">
+        <p className="text-sm text-app-muted">
+          Candidates now <strong className="text-app-heading">self-register on-chain</strong>.
+          The admin no longer adds candidates directly.
+        </p>
+
+        <ol className="list-decimal list-inside text-sm text-app-muted space-y-2 pl-1">
+          <li>Student applies via the portal</li>
+          <li>Admin approves the application in the database</li>
+          <li>Student calls <code className="text-emerald-400 font-mono text-xs">registerCandidate()</code> on-chain during the Registration phase</li>
+        </ol>
+
+        <p className="text-sm text-app-muted">
+          The contract verifies the student&apos;s identity (name, year, gender) against the identity Merkle tree.
+          Only the <strong className="text-app-heading">GUID and position</strong> are provided by the student;
+          all other details come from the verified Merkle leaf.
+        </p>
 
         <button
-          onClick={handleRegister}
-          disabled={loading}
-          className="rounded bg-red-600 py-2 font-bold text-white hover:bg-red-700 disabled:bg-gray-400"
+          onClick={handleCopyGuidance}
+          className="btn-primary w-full py-3"
         >
-          {loading ? "Registering..." : "Register Candidate"}
+          <span>📋 Copy Guidance</span>
         </button>
       </div>
     </div>

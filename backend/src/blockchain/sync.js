@@ -37,6 +37,23 @@ export function startBlockchainSync(io) {
         console.error("[V3] sync error:", err.message);
       }
     });
+
+    electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position) => {
+      console.log(`👤 [V3] Candidate registered on-chain: ${name} (ID: ${id}, position: ${position})`);
+      try {
+        const posName = position === 0 ? "President" : position === 1 ? "Secretary" : "General Member";
+        await db.query(
+          `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status, year, gender, applied_by, created_at)
+           VALUES ($1, NULL, $2, NULL, $3, 0, 'approved', NULL, NULL, NULL, NOW())
+           ON CONFLICT (blockchain_id)
+           DO UPDATE SET name = $1, position = $2, status = 'approved', updated_at = NOW()`,
+          [name, posName, Number(id)]
+        );
+        broadcastResults();
+      } catch (err) {
+        console.error("[V3] candidate sync error:", err.message);
+      }
+    });
   }
 
   // Listen for votes (structured)

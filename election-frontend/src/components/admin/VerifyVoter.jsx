@@ -1,341 +1,318 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
-
-const STATUS = {
-  WALLET_MISSING: "wallet_missing",
-  WALLET_UNVERIFIED: "wallet_unverified",
-  READY: "ready",
-  VERIFIED: "verified",
-};
-
-function statusOf(student) {
-  if (student.eligible_to_vote) return STATUS.VERIFIED;
-  if (!student.wallet_address) return STATUS.WALLET_MISSING;
-  if (!student.wallet_verified) return STATUS.WALLET_UNVERIFIED;
-  return STATUS.READY;
-}
-
-const STATUS_BADGE = {
-  [STATUS.WALLET_MISSING]: { label: "No wallet linked", cls: "bg-slate-100 text-slate-500" },
-  [STATUS.WALLET_UNVERIFIED]: { label: "Wallet unverified", cls: "bg-amber-100 text-amber-800" },
-  [STATUS.READY]: { label: "Ready to verify", cls: "bg-blue-100 text-blue-800" },
-  [STATUS.VERIFIED]: { label: "Verified", cls: "bg-emerald-100 text-emerald-800" },
-};
+import { useToast } from "../ui/Toast";
+import SectionHeader from "../ui/SectionHeader";
+import StatCard from "../ui/StatCard";
+import EmptyState from "../ui/EmptyState";
+import DataTable from "../ui/DataTable";
 
 export default function VerifyVoter() {
   const { wallet } = useContext(AuthContext);
+  const { success, error: showError } = useToast();
   const [students, setStudents] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [selected, setSelected] = useState(new Set());
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [filter, setFilter] = useState(""); // simple text filter
-  const [verifyingId, setVerifyingId] = useState(null); // for per-row spinner
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [revokeLoading, setRevokeLoading] = useState(false);
+  const [filter, setFilter] = useState("");
 
-  const loadStudents = useCallback(async () => {
-    setFetching(true);
-    try {
-      const response = await fetch(`${API_URL}/api/students/all`);
-      const data = await response.json();
-      setStudents(Array.isArray(data) ? data : []);
-      setSelectedIds((current) =>
-        current.filter((id) =>
-          data.some((s) => s.student_id === id && statusOf(s) === STATUS.READY)
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load students");
-    } finally {
-      setFetching(false);
-    }
-  }, []);
+  const isAdmin = Boolean(wallet);
 
-  useEffect(() => {
-    loadStudents();
-  }, [loadStudents]);
-
-  const filtered = useMemo(() => {
-    const q = filter.trim().toLowerCase();
-    if (!q) return students;
-    return students.filter(
-      (s) =>
-        (s.name || "").toLowerCase().includes(q) ||
-        (s.student_id || "").toLowerCase().includes(q) ||
-        (s.wallet_address || "").toLowerCase().includes(q)
-    );
-  }, [students, filter]);
-
-  const pendingStudents = useMemo(
-    () => filtered.filter((s) => s.eligible_to_vote !== true && s.wallet_address),
-    [filtered]
-  );
-
-  const verifiedStudents = useMemo(
-    () => filtered.filter((s) => s.eligible_to_vote === true),
-    [filtered]
-  );
-
-  const toggleStudent = (studentId) => {
-    setSelectedIds((prev) =>
-      prev.includes(studentId)
-        ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId]
-    );
-  };
-
-  const selectAllReady = () => {
-    setSelectedIds(
-      pendingStudents.filter((s) => statusOf(s) === STATUS.READY).map((s) => s.student_id)
-    );
-  };
-
-  // Per-student verify (calls /api/voters/verify-bulk with one id).
-  async function verifyOne(studentId) {
-    setVerifyingId(studentId);
+  const handleLoadData = useCallback(async () => {
+    if (!isAdmin) return;
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/voters/verify-bulk`, {
+      const res = await fetch(`${API_URL}/api/auth/admin/students?adminWallet=${wallet}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load students");
+      setStudents(data.students || []);
+      setSelected(new Set());
+    } catch (err) {
+      console.error(err);
+      showError("Failed to load students");
+    } finally {
+      setLoading(false);
+    }
+  }, [isAdmin, wallet, showError]);
+
+  // Auto-load once when wallet becomes available (async, no sync setState)
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetch(`${API_URL}/api/auth/admin/students?adminWallet=${wallet}`)
+      .then(async (res) => {
+        if (cancelled) return;
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load students");
+        setStudents(data.students || []);
+        setSelected(new Set());
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error(err);
+          showError("Failed to load students");
+        }
+      });
+    return () => { cancelled = true; };
+  }, [isAdmin, wallet, showError]);
+
+  const toggleStudent = (studentId) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(studentId)) {
+        next.delete(studentId);
+      } else {
+        next.add(studentId);
+      }
+      return next;
+    });
+  };
+
+  const verifyStudent = async (studentId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/voters/verify-bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ student_ids: [studentId], version: "v3", adminWallet: wallet }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Verification failed");
-      alert(
-        `Verified ${studentId}. Tx: ${data.txHash || "(see backend logs)"}`
-      );
-      await loadStudents();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Verification failed");
+      success(`Verified ${studentId}${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      await handleLoadData();
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Verification failed");
-    } finally {
-      setLoading(false);
-      setVerifyingId(null);
+      showError(err.message || "Verification failed");
     }
-  }
+  };
 
-  // Bulk verify for the current selection.
-  async function verifySelected() {
-    if (selectedIds.length === 0) {
-      return alert("Select at least one student to verify");
+  const verifySelected = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) {
+      showError("Select at least one student to verify");
+      return;
     }
-    setLoading(true);
+    setVerifyLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/voters/verify-bulk`, {
+      const res = await fetch(`${API_URL}/api/voters/verify-bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_ids: selectedIds, version: "v3", adminWallet: wallet }),
+        body: JSON.stringify({ student_ids: ids, version: "v3", adminWallet: wallet }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Verification failed");
-      alert(
-        `Verified ${data.verifiedCount} student(s) and updated Merkle root. Tx: ${data.txHash || "(see backend logs)"}`
-      );
-      setSelectedIds([]);
-      await loadStudents();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Batch verification failed");
+      success(`Verified ${data.verifiedCount || ids.length} student(s)${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      setSelected(new Set());
+      await handleLoadData();
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Verification failed");
+      showError(err.message || "Verification failed");
     } finally {
-      setLoading(false);
+      setVerifyLoading(false);
     }
-  }
+  };
 
-  async function revokeStudent(studentId) {
-    if (!confirm(`Revoke ${studentId}? This removes them from the Merkle tree.`)) return;
-    setLoading(true);
+  const revokeStudent = async (studentId) => {
+    const ok = window.confirm(`Permanently revoke ${studentId}? This cannot be undone.`);
+    if (!ok) return;
+    setRevokeLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/voters/revoke`, {
+      const res = await fetch(`${API_URL}/api/voters/revoke`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ student_id: studentId, adminWallet: wallet }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Revoke failed");
-      alert(`Revoked ${studentId}. Tx: ${data.txHash || "(see backend logs)"}`);
-      await loadStudents();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Revoke failed");
+      success(`Revoked ${studentId}${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      await handleLoadData();
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Revoke failed");
+      showError(err.message || "Revoke failed");
     } finally {
-      setLoading(false);
+      setRevokeLoading(false);
     }
-  }
+  };
+
+  const filtered = students.filter((s) => {
+    const q = filter.trim().toUpperCase();
+    if (!q) return true;
+    return (s.student_id || "").toUpperCase().includes(q) || (s.name || "").toUpperCase().includes(q);
+  });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Verify Eligible Voters</h3>
-        <p className="text-sm text-gray-600">
-          Each verification updates the on-chain Merkle root so the student can vote.
-          A student must first link their wallet via the Student Portal.
-        </p>
+    <div className="space-y-5 sm:space-y-6">
+      <SectionHeader icon="✓" title="Verify Voters" subtitle="Whitelist & Revoke" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <StatCard label="Total Registry" value={students.length} />
+        <StatCard label="Selected" value={selected.size} accent="emerald" />
+        <StatCard label="Active Whitelisted" value={students.filter((s) => s.eligibleToVote).length} accent="emerald" />
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
-          <p className="text-2xl font-black text-slate-800">{students.length}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Students</p>
-        </div>
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-center">
-          <p className="text-2xl font-black text-amber-700">{pendingStudents.length}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Pending</p>
-        </div>
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-center">
-          <p className="text-2xl font-black text-emerald-700">{verifiedStudents.length}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Verified</p>
-        </div>
-        <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-center">
-          <p className="text-2xl font-black text-blue-700">{students.filter(s => !s.wallet_address).length}</p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">No Wallet</p>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder="Search by name, ID, or wallet…"
-          className="flex-1 min-w-[180px] rounded border border-slate-300 px-3 py-2 text-sm"
-        />
-        <button
-          onClick={selectAllReady}
-          className="rounded border border-purple-300 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-50"
-        >
-          Select All Ready
-        </button>
-        <button
-          onClick={verifySelected}
-          disabled={loading || selectedIds.length === 0}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          {loading ? "Working..." : `Verify ${selectedIds.length || ""} & Update Merkle`}
-        </button>
-      </div>
-
-      {fetching ? (
-        <p className="text-gray-500">Loading students...</p>
+      {!isAdmin ? (
+        <EmptyState icon="🔐" message="Connect your admin wallet to manage voter verification." />
       ) : (
-        <div className="grid gap-4">
-          {/* Pending */}
-          <section className="space-y-2">
-            <h4 className="font-semibold text-gray-700">
-              Pending{" "}
-              <span className="text-xs font-normal text-gray-400">
-                ({pendingStudents.length})
-              </span>
-            </h4>
-            {pendingStudents.length === 0 ? (
-              <p className="text-gray-500">No pending students.</p>
-            ) : (
-              <div className="max-h-80 space-y-2 overflow-y-auto rounded border p-3">
-                {pendingStudents.map((student) => {
-                  const status = statusOf(student);
-                  const badge = STATUS_BADGE[status];
-                  const canVerify = status === STATUS.READY;
-                  const busy = verifyingId === student.student_id;
+        <>
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
+            <input
+              type="text"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Search student ID or name…"
+              className="input-field flex-1 min-w-0 text-sm"
+            />
+            <button
+              onClick={handleLoadData}
+              disabled={loading}
+              className="rounded-xl border border-app bg-app-input px-4 sm:px-5 py-2.5 text-sm font-bold text-app-muted hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? "Refreshing…" : "🔄 Refresh Data"}
+            </button>
+          </div>
 
-                  return (
-                    <div
-                      key={student.student_id}
-                      className={`flex items-center gap-3 rounded border p-3 ${
-                        canVerify ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"
-                      }`}
-                    >
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-2.5">
+            <button
+              onClick={verifySelected}
+              disabled={verifyLoading || selected.size === 0}
+              className="rounded-xl bg-emerald-500 text-slate-950 px-4 sm:px-5 py-2.5 text-sm font-black uppercase tracking-wider shadow-neon-glow hover:bg-emerald-400 hover:shadow-neon-intense transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {verifyLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-3.5 w-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                  Whitelisting…
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">✅ Whitelist Selected ({selected.size})</span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setSelected(new Set())}
+              disabled={selected.size === 0}
+              className="rounded-xl border border-app bg-app-input px-4 py-2.5 text-sm font-bold text-app-muted hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-40 cursor-pointer"
+            >
+              Clear Selection
+            </button>
+          </div>
+
+          {filtered.length === 0 ? (
+            <EmptyState icon="👥" message={loading ? "Loading database..." : "No unverified student links found."} />
+          ) : (
+            <>
+              <label className="hidden md:flex items-center gap-2 text-sm font-mono font-bold uppercase tracking-wider text-app-muted cursor-pointer select-none w-fit">
+                <input
+                  type="checkbox"
+                  checked={filtered.length > 0 && filtered.every((s) => selected.has(s.student_id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelected(new Set(filtered.map((s) => s.student_id)));
+                    } else {
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        filtered.forEach((s) => next.delete(s.student_id));
+                        return next;
+                      });
+                    }
+                  }}
+                  className="h-4 w-4 accent-emerald-500 rounded cursor-pointer"
+                />
+                Select all visible ({filtered.length})
+              </label>
+              <DataTable
+              keyExtractor={(s) => s.student_id}
+              data={filtered}
+              columns={[
+                {
+                  key: "select",
+                  label: "Select",
+                  hideOnMobile: true,
+                  render: (s) => (
+                    <input
+                      type="checkbox"
+                      checked={selected.has(s.student_id)}
+                      onChange={() => toggleStudent(s.student_id)}
+                      className="h-4 w-4 accent-emerald-500 rounded cursor-pointer"
+                      aria-label={`Select ${s.student_id}`}
+                    />
+                  ),
+                },
+                {
+                  key: "student_id",
+                  label: "ID",
+                  cellClassName: "font-mono text-emerald-400 font-bold",
+                  render: (s) => (
+                    <div className="flex items-center gap-2 md:block">
                       <input
                         type="checkbox"
-                        checked={selectedIds.includes(student.student_id)}
-                        disabled={!canVerify || loading}
-                        onChange={() => toggleStudent(student.student_id)}
-                        className="h-4 w-4"
+                        checked={selected.has(s.student_id)}
+                        onChange={() => toggleStudent(s.student_id)}
+                        className="h-4 w-4 accent-emerald-500 rounded cursor-pointer md:hidden shrink-0"
+                        aria-label={`Select ${s.student_id}`}
                       />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900">{student.name}</p>
-                          {student.year && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{student.year} year</span>
-                          )}
-                          {student.gender && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded capitalize">{student.gender}</span>
-                          )}
-                        </div>
-                        <p className="break-all text-sm text-gray-500">
-                          {student.student_id}
-                          {student.wallet_address && (
-                            <> &middot; <span className="font-mono">{student.wallet_address.slice(0, 6)}…{student.wallet_address.slice(-4)}</span></>
-                          )}
-                        </p>
-                      </div>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badge.cls}`}>
-                        {badge.label}
+                      {s.student_id}
+                    </div>
+                  ),
+                },
+                {
+                  key: "name",
+                  label: "Name",
+                  cellClassName: "font-bold text-app-heading",
+                  render: (s) => s.name || "—",
+                },
+                {
+                  key: "year",
+                  label: "Year",
+                  render: (s) => s.registration_year || s.year || "—",
+                },
+                {
+                  key: "gender",
+                  label: "Gender",
+                  render: (s) => (s.gender ? s.gender.charAt(0).toUpperCase() + s.gender.slice(1) : "—"),
+                },
+                {
+                  key: "status",
+                  label: "Status",
+                  render: (s) =>
+                    s.eligibleToVote ? (
+                      <span className="rounded-full px-2.5 py-1 text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-neon-glow">
+                        Whitelisted
                       </span>
-                      <button
-                        onClick={() => verifyOne(student.student_id)}
-                        disabled={!canVerify || loading}
-                        className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500"
-                        title={canVerify ? "Verify this student and update Merkle root" : "Student must link wallet first"}
-                      >
-                        {busy ? "..." : "Verify"}
-                      </button>
+                    ) : (
+                      <span className="rounded-full px-2.5 py-1 text-xs font-mono font-bold uppercase tracking-wider bg-app-input border border-app text-app-muted">
+                        Awaiting
+                      </span>
+                    ),
+                },
+                {
+                  key: "actions",
+                  label: "Actions",
+                  align: "right",
+                  render: (s) => (
+                    <div className="flex flex-wrap items-center gap-2 justify-end">
+                      {s.registered && s.walletVerified && !s.eligibleToVote && (
+                        <button
+                          onClick={() => verifyStudent(s.student_id)}
+                          disabled={verifyLoading}
+                          className="rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
+                        >
+                          Verify
+                        </button>
+                      )}
+                      {s.eligibleToVote && (
+                        <button
+                          onClick={() => revokeStudent(s.student_id)}
+                          disabled={revokeLoading}
+                          className="rounded-xl px-3 py-1.5 text-xs font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+                        >
+                          Revoke
+                        </button>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* Verified */}
-          <section className="space-y-2">
-            <h4 className="font-semibold text-gray-700">
-              Verified{" "}
-              <span className="text-xs font-normal text-gray-400">
-                ({verifiedStudents.length})
-              </span>
-            </h4>
-            {verifiedStudents.length === 0 ? (
-              <p className="text-gray-500">No verified students yet.</p>
-            ) : (
-              <div className="max-h-56 space-y-2 overflow-y-auto rounded border p-3">
-                {verifiedStudents.map((student) => (
-                  <div
-                    key={student.student_id}
-                    className="flex items-center gap-3 rounded border border-emerald-100 bg-emerald-50 p-3"
-                  >
-                    <span className="text-emerald-600 font-bold">✓</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{student.name}</p>
-                        {student.year && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded">{student.year} year</span>
-                        )}
-                        {student.gender && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded capitalize">{student.gender}</span>
-                        )}
-                      </div>
-                      <p className="break-all text-sm text-gray-500">
-                        {student.student_id}
-                        {student.wallet_address && (
-                          <> &middot; <span className="font-mono">{student.wallet_address.slice(0, 6)}…{student.wallet_address.slice(-4)}</span></>
-                        )}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => revokeStudent(student.student_id)}
-                      disabled={loading}
-                      className="rounded border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:text-gray-400"
-                    >
-                      Revoke
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+                  ),
+                },
+              ]}
+            />
+            </>
+          )}
+        </>
       )}
     </div>
   );

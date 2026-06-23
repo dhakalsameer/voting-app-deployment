@@ -38,14 +38,17 @@ export default function Results() {
   }, []);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-        <h2 className="font-bold text-slate-800 text-sm uppercase tracking-wider flex items-center gap-2">
-          <span className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></span>
+    <div className="glass-panel rounded-3xl shadow-card border border-app overflow-hidden animate-in fade-in duration-500">
+      <div className="bg-app-elevated px-6 py-4 border-b border-app flex justify-between items-center">
+        <h2 className="font-black text-sm text-sky-300 uppercase tracking-widest flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
+          </span>
           Live Results
         </h2>
-        <span className="text-[10px] font-mono text-slate-400">
-          Updated: {lastUpdate.toLocaleTimeString()}
+        <span className="text-xs font-mono text-app-muted">
+          Sync: {lastUpdate.toLocaleTimeString()}
         </span>
       </div>
       
@@ -59,17 +62,17 @@ export default function Results() {
               <div key={c.id} className="space-y-2">
                 <div className="flex justify-between items-end">
                   <div className="min-w-0">
-                    <p className="font-bold text-slate-800 text-sm truncate">{c.name}</p>
-                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">{c.position}</p>
+                    <p className="font-bold text-app-heading text-base truncate">{c.name}</p>
+                    <p className="text-xs font-bold text-amber-200 uppercase tracking-wider">{c.position}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-black text-slate-900 text-sm">{c.vote_count}</p>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">{percentage}%</p>
+                  <div className="text-right min-w-0">
+                    <p className="font-black text-app-heading text-base">{c.vote_count}</p>
+                    <p className="text-xs font-mono font-bold text-app-muted uppercase">{percentage}%</p>
                   </div>
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-app-muted border border-app rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-500 transition-all duration-1000 ease-out"
+                    className="h-full bg-gradient-to-r from-amber-300 via-emerald-500 to-sky-400 shadow-neon-glow transition-all duration-1000 ease-out rounded-full"
                     style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
@@ -78,13 +81,19 @@ export default function Results() {
           })
         ) : (
           <div className="text-center py-8">
-            <p className="text-sm text-slate-400 font-medium italic">Waiting for first block...</p>
+            <p className="text-sm text-app-muted font-mono italic animate-pulse">Awaiting network ballot sync...</p>
           </div>
         )}
       </div>
       
-      <div className="bg-slate-50 px-6 py-3 border-t border-slate-100">
-        <button className="w-full text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 hover:text-blue-600 transition-colors">
+      <div className="bg-app-elevated/60 px-6 py-4 border-t border-app">
+        <button
+          onClick={() => {
+            const el = document.getElementById("analytics-report");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="w-full text-xs font-black uppercase tracking-widest text-sky-300 hover:text-sky-200 transition-colors cursor-pointer"
+        >
           View Detailed Analytics →
         </button>
       </div>

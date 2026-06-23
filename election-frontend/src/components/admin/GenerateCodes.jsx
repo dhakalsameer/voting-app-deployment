@@ -1,9 +1,15 @@
 import { useState, useContext, useEffect, useCallback, useRef } from "react";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
+import { useToast } from "../ui/Toast";
+import SectionHeader from "../ui/SectionHeader";
+import StatCard from "../ui/StatCard";
+import EmptyState from "../ui/EmptyState";
+import DataTable from "../ui/DataTable";
 
 export default function GenerateCodes() {
   const { wallet } = useContext(AuthContext);
+  const { success, error: showError, info } = useToast();
   const [studentIdsText, setStudentIdsText] = useState("");
   const [codes, setCodes] = useState([]);
   const [generatedCodes, setGeneratedCodes] = useState([]);
@@ -38,10 +44,11 @@ export default function GenerateCodes() {
       setCodes(data.codes || []);
     } catch (err) {
       console.error(err);
+      showError("Failed to load registration codes");
     } finally {
       setFetching(false);
     }
-  }, [wallet]);
+  }, [wallet, showError]);
 
   useEffect(() => {
     if (wallet) loadCodes();
@@ -67,9 +74,11 @@ export default function GenerateCodes() {
       setGeneratedCodes(data.codes || []);
       setGeneratedCount(data.count || 0);
       setStudentIdsText("");
+      success(`Generated ${data.count || 0} registration code(s)`);
       await loadCodes();
     } catch (err) {
       setError(err.message || "Generation failed");
+      showError(err.message || "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -88,6 +97,7 @@ export default function GenerateCodes() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    info("CSV download started");
   };
 
   const filteredCodes = codes.filter((c) => {
@@ -101,155 +111,152 @@ export default function GenerateCodes() {
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-semibold">Registration Codes</h3>
-        <p className="text-sm text-gray-600">
-          Generate unique one-time codes for predefined student IDs. Students must enter their ID + code during registration.
-        </p>
-      </div>
+    <div className="space-y-5 sm:space-y-6">
+      <SectionHeader icon="🔑" title="Registration Codes" subtitle="Generate & Distribute" />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[240px] rounded border border-slate-200 bg-slate-50 p-4 space-y-3">
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Students</span>
-            <span className="ml-1 text-xs text-slate-400">(CSV: ID, name, year, gender — one per line)</span>
-          </label>
-          <textarea
-            ref={textareaRef}
-            value={studentIdsText}
-            onChange={(e) => setStudentIdsText(e.target.value)}
-            rows={5}
-            placeholder="GU001,John Doe,1st,male&#10;GU002,Jane Smith,2nd,female&#10;GU003,Ram Thapa,3rd,male"
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none"
-          />
-          {error && <p className="text-xs font-medium text-red-600">{error}</p>}
-          <div className="flex gap-2">
-            <button
-              onClick={handleGenerate}
-              disabled={loading || !wallet}
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:bg-slate-300"
-            >
-              {loading ? "Generating…" : "Generate Codes"}
-            </button>
-            {generatedCodes.length > 0 && (
-              <button
-                onClick={() => downloadCSV(generatedCodes)}
-                className="rounded border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100"
-              >
-                Download CSV ({generatedCount})
-              </button>
+      <p className="text-sm text-app-body leading-relaxed">
+        Generate unique one-time codes linked to voter student IDs. Voters must provide their matched student ID and key to link their Ethereum wallets.
+      </p>
+
+      <div className="space-y-3">
+        <label className="block">
+          <span className="text-sm font-mono font-bold uppercase tracking-wider text-emerald-400">Students Database Upload</span>
+          <span className="ml-1 text-xs font-mono text-app-muted">(CSV: ID,Name,Year,Gender — one per line)</span>
+        </label>
+        <textarea
+          ref={textareaRef}
+          value={studentIdsText}
+          onChange={(e) => setStudentIdsText(e.target.value)}
+          rows={5}
+          placeholder="GU001,John Doe,1st,male&#10;GU002,Jane Smith,2nd,female"
+          disabled={loading}
+          className="input-field w-full px-4 py-3 text-sm font-mono shadow-sm disabled:opacity-50 min-h-[120px]"
+        />
+        {error && <p className="text-sm font-mono font-semibold text-rose-400">{error}</p>}
+
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-2.5">
+          <button
+            onClick={handleGenerate}
+            disabled={loading || !wallet}
+            className="btn-primary disabled:opacity-40"
+          >
+            {loading ? (
+              <>
+                <span className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                Generating…
+              </>
+            ) : (
+              <>🔑 Generate Codes</>
             )}
-          </div>
+          </button>
+
+          {generatedCodes.length > 0 && (
+            <button
+              onClick={() => downloadCSV(generatedCodes)}
+              className="rounded-xl bg-teal-500 text-slate-950 px-5 py-2.5 text-sm font-black uppercase tracking-wider shadow-neon-glow hover:bg-teal-400 transition-all cursor-pointer"
+            >
+              📥 Download CSV ({generatedCount})
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Generated summary */}
       {generatedCodes.length > 0 && (
-        <div className="rounded border border-emerald-200 bg-emerald-50 p-3">
-          <p className="text-sm font-medium text-emerald-800">
-            Created {generatedCount} code(s). Codes are shown in the table below.
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+          <p className="text-sm font-semibold text-emerald-400">
+            ✅ Successfully generated {generatedCount} unique keys. View details in the audit registry below.
           </p>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-center">
-          <p className="text-2xl font-black text-slate-800">
-            {codes.length}
-          </p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total</p>
-        </div>
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-center">
-          <p className="text-2xl font-black text-amber-700">
-            {codes.filter((c) => !c.used).length}
-          </p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Unused</p>
-        </div>
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-center">
-          <p className="text-2xl font-black text-emerald-700">
-            {codes.filter((c) => c.used).length}
-          </p>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Used</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <StatCard label="Total Codes" value={codes.length} />
+        <StatCard label="Unused" value={codes.filter((c) => !c.used).length} accent="emerald" />
+        <StatCard label="Used" value={codes.filter((c) => c.used).length} accent="muted" />
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3">
         <input
           type="text"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Search by ID or code…"
-          className="flex-1 min-w-[160px] rounded border border-slate-300 px-3 py-2 text-sm"
+          placeholder="Filter student ID or code…"
+          className="input-field flex-1 min-w-0 text-sm"
         />
-        <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+        <label className="flex items-center gap-2 text-sm font-mono font-bold uppercase tracking-wider text-app-muted cursor-pointer select-none shrink-0">
           <input
             type="checkbox"
             checked={showUsed}
             onChange={(e) => setShowUsed(e.target.checked)}
-            className="h-4 w-4"
+            className="h-4 w-4 accent-emerald-500 rounded cursor-pointer"
           />
           Show used
         </label>
-        <button
-          onClick={() => downloadCSV(codes)}
-          className="rounded border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
-        >
-          Download All CSV
-        </button>
-        <button
-          onClick={loadCodes}
-          disabled={fetching}
-          className="rounded border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        >
-          {fetching ? "Refreshing…" : "Refresh"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadCSV(codes)}
+            className="flex-1 sm:flex-none rounded-xl border border-app bg-app-input px-3 sm:px-4 py-2.5 text-sm font-bold text-app-muted hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer"
+          >
+            Backup CSV
+          </button>
+          <button
+            onClick={loadCodes}
+            disabled={fetching}
+            className="flex-1 sm:flex-none rounded-xl border border-app bg-app-input px-3 sm:px-4 py-2.5 text-sm font-bold text-app-muted hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {fetching ? "Syncing…" : "🔄 Sync"}
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
       {filteredCodes.length === 0 ? (
-        <p className="text-slate-500 text-sm">No codes to show.</p>
+        <EmptyState icon="🔑" message="No active keys match your query filters." />
       ) : (
-        <div className="rounded border border-slate-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Student ID</th>
-                <th className="text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Code</th>
-                <th className="text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Status</th>
-                <th className="text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Created</th>
-                <th className="text-left px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500">Used At</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredCodes.map((c) => (
-                <tr key={c.id} className={c.used ? "bg-slate-50/60" : "bg-white"}>
-                  <td className="px-3 py-2 font-mono text-slate-700">{c.student_id}</td>
-                  <td className="px-3 py-2 font-mono font-semibold tracking-wide text-slate-800">{c.code}</td>
-                  <td className="px-3 py-2">
-                    {c.used ? (
-                      <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
-                        Used
-                      </span>
-                    ) : (
-                      <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
-                        Unused
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-slate-500">
-                    {c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-xs text-slate-500">
-                    {c.used_at ? new Date(c.used_at).toLocaleDateString() : "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          keyExtractor={(c) => c.id}
+          data={filteredCodes}
+          rowClassName={(c) => (c.used ? "opacity-60" : "")}
+          columns={[
+            {
+              key: "student_id",
+              label: "Voter ID",
+              cellClassName: "font-mono text-emerald-400 font-bold",
+              render: (c) => c.student_id,
+            },
+            {
+              key: "code",
+              label: "Key Code",
+              cellClassName: "font-mono font-bold tracking-wider text-app-heading",
+              render: (c) => c.code,
+            },
+            {
+              key: "status",
+              label: "Status",
+              render: (c) =>
+                c.used ? (
+                  <span className="rounded-full px-2.5 py-1 text-xs font-mono font-bold uppercase tracking-wider bg-app-elevated border border-app text-app-muted">
+                    Claimed
+                  </span>
+                ) : (
+                  <span className="rounded-full px-2.5 py-1 text-xs font-mono font-bold uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-neon-glow">
+                    Available
+                  </span>
+                ),
+            },
+            {
+              key: "created_at",
+              label: "Issued",
+              cellClassName: "font-mono",
+              render: (c) => (c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"),
+            },
+            {
+              key: "used_at",
+              label: "Claimed At",
+              cellClassName: "font-mono",
+              render: (c) => (c.used_at ? new Date(c.used_at).toLocaleDateString() : "—"),
+            },
+          ]}
+        />
       )}
     </div>
   );

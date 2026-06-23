@@ -8,7 +8,12 @@ export function AuthProvider({ children }) {
   const [wallet, setWallet] = useState(null);
   const [student, setStudent] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [provider, setProvider] = useState(null);
+  const [provider, setProvider] = useState(() => {
+    if (typeof window !== "undefined" && window.ethereum) {
+      return new ethers.BrowserProvider(window.ethereum);
+    }
+    return null;
+  });
   const [voterStatus, setVoterStatus] = useState({
     registered: false,
     walletLinked: false,
@@ -17,25 +22,29 @@ export function AuthProvider({ children }) {
     hasVoted: false,
   });
   const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    if (window.ethereum) {
-      const p = new ethers.BrowserProvider(window.ethereum);
-      setProvider(p);
-
-      if (window.ethereum.setMaxListeners) {
-        window.ethereum.setMaxListeners(20);
-      }
+    if (window.ethereum && window.ethereum.setMaxListeners) {
+      window.ethereum.setMaxListeners(20);
     }
   }, []);
 
   const checkVoterStatus = useCallback(async (address) => {
     try {
+      setAuthError(null);
       if (!address || !provider) return;
 
-      const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, ABI.abi, provider);
-      const adminAddress = await contract.admin();
-      setIsAdmin(address.toLowerCase() === adminAddress.toLowerCase());
+      let adminMatch = false;
+      try {
+        const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, ABI.abi, provider);
+        const adminAddress = await contract.admin();
+        adminMatch = address.toLowerCase() === adminAddress.toLowerCase();
+      } catch (adminErr) {
+        console.error("Admin check failed:", adminErr);
+        setAuthError("Could not verify admin status. Check contract address & network.");
+      }
+      setIsAdmin(adminMatch);
 
       const response = await fetch(`${API_URL}/api/voters/me?wallet=${address}`);
       const data = await response.json();
@@ -50,6 +59,7 @@ export function AuthProvider({ children }) {
       });
     } catch (err) {
       console.error("Status check error:", err);
+      setAuthError(err.message || "Failed to check voter status");
     }
   }, [provider]);
 
@@ -108,6 +118,8 @@ export function AuthProvider({ children }) {
         connectWallet,
         checkVoterStatus,
         loading,
+        authError,
+        provider,
       }}
     >
       {children}

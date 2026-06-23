@@ -1,5 +1,34 @@
 import { useState, useEffect } from "react";
-import { API_URL, CONTRACT_ADDRESS_V3 } from "../config";
+import { API_URL, CONTRACT_ADDRESS_V3, SEPOLIA_NETWORK, SEPOLIA_CHAIN_ID } from "../config";
+
+function StatusItem({ label, status, ok, detail, href }) {
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="text-slate-500">{label}:</span>
+      <span
+        className={`h-2 w-2 rounded-full ${
+          ok
+            ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse"
+            : status === "checking"
+            ? "bg-amber-500"
+            : "bg-rose-500"
+        }`}
+      />
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sky-300 hover:text-sky-200 transition-colors underline truncate max-w-[140px] sm:max-w-none"
+        >
+          {detail}
+        </a>
+      ) : (
+        <span className={ok ? "text-sky-300 font-bold" : "text-rose-400"}>{detail}</span>
+      )}
+    </div>
+  );
+}
 
 export default function SystemStatus() {
   const [backendStatus, setBackendStatus] = useState("checking");
@@ -17,14 +46,14 @@ export default function SystemStatus() {
     };
 
     const updateChainStatus = (chainId) => {
-      if (chainId === '0xaa36a7') setChainStatus("sepolia");
+      if (chainId === "0xaa36a7") setChainStatus("sepolia");
       else setChainStatus("wrong-network");
     };
 
     const initChain = async () => {
       if (window.ethereum) {
         try {
-          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+          const chainId = await window.ethereum.request({ method: "eth_chainId" });
           updateChainStatus(chainId);
         } catch {
           setChainStatus("error");
@@ -42,52 +71,77 @@ export default function SystemStatus() {
     };
 
     if (window.ethereum) {
-      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on("chainChanged", handleChainChanged);
     }
 
     const interval = setInterval(checkBackend, 30000);
 
     return () => {
       if (window.ethereum && window.ethereum.removeListener) {
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
       }
       clearInterval(interval);
     };
   }, []);
 
+  const networkLabel = `${SEPOLIA_NETWORK} · Chain ${SEPOLIA_CHAIN_ID}`;
+
   return (
-    <div className="flex flex-wrap gap-4 items-center bg-gray-50 border-b border-gray-200 px-8 py-2 text-xs font-mono">
-      <div className="flex items-center gap-2">
-        <span className="text-gray-500">API:</span>
-        <span className={`h-2 w-2 rounded-full ${
-          backendStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 
-          backendStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'
-        }`}></span>
-        <span className={backendStatus === 'online' ? 'text-green-700' : 'text-red-700'}>
-          {backendStatus.toUpperCase()}
-        </span>
-      </div>
+    <div className="border-b border-app bg-app-bg/90">
+      <div className="page-container py-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm font-mono overflow-x-auto">
+          <StatusItem
+            label="API"
+            status={backendStatus}
+            ok={backendStatus === "online"}
+            detail={backendStatus.toUpperCase()}
+          />
 
-      <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
-        <span className="text-gray-500">NETWORK:</span>
-        <span className={`h-2 w-2 rounded-full ${
-          chainStatus === 'sepolia' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'bg-red-500'
-        }`}></span>
-        <span className={chainStatus === 'sepolia' ? 'text-blue-700' : 'text-red-700'}>
-          {chainStatus === 'sepolia' ? 'SEPOLIA (LIVE)' : chainStatus.toUpperCase()}
-        </span>
-      </div>
+          <div className="hidden sm:block h-3 w-px bg-app-border shrink-0" />
 
-      <div className="flex items-center gap-2 border-l border-gray-300 pl-4 hidden md:flex">
-        <span className="text-gray-500">CONTRACT:</span>
-        <a 
-          href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS_V3}`} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-          {CONTRACT_ADDRESS_V3.slice(0, 10)}...{CONTRACT_ADDRESS_V3.slice(-6)}
-        </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-slate-500">NETWORK:</span>
+            <span
+              className={`h-2 w-2 rounded-full ${
+                chainStatus === "sepolia"
+                  ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] animate-pulse"
+                  : chainStatus === "checking"
+                  ? "bg-amber-500"
+                  : "bg-rose-500"
+              }`}
+            />
+            {chainStatus === "sepolia" ? (
+              <a
+                href={`https://sepolia.etherscan.io`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-300 hover:text-sky-200 transition-colors underline truncate max-w-[140px] sm:max-w-none"
+              >
+                {networkLabel} (LIVE)
+              </a>
+            ) : chainStatus === "no-wallet" ? (
+              <span className="text-amber-400">
+                {networkLabel} — Connect MetaMask to verify
+              </span>
+            ) : (
+              <span className="text-rose-400">
+                {networkLabel} — {chainStatus.toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          <div className="hidden md:block h-3 w-px bg-app-border shrink-0" />
+
+          <div className="hidden md:flex">
+            <StatusItem
+              label="CONTRACT"
+              status="online"
+              ok
+              detail={`${CONTRACT_ADDRESS_V3.slice(0, 10)}...${CONTRACT_ADDRESS_V3.slice(-6)}`}
+              href={`https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS_V3}`}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

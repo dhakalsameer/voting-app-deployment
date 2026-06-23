@@ -13,6 +13,7 @@ import voterRoutes from "./routes/voterRoutes.js";
 import resultsRoutes from "./routes/resultsRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import registrationCodeRoutes from "./routes/registrationCodeRoutes.js";
+import distributionRoutes from "./routes/distributionRoutes.js";
 
 import { startBlockchainSync } from "./blockchain/sync.js";
 
@@ -77,6 +78,7 @@ app.use("/api/voters", voterRoutes);
 app.use("/api/results", resultsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", registrationCodeRoutes);
+app.use("/api/distribution", distributionRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

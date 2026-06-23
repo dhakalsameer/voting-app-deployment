@@ -1,38 +1,38 @@
 export default function ArchitectureOverview() {
   return (
-    <div className="bg-white p-6 rounded-lg shadow border-l-4 border-indigo-500 mt-8">
-      <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-4">System Architecture</h3>
+    <div id="architecture-overview" className="glass-panel p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-app shadow-card relative overflow-hidden">
+      <h3 className="text-sm font-black text-sky-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+        <span className="p-1 rounded bg-sky-400/10 text-sky-300">⚙️</span>
+        System Architecture
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-            <span className="bg-indigo-100 p-1.5 rounded-md">🛡️</span>
-            Merkle Tree Verification
+        <div className="flex flex-col gap-3 bg-app-elevated/35 border border-app rounded-2xl p-5 hover:border-sky-400/35 transition-all duration-300">
+          <div className="flex items-center gap-2 font-bold text-app-heading text-base">
+            <span className="bg-sky-400/10 border border-sky-400/25 p-2 rounded-xl">🛡️</span>
+            Merkle Tree Whitelist
           </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Eligible voters are stored in an off-chain Merkle Tree. Only the root is on-chain, 
-            slashing gas costs by 99% while maintaining cryptographic security.
+          <p className="text-sm text-app-body leading-relaxed">
+            Eligible voters are verified off-chain via Merkle proofs. Only the Merkle root is stored on-chain, slashing transaction gas fees by 99% while maintaining absolute security.
           </p>
         </div>
         
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-            <span className="bg-blue-100 p-1.5 rounded-md">🔗</span>
+        <div className="flex flex-col gap-3 bg-app-elevated/35 border border-app rounded-2xl p-5 hover:border-sky-400/35 transition-all duration-300">
+          <div className="flex items-center gap-2 font-bold text-app-heading text-base">
+            <span className="bg-sky-400/10 border border-sky-400/25 p-2 rounded-xl">🔗</span>
             Blockchain Ledger
           </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Votes are permanently recorded on the Sepolia Testnet. Once cast, a vote cannot 
-            be altered, deleted, or double-counted by anyone, including admins.
+          <p className="text-sm text-app-body leading-relaxed">
+            Votes are permanently recorded on the Sepolia Testnet. Once broadcasted, a vote cannot be altered, censored, or double-counted by anyone—including system administrators.
           </p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-            <span className="bg-green-100 p-1.5 rounded-md">⚡</span>
-            Hybrid Database
+        <div className="flex flex-col gap-3 bg-app-elevated/35 border border-app rounded-2xl p-5 hover:border-sky-400/35 transition-all duration-300">
+          <div className="flex items-center gap-2 font-bold text-app-heading text-base">
+            <span className="bg-sky-400/10 border border-sky-400/25 p-2 rounded-xl">⚡</span>
+            Hybrid Sync Cache
           </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Candidate metadata and student profiles are managed by a PostgreSQL backend, 
-            providing a fast, responsive UI while ensuring critical logic stays decentralized.
+          <p className="text-sm text-app-body leading-relaxed">
+            A background synchronization engine listens to smart contract events to cache data in a PostgreSQL DB, providing instant UI updates and rich real-time dashboards.
           </p>
         </div>
       </div>
