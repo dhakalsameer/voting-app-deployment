@@ -12,6 +12,14 @@ const POSITIONS = [
   { value: 2, label: "General Member", icon: "🤝" },
 ];
 
+/*
+ * Called when the admin has approved the student's candidate application AND
+ * the Registration phase is open on-chain. This component:
+ *   1. Loads the current contract phase + checks if already registered
+ *   2. Fetches the student's identity Merkle proof from the backend
+ *   3. Lets the student pick a position and submit registerCandidate() on-chain
+ *   4. On success, shows a confirmation with the transaction link
+ */
 export default function CandidateSelfRegister({ student }) {
   const { wallet } = useContext(AuthContext);
   const { success, error: showError } = useToast();

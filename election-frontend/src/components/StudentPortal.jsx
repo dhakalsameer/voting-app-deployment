@@ -160,6 +160,12 @@ function formatCode(v) {
   return parts.join("-");
 }
 
+/*
+ * Student registration: 3-step wizard (Code → Details → Wallet).
+ * Step 1 validates the registration code against the backend.
+ * Step 2 collects name + password.
+ * Step 3 links MetaMask wallet and submits everything to /api/auth/register.
+ */
 function RegisterView({ onLogin }) {
   const { save } = usePortal();
   const { connectWallet, wallet } = useContext(AuthContext);
@@ -203,6 +209,11 @@ function RegisterView({ onLogin }) {
     setStep(3);
   };
 
+  /*
+   * Step 3: Connect wallet, sign message, then submit everything to backend.
+   * IMPORTANT: 'name' is explicitly included in the request body. Without it,
+   * the backend returns 400 if the admin did not pre-fill names via CSV.
+   */
   const signAndRegister = async () => {
     setLoading(true);
     setError("");
@@ -529,6 +540,15 @@ function ProfileCard({ student, onPhotoChange }) {
   );
 }
 
+/*
+ * CandidateSection: shown inside the student Dashboard.
+ * Fetches the student's candidate application (if any) and displays:
+ *   - No application and not eligible → "wait for whitelist"
+ *   - No application and eligible → apply form (President/Secretary/General Member)
+ *   - Pending application → "under review"
+ *   - Approved + eligible → renders CandidateSelfRegister for on-chain registration
+ *   - Rejected → "contact committee"
+ */
 function CandidateSection({ student, authFetch }) {
   const { success } = useToast();
   const [application, setApplication] = useState(null);

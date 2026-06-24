@@ -1,4 +1,8 @@
 import { db } from "../db.js";
+/*
+ * Emit real-time socket events so the admin PendingCandidates UI
+ * refreshes immediately when an application is approved or rejected.
+ */
 import { emitEvent } from "../socket.js";
 
 export const createCandidate = async (req, res) => {
