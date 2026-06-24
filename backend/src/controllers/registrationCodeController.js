@@ -79,6 +79,15 @@ export const generateCodes = async (req, res) => {
         [student.student_id, student.name, student.year, student.gender]
       );
 
+      // Skip code generation for already-registered students
+      const regCheck = await db.query(
+        "SELECT registered FROM students WHERE student_id = $1",
+        [student.student_id]
+      );
+      if (regCheck.rows.length > 0 && regCheck.rows[0].registered) {
+        continue;
+      }
+
       // Check if a code already exists for this student
       const existing = await db.query(
         "SELECT code FROM registration_codes WHERE student_id = $1 AND used = false LIMIT 1",

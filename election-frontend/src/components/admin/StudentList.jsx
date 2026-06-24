@@ -88,7 +88,8 @@ export default function StudentList() {
             year: r.year ? String(r.year).trim().toLowerCase() : null,
             gender: r.gender ? String(r.gender).trim().toLowerCase() : null,
           }))
-          .filter((s) => s.student_id);
+          .filter((s) => s.student_id)
+          .filter((s, i, arr) => arr.findIndex((x) => x.student_id === s.student_id) === i);
 
         if (csvStudents.length === 0) {
           showError("No valid student records found in CSV");
@@ -145,7 +146,7 @@ export default function StudentList() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <SectionHeader icon="🎓" title="Student Registry" subtitle="View & Manage Records" />
+      <SectionHeader icon="🎓" title="Student Registry" />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard label="Total" value={total} />
