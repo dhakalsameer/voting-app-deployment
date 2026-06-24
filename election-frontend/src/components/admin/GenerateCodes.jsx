@@ -19,6 +19,7 @@ export default function GenerateCodes() {
   const [filter, setFilter] = useState("");
   const [showUsed, setShowUsed] = useState(false);
   const [generatedCount, setGeneratedCount] = useState(0);
+  const [generatedMeta, setGeneratedMeta] = useState(null);
   const textareaRef = useRef(null);
 
   const parseStudents = (text) => {
@@ -73,8 +74,13 @@ export default function GenerateCodes() {
       if (!res.ok) throw new Error(data.error || "Generation failed");
       setGeneratedCodes(data.codes || []);
       setGeneratedCount(data.count || 0);
+      setGeneratedMeta({ generated: data.generated || [], reused: data.reused || [], skipped: data.skipped || [] });
       setStudentIdsText("");
-      success(`Generated ${data.count || 0} registration code(s)`);
+      const parts = [];
+      if (data.generated?.length) parts.push(`${data.generated.length} new`);
+      if (data.reused?.length) parts.push(`${data.reused.length} reused`);
+      if (data.skipped?.length) parts.push(`${data.skipped.length} skipped (${data.skipped.map(s => s.reason).join(', ')})`);
+      success(`Codes: ${parts.join(', ') || 'none'}`);
       await loadCodes();
     } catch (err) {
       setError(err.message || "Generation failed");
@@ -112,7 +118,7 @@ export default function GenerateCodes() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <SectionHeader icon="🔑" title="Registration Codes" subtitle="Generate & Distribute" />
+      <SectionHeader icon="🔑" title="Registration Codes" />
 
       <p className="text-sm text-app-body leading-relaxed">
         Generate unique one-time codes linked to voter student IDs. Voters must provide their matched student ID and key to link their Ethereum wallets.
@@ -161,11 +167,20 @@ export default function GenerateCodes() {
         </div>
       </div>
 
-      {generatedCodes.length > 0 && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-          <p className="text-sm font-semibold text-emerald-400">
-            ✅ Successfully generated {generatedCount} unique keys. View details in the audit registry below.
-          </p>
+      {generatedMeta && (
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 space-y-1">
+          {generatedMeta.generated.length > 0 && (
+            <p className="text-sm font-semibold text-emerald-400">✅ Generated {generatedMeta.generated.length} new code(s)</p>
+          )}
+          {generatedMeta.reused.length > 0 && (
+            <p className="text-sm font-semibold text-sky-400">♻️ {generatedMeta.reused.length} code(s) already existed — reused</p>
+          )}
+          {generatedMeta.skipped.length > 0 && generatedMeta.skipped.map((s, i) => (
+            <p key={i} className="text-sm text-amber-400">
+              ⏭️ {s.student_id} ({s.name || "no name"}) — {s.reason}
+            </p>
+          ))}
+          <p className="text-xs text-app-muted pt-1">View details in the audit registry below.</p>
         </div>
       )}
 

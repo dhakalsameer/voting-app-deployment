@@ -63,7 +63,9 @@ export const generateCodes = async (req, res) => {
       return res.status(400).json({ error: "No valid students provided" });
     }
 
-    const inserted = [];
+    const generated = [];
+    const reused = [];
+    const skipped = [];
 
     for (const student of normalized) {
       // Upsert student record (keep existing data if already present)
@@ -79,9 +81,13 @@ export const generateCodes = async (req, res) => {
         [student.student_id, student.name, student.year, student.gender]
       );
 
+      // Check student's current registered status
+      const reg = await db.query(
+        `SELECT registered, name, year, gender FROM students WHERE student_id = $1`,
+        [student.student_id]
+      );
+
       // Check if any code was ever created for this student (used or unused).
-      // This prevents generating a new code even if the student row was
-      // deleted and recreated — the old code persists in registration_codes.
       const existingCode = await db.query(
         "SELECT code, used FROM registration_codes WHERE student_id = $1 ORDER BY used ASC, id DESC LIMIT 1",
         [student.student_id]
@@ -89,8 +95,12 @@ export const generateCodes = async (req, res) => {
 
       if (existingCode.rows.length > 0) {
         const row = existingCode.rows[0];
-        if (!row.used) {
-          inserted.push({ student_id: student.student_id, code: row.code });
+        if (reg.rows[0]?.registered) {
+          skipped.push({ student_id: student.student_id, reason: "already registered", ...reg.rows[0] });
+        } else if (!row.used) {
+          reused.push({ student_id: student.student_id, code: row.code, ...reg.rows[0] });
+        } else {
+          skipped.push({ student_id: student.student_id, reason: "code used", ...reg.rows[0] });
         }
         continue;
       }
@@ -104,7 +114,7 @@ export const generateCodes = async (req, res) => {
             "INSERT INTO registration_codes (student_id, code) VALUES ($1, $2)",
             [student.student_id, code]
           );
-          inserted.push({ student_id: student.student_id, code });
+          generated.push({ student_id: student.student_id, code, ...reg.rows[0] });
           break;
         } catch (err) {
           if (err.code === "23505") {
@@ -118,9 +128,12 @@ export const generateCodes = async (req, res) => {
     }
 
     return res.status(201).json({
-      message: "Registration codes generated",
-      count: inserted.length,
-      codes: inserted,
+      message: "Registration codes processed",
+      generated,
+      reused,
+      skipped,
+      count: generated.length,
+      codes: [...generated, ...reused],
     });
   } catch (error) {
     console.error("generateCodes error:", error);
