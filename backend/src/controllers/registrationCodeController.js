@@ -137,27 +137,38 @@ export const generateCodes = async (req, res) => {
 export const listCodes = async (req, res) => {
   try {
     const { used, studentId } = req.query;
-    let sql = `SELECT id, student_id, code, used, created_at, used_at FROM registration_codes`;
+    let sql = `
+      SELECT rc.id, rc.student_id, rc.code, rc.used, rc.created_at, rc.used_at,
+             s.registered AS student_registered
+      FROM registration_codes rc
+      LEFT JOIN students s ON s.student_id = rc.student_id`;
     const where = [];
     const params = [];
 
     if (used !== undefined) {
-      params.push(used === "true");
-      where.push(`used = $${params.length}`);
+      if (used === "true") {
+        where.push(`(rc.used = true OR s.registered = true)`);
+      } else {
+        where.push(`(rc.used = false AND (s.registered IS NULL OR s.registered = false))`);
+      }
     }
     if (studentId) {
       params.push(studentId);
-      where.push(`student_id = $${params.length}`);
+      where.push(`rc.student_id = $${params.length}`);
     }
 
     if (where.length > 0) {
       sql += " WHERE " + where.join(" AND ");
     }
 
-    sql += " ORDER BY created_at DESC";
+    sql += " ORDER BY rc.created_at DESC";
 
     const result = await db.query(sql, params);
-    return res.json({ codes: result.rows });
+    const codes = result.rows.map((row) => ({
+      ...row,
+      used: row.used || row.student_registered === true,
+    }));
+    return res.json({ codes });
   } catch (error) {
     console.error("listCodes error:", error);
     return res.status(500).json({ error: "Failed to list registration codes" });
