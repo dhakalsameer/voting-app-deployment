@@ -70,12 +70,6 @@ npm run dev
 2. **Admin Protection**: Critical functions (registering candidates, starting elections) are protected by the `onlyAdmin` modifier.
 3. **Signature Verification**: The backend verifies wallet ownership via Ethers.js message signing to prevent API spoofing.
 
-## 🎓 Viva Preparation (Quick Answers)
 
-- **Why Hybrid?** To provide "Web2 speed with Web3 trust."
-- **Why IPFS?** To ensure that candidate data isn't controlled by a single server.
-- **Why PostgreSQL?** To allow complex filtering and instant results that are too expensive or slow to do directly on-chain.
-
----
 
 **Developed for the IT Club Election Project.** 🚀
