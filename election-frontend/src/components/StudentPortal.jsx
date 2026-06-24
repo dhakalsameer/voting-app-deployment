@@ -222,6 +222,7 @@ function RegisterView({ onLogin }) {
           student_id: id.trim().toUpperCase(),
           code: code.trim().toUpperCase(),
           password: pw,
+          name,
           wallet: addr,
           signature,
         }),
@@ -237,81 +238,229 @@ function RegisterView({ onLogin }) {
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {step < 4 && <h2 className="text-base font-semibold text-app-heading">Register</h2>}
+  const steps = [
+    { num: 1, label: "Code", icon: "🔑" },
+    { num: 2, label: "Details", icon: "✏️" },
+    { num: 3, label: "Wallet", icon: "🦊" },
+  ];
 
+  return (
+    <div className="space-y-5">
       {step < 4 && (
-        <div className="flex gap-2">
-          {["Code", "Details", "Wallet"].map((l, i) => (
-            <span
-              key={l}
-              className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
-                step > i + 1
-                  ? "border-emerald-500/30 text-emerald-400"
-                  : step === i + 1
-                  ? "border-sky-400 text-app-accent"
-                  : "border-app-border text-app-muted-text"
-              }`}
-            >
-              {l}
-            </span>
-          ))}
-        </div>
+        <>
+          <div className="text-center">
+            <h2 className="text-base font-semibold text-app-heading">Create Account</h2>
+            <p className="text-xs text-app-muted-text mt-1">Complete all steps to register for the election</p>
+          </div>
+
+          <div className="relative">
+            <div className="absolute top-4 left-6 right-6 h-px bg-app-border/60" />
+            <div className="flex justify-between relative">
+              {steps.map((s) => (
+                <div key={s.label} className="flex flex-col items-center gap-1.5">
+                  <span
+                    className={`relative z-10 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                      step > s.num
+                        ? "bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40"
+                        : step === s.num
+                        ? "bg-app-accent-soft text-app-accent border-2 border-app-accent shadow-sm"
+                        : "bg-app-muted/50 text-app-muted-text border-2 border-app-border/50"
+                    }`}
+                  >
+                    {step > s.num ? "✓" : s.icon}
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                      step >= s.num ? "text-app-heading" : "text-app-muted-text"
+                    }`}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {step === 1 && (
-        <div className="space-y-3">
-          <input className="input-field text-sm" placeholder="Student ID" value={id} onChange={(e) => setId(e.target.value.toUpperCase())} />
-          <input className="input-field text-sm font-mono" placeholder="XXXX-XXXX-XXXX" value={code} onChange={(e) => setCode(formatCode(e.target.value))} />
-          {error && <p className="text-xs text-rose-400">{error}</p>}
-          <button onClick={verify} disabled={loading} className="btn-primary w-full text-sm">{loading ? "Verifying..." : "Verify"}</button>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">🔐</span>
+            <p className="text-xs font-medium text-app-heading">Enter your registration credentials</p>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1 block">Student ID</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-app-muted-text font-mono">📋</span>
+              <input
+                className="input-field text-sm pl-8"
+                placeholder="e.g. GUSD430"
+                value={id}
+                onChange={(e) => setId(e.target.value.toUpperCase())}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1 block">Registration Code</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-app-muted-text">🔑</span>
+              <input
+                className="input-field text-sm font-mono pl-8 tracking-[0.15em]"
+                placeholder="XXXX-XXXX-XXXX"
+                value={code}
+                onChange={(e) => setCode(formatCode(e.target.value))}
+              />
+            </div>
+          </div>
+          {error && (
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
+              <p className="text-xs text-rose-400">{error}</p>
+            </div>
+          )}
+          <button onClick={verify} disabled={loading} className="btn-primary w-full text-sm">
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-3.5 w-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                Verifying…
+              </span>
+            ) : (
+              "Verify Code"
+            )}
+          </button>
           <p className="text-xs text-center text-app-muted-text">
             Have an account?{" "}
-            <button type="button" onClick={onLogin} className="text-app-accent hover:underline cursor-pointer">Sign in</button>
+            <button type="button" onClick={onLogin} className="text-app-accent hover:underline cursor-pointer font-medium">Sign in</button>
           </p>
         </div>
       )}
 
       {step === 2 && (
-        <div className="space-y-3">
-          <input className="input-field text-sm" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="input-field text-sm" type="password" placeholder="Password (6+ chars)" value={pw} onChange={(e) => setPw(e.target.value)} />
-          <input className="input-field text-sm" type="password" placeholder="Confirm password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-          {error && <p className="text-xs text-rose-400">{error}</p>}
-          <div className="flex gap-2">
-            <button onClick={() => setStep(1)} className="btn-secondary flex-1 text-sm">Back</button>
-            <button onClick={submitDetails} className="btn-primary flex-1 text-sm">Next</button>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">✏️</span>
+            <p className="text-xs font-medium text-app-heading">Set up your profile and password</p>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1 block">Full Name</label>
+            <input
+              className="input-field text-sm"
+              placeholder="e.g. Ram Sharma"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1 block">Password</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-app-muted-text">🔒</span>
+              <input
+                className="input-field text-sm pl-8"
+                type="password"
+                placeholder="Min 6 characters"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1 block">Confirm Password</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-app-muted-text">🔒</span>
+              <input
+                className="input-field text-sm pl-8"
+                type="password"
+                placeholder="Re-enter password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
+            </div>
+          </div>
+          {error && (
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
+              <p className="text-xs text-rose-400">{error}</p>
+            </div>
+          )}
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setStep(1)} className="btn-secondary flex-1 text-sm">← Back</button>
+            <button onClick={submitDetails} className="btn-primary flex-1 text-sm">Next →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="space-y-3">
+        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">🦊</span>
+            <p className="text-xs font-medium text-app-heading">Link your wallet to complete registration</p>
+          </div>
+
           {!wallet ? (
-            <button onClick={connectWallet} className="btn-primary w-full text-sm">Connect MetaMask</button>
+            <button
+              onClick={connectWallet}
+              className="w-full rounded-xl border-2 border-dashed border-app-accent/40 bg-app-accent-soft/10 py-6 flex flex-col items-center gap-2 hover:bg-app-accent-soft/20 hover:border-app-accent/60 transition-all cursor-pointer"
+            >
+              <span className="text-2xl">🦊</span>
+              <span className="text-sm font-bold text-app-accent">Connect MetaMask</span>
+              <span className="text-[10px] text-app-muted-text">Your wallet will be linked to your account</span>
+            </button>
           ) : (
-            <div className="p-3 rounded-lg border border-app bg-app-muted text-center">
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center space-y-2">
+              <div className="mx-auto h-8 w-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <span className="text-emerald-400 text-xs">✓</span>
+              </div>
               <p className="text-xs font-mono text-app-accent break-all">{wallet}</p>
+              <p className="text-[10px] text-emerald-400 font-medium">Wallet connected</p>
             </div>
           )}
-          {error && <p className="text-xs text-rose-400">{error}</p>}
-          <div className="flex gap-2">
-            <button onClick={() => setStep(2)} className="btn-secondary flex-1 text-sm">Back</button>
-            <button onClick={signAndRegister} disabled={loading || !wallet} className="btn-primary flex-1 text-sm">
-              {loading ? "Registering..." : "Register"}
+
+          {wallet && (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+              <p className="text-[10px] text-amber-400 font-medium">Signature required</p>
+              <p className="text-xs text-app-muted-text mt-0.5">
+                You will be asked to sign a message to prove wallet ownership.
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
+              <p className="text-xs text-rose-400">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setStep(2)} className="btn-secondary flex-1 text-sm">← Back</button>
+            <button
+              onClick={signAndRegister}
+              disabled={loading || !wallet}
+              className="btn-primary flex-1 text-sm"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-3.5 w-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                  Registering…
+                </span>
+              ) : (
+                "Complete Registration"
+              )}
             </button>
           </div>
         </div>
       )}
 
       {step === 4 && (
-        <div className="py-6 text-center space-y-3">
-          <div className="mx-auto h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <span className="text-emerald-400 text-sm">✓</span>
+        <div className="py-8 text-center space-y-4">
+          <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center animate-bounce">
+            <span className="text-emerald-400 text-2xl">✓</span>
           </div>
-          <p className="text-sm font-medium text-emerald-400">Registered</p>
-          <button onClick={() => setStep(1)} className="btn-primary text-sm px-5">Dashboard</button>
+          <div>
+            <p className="text-base font-bold text-emerald-400">Registration Complete!</p>
+            <p className="text-xs text-app-muted-text mt-1">You can now sign in and access the portal.</p>
+          </div>
+          <button onClick={() => setStep(1)} className="btn-primary text-sm px-8 mx-auto">
+            Go to Dashboard
+          </button>
         </div>
       )}
     </div>
@@ -437,8 +586,9 @@ function CandidateSection({ student, authFetch }) {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse">
-        <p className="text-xs text-app-muted-text">Loading application status…</p>
+      <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse space-y-2">
+        <div className="h-3 w-24 bg-app-muted rounded" />
+        <div className="h-3 w-40 bg-app-muted rounded" />
       </div>
     );
   }
@@ -447,20 +597,47 @@ function CandidateSection({ student, authFetch }) {
     return (
       <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Candidate Application</h4>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🎯</span>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Candidate Application</h4>
+          </div>
           {statusBadge(application.status)}
         </div>
-        <p className="text-sm text-app-body">
-          Position: <span className="font-semibold text-app-heading">{application.position}</span>
-        </p>
+        <div className="rounded-lg border border-app bg-app-muted/30 p-3">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p className="text-app-muted-text uppercase tracking-wider text-[10px]">Position</p>
+              <p className="font-semibold text-app-heading mt-0.5">{application.position}</p>
+            </div>
+            <div>
+              <p className="text-app-muted-text uppercase tracking-wider text-[10px]">Submitted</p>
+              <p className="font-semibold text-app-heading mt-0.5">
+                {application.applied_at ? new Date(application.applied_at).toLocaleDateString() : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
         {application.status === "approved" && student.eligibleToVote && (
           <CandidateSelfRegister student={student} />
         )}
         {application.status === "approved" && !student.eligibleToVote && (
-          <p className="text-xs text-amber-400">You must be whitelisted before you can register on-chain.</p>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+            <p className="text-xs text-amber-400">
+              Your application is approved. You must be whitelisted by the admin before you can register on-chain.
+            </p>
+          </div>
+        )}
+        {application.status === "pending" && (
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+            <p className="text-xs text-amber-400">
+              Your application is under review by the election committee.
+            </p>
+          </div>
         )}
         {application.status === "rejected" && (
-          <p className="text-xs text-app-muted-text">Contact the election committee for more information.</p>
+          <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
+            <p className="text-xs text-rose-400">Your application was not approved. Contact the election committee for more information.</p>
+          </div>
         )}
       </div>
     );
@@ -468,24 +645,38 @@ function CandidateSection({ student, authFetch }) {
 
   if (!student.eligibleToVote) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface p-4">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Application</h4>
-        <p className="mt-1 text-xs text-app-muted-text">You must be whitelisted before applying.</p>
+      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">🎯</span>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Application</h4>
+        </div>
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <p className="text-xs text-amber-400">
+            You must be whitelisted as a voter before you can apply as a candidate.
+          </p>
+          <p className="text-[10px] text-app-muted-text mt-1">
+            Please wait for the admin to whitelist you in the voter list.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
-      <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Apply as Candidate</h4>
+      <div className="flex items-center gap-2">
+        <span className="text-sm">🎯</span>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Apply as Candidate</h4>
+      </div>
+      <p className="text-[10px] text-app-muted-text">Select a position to apply for candidacy</p>
       <div className="grid grid-cols-3 gap-2">
         {["President", "Secretary", "General Member"].map((pos) => (
           <button
             key={pos}
             onClick={() => setSelectedPos(pos)}
-            className={`rounded-lg border px-2 py-2 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-lg border px-2 py-2.5 text-xs font-bold transition-all cursor-pointer ${
               selectedPos === pos
-                ? "border-app-accent bg-app-accent-soft text-app-accent"
+                ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30"
                 : "border-app bg-app-input text-app-muted-text hover:text-app-heading"
             }`}
           >
@@ -493,13 +684,24 @@ function CandidateSection({ student, authFetch }) {
           </button>
         ))}
       </div>
-      {error && <p className="text-xs text-rose-400">{error}</p>}
+      {error && (
+        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
+          <p className="text-xs text-rose-400">{error}</p>
+        </div>
+      )}
       <button
         onClick={handleApply}
         disabled={applying || !selectedPos}
         className="btn-primary w-full text-xs"
       >
-        {applying ? "Submitting…" : "Submit Application"}
+        {applying ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="h-3 w-3 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+            Submitting…
+          </span>
+        ) : (
+          "Submit Application"
+        )}
       </button>
     </div>
   );

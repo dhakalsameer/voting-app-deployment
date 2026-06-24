@@ -1,4 +1,5 @@
 import { db } from "../db.js";
+import { emitEvent } from "../socket.js";
 
 export const createCandidate = async (req, res) => {
   const { name, student_id, position, image_cid, blockchain_id, year, gender } = req.body;
@@ -153,6 +154,8 @@ export const approveCandidate = async (req, res) => {
       [id]
     );
 
+    emitEvent("dataChanged", { type: "candidates" });
+
     return res.json({
       success: true,
       message: `Candidate "${app.name}" approved. Student can now self-register on-chain.`,
@@ -183,6 +186,8 @@ export const rejectCandidate = async (req, res) => {
       `UPDATE candidates SET status = 'rejected', updated_at = NOW() WHERE id = $1`,
       [id]
     );
+
+    emitEvent("dataChanged", { type: "candidates" });
 
     return res.json({ success: true, message: "Application rejected" });
   } catch (error) {

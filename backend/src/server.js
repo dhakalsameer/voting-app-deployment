@@ -16,6 +16,7 @@ import registrationCodeRoutes from "./routes/registrationCodeRoutes.js";
 import distributionRoutes from "./routes/distributionRoutes.js";
 
 import { startBlockchainSync } from "./blockchain/sync.js";
+import { setIO } from "./socket.js";
 
 // Startup self-checks (non-fatal warnings)
 async function startupChecks() {
@@ -85,6 +86,9 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
 });
+
+// Make io accessible to controllers
+setIO(io);
 
 // 🔥 START SYNC ENGINE with Socket.io
 startBlockchainSync(io);

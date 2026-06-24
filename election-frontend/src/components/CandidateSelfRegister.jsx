@@ -115,13 +115,14 @@ export default function CandidateSelfRegister({ student }) {
 
   if (isRegistered) {
     return (
-      <div className="rounded-xl border border-emerald-500/20 bg-app-trust-soft p-5">
-        <h4 className="text-sm font-bold text-emerald-400">✅ Already Registered On-Chain</h4>
-        <p className="mt-1 text-sm text-app-body">
-          You have already registered as a candidate for this election.
-        </p>
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 text-center space-y-2">
+        <div className="mx-auto h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+          <span className="text-emerald-400 text-sm">✓</span>
+        </div>
+        <p className="text-sm font-bold text-emerald-400">Already Registered On-Chain</p>
+        <p className="text-xs text-app-body">You have already registered as a candidate for this election.</p>
         {txHash && (
-          <div className="mt-2 text-xs font-mono">
+          <div className="text-xs font-mono pt-1">
             <BlockExplorerLink hash={txHash} />
           </div>
         )}
@@ -131,10 +132,11 @@ export default function CandidateSelfRegister({ student }) {
 
   if (phase !== 1) {
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-        <h4 className="text-sm font-bold text-amber-400">📋 Candidate Registration</h4>
-        <p className="mt-1 text-sm text-app-body">
-          Registration is closed. The admin must open the Registration phase before you can register on-chain.
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-2">
+        <span className="text-2xl block">📋</span>
+        <p className="text-sm font-bold text-amber-400">Registration Not Open</p>
+        <p className="text-xs text-app-body">
+          The Registration phase has not started yet. The admin must open it before you can register on-chain.
         </p>
       </div>
     );
@@ -142,42 +144,50 @@ export default function CandidateSelfRegister({ student }) {
 
   return (
     <div className="rounded-xl border border-app bg-app-surface p-5 space-y-4">
-      <div>
-        <h4 className="text-sm font-bold text-app-heading">📝 Register as Candidate</h4>
-        <p className="text-xs text-app-muted-text mt-0.5">
-          Register yourself on-chain. Your identity is verified via the Merkle tree.
-        </p>
+      <div className="flex items-center gap-2.5 pb-3 border-b border-app/50">
+        <span className="text-lg">📝</span>
+        <div>
+          <p className="text-sm font-bold text-app-heading">Register as Candidate</p>
+          <p className="text-xs text-app-muted-text">Your identity is verified via Merkle tree proof</p>
+        </div>
       </div>
 
-      {identity && (
-        <div className="rounded-lg border border-app bg-app-muted p-3">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-2">Verified Identity</p>
-          <div className="grid grid-cols-3 gap-3 text-sm">
+      {identity ? (
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">✓ Identity Verified</span>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <p className="text-[10px] text-app-muted-text uppercase">Name</p>
-              <p className="font-bold text-app-trust truncate">{identity.name}</p>
+              <p className="text-sm font-semibold text-app-heading truncate">{identity.name}</p>
             </div>
             <div>
               <p className="text-[10px] text-app-muted-text uppercase">Year</p>
-              <p className="font-bold text-app-trust">{identity.year}</p>
+              <p className="text-sm font-semibold text-app-heading">{identity.year}</p>
             </div>
             <div>
               <p className="text-[10px] text-app-muted-text uppercase">Gender</p>
-              <p className="font-bold text-app-trust capitalize">{identity.isFemale ? "Female" : "Male"}</p>
+              <p className="text-sm font-semibold text-app-heading capitalize">{identity.isFemale ? "Female" : "Male"}</p>
             </div>
           </div>
         </div>
-      )}
-
-      {!identity && !loadingProof && (
-        <div className="rounded-lg border border-rose-500/20 bg-rose-950/10 p-3 text-xs text-rose-400">
-          Could not load your verified identity. Ensure your wallet is linked and you're in the voter whitelist.
+      ) : loadingProof ? (
+        <div className="rounded-lg border border-app bg-app-muted/30 p-4 animate-pulse flex items-center gap-2">
+          <span className="h-3 w-3 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
+          <span className="text-xs text-app-muted-text">Verifying your identity via Merkle tree…</span>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
+          <p className="text-xs text-rose-400">
+            Could not load your verified identity. Make sure your wallet is connected and you're whitelisted as a voter.
+          </p>
         </div>
       )}
 
-      <div>
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-wider text-app-heading">Student ID</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Student ID</label>
           <input
             type="text"
             value={guid}
@@ -185,33 +195,31 @@ export default function CandidateSelfRegister({ student }) {
             className="input-field mt-1 text-sm font-mono"
             placeholder="e.g. GUSD430"
           />
-        </label>
-      </div>
+        </div>
 
-      <div>
-        <label className="block">
-          <span className="text-xs font-bold uppercase tracking-wider text-app-heading">Image CID (optional)</span>
+        <div>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Image CID</label>
           <input
             type="text"
             value={imageCID}
             onChange={(e) => setImageCID(e.target.value)}
             className="input-field mt-1 text-sm"
-            placeholder="ipfs://... or https://..."
+            placeholder="ipfs://… or https://…"
           />
-        </label>
+        </div>
       </div>
 
       <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-app-heading">Position</span>
-        <div className="grid grid-cols-3 gap-2 mt-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1.5">Position</p>
+        <div className="grid grid-cols-3 gap-2">
           {POSITIONS.map((pos) => (
             <button
               key={pos.value}
               type="button"
               onClick={() => setPosition(pos.value)}
-              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 text-xs font-bold transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-bold transition-all cursor-pointer ${
                 position === pos.value
-                  ? "border-app-accent bg-app-accent-soft text-app-accent"
+                  ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30"
                   : "border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated"
               }`}
             >
