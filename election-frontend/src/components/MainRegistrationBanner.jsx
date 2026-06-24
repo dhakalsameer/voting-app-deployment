@@ -4,10 +4,23 @@ import { getContractV3 } from "../contract";
 import { API_URL } from "../config";
 import CandidateSelfRegister from "./CandidateSelfRegister";
 
+function formatRemaining(seconds) {
+  if (seconds <= 0) return null;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const p = (v) => String(v).padStart(2, "0");
+  if (h > 0) return `${h}h ${p(m)}m ${p(s)}s`;
+  if (m > 0) return `${m}m ${p(s)}s`;
+  return `${s}s`;
+}
+
 export default function MainRegistrationBanner() {
   const { wallet, student } = useContext(AuthContext);
 
   const [phase, setPhase] = useState(null);
+  const [regEnd, setRegEnd] = useState(null);
+  const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   const [loadingPhase, setLoadingPhase] = useState(true);
   const [application, setApplication] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
@@ -19,7 +32,11 @@ export default function MainRegistrationBanner() {
       try {
         const contract = await getContractV3();
         const p = await contract.getPhase();
-        if (!cancelled) setPhase(Number(p));
+        const re = await contract.registrationEnd();
+        if (!cancelled) {
+          setPhase(Number(p));
+          setRegEnd(Number(re));
+        }
       } catch (err) {
         console.error("Failed to load phase:", err);
       } finally {
@@ -27,6 +44,11 @@ export default function MainRegistrationBanner() {
       }
     })();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -47,9 +69,11 @@ export default function MainRegistrationBanner() {
     );
   }
 
-  const isOpen = phase === 1;
+  const remaining = regEnd ? regEnd - now : 0;
+  const isOpen = phase === 1 && remaining > 0;
 
   if (!isOpen) {
+    const expired = phase === 1 && remaining <= 0;
     return (
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-5">
         <div className="flex items-center gap-3">
@@ -57,9 +81,11 @@ export default function MainRegistrationBanner() {
             <span className="text-amber-400 text-base">⏸</span>
           </div>
           <div>
-            <p className="text-sm font-bold text-amber-400">Candidate Registration Closed</p>
+            <p className="text-sm font-bold text-amber-400">Candidate Registration {expired ? "Ended" : "Closed"}</p>
             <p className="text-xs text-app-muted-text mt-0.5">
-              Registration is not open yet. Wait for the admin to open it.
+              {expired
+                ? "The registration window has expired. Contact the admin if you need an extension."
+                : "Registration is not open yet. Wait for the admin to open it."}
             </p>
           </div>
         </div>
@@ -79,7 +105,9 @@ export default function MainRegistrationBanner() {
         <div>
           <p className="text-sm font-bold text-emerald-400">Candidate Registration Open</p>
           <p className="text-xs text-app-muted-text mt-0.5">
-            The registration window is active. Eligible candidates can register on-chain.
+            {remaining > 0 ? (
+              <>Closes in <span className="font-mono font-bold text-emerald-400">{formatRemaining(remaining)}</span></>
+            ) : "The registration window is active."}
           </p>
         </div>
       </div>
@@ -99,7 +127,7 @@ export default function MainRegistrationBanner() {
           </p>
         </div>
       ) : application?.status === "approved" && (student.verified || student.eligible_to_vote) ? (
-        <CandidateSelfRegister student={student} />
+        <CandidateSelfRegister student={student} regEnd={regEnd} />
       ) : application?.status === "approved" && !student.verified ? (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
           <p className="text-xs text-amber-400">

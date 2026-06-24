@@ -3,6 +3,18 @@ import { useMemo, useState, useEffect } from "react";
 import { useToast } from "../ui/Toast";
 import SectionHeader from "../ui/SectionHeader";
 
+const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
+
+function formatRemaining(seconds) {
+  if (seconds <= 0) return null;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+  if (m > 0) return `${m}m ${String(s).padStart(2, "0")}s`;
+  return `${s}s`;
+}
+
 function toDateTimeLocal(date) {
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
@@ -67,6 +79,29 @@ export default function ElectionControl() {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [phase, setPhase] = useState(null);
+  const [phaseEnd, setPhaseEnd] = useState(null);
+  const [now, setNow] = useState(Math.floor(Date.now() / 1000));
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const loadPhase = async () => {
+    try {
+      const contract = await getContractV3();
+      const p = Number(await contract.getPhase());
+      setPhase(p);
+      if (p === 1) setPhaseEnd(Number(await contract.registrationEnd()));
+      else if (p === 2) setPhaseEnd(Number(await contract.votingEnd()));
+      else setPhaseEnd(null);
+    } catch (err) {
+      console.error("loadPhase error:", err);
+    }
+  };
+
+  useEffect(() => { loadPhase(); }, []);
 
   const loadHistory = async () => {
     setHistoryLoading(true);
@@ -109,6 +144,7 @@ export default function ElectionControl() {
       const txHash = tx.hash;
       await tx.wait();
       success("Registration window started", { txHash });
+      loadPhase();
     } catch (err) {
       console.error(err);
       showError(err.reason || err.shortMessage || "Error starting registration");
@@ -127,6 +163,7 @@ export default function ElectionControl() {
       const txHash = tx.hash;
       await tx.wait();
       success("Voting window started", { txHash });
+      loadPhase();
     } catch (err) {
       console.error(err);
       showError(err.reason || err.shortMessage || "Error starting election");
@@ -143,6 +180,7 @@ export default function ElectionControl() {
       const txHash = tx.hash;
       await tx.wait();
       success("Election finalized", { txHash });
+      loadPhase();
     } catch (err) {
       console.error(err);
       showError(err.reason || err.shortMessage || "Error finalizing election");
@@ -161,6 +199,7 @@ export default function ElectionControl() {
       success("New election cycle started — winners recorded", { txHash });
       setVotingEnd(defaults.votingEnd);
       setRegistrationEnd(defaults.registrationEnd);
+      loadPhase();
       loadHistory();
     } catch (err) {
       console.error(err);
@@ -173,6 +212,28 @@ export default function ElectionControl() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <SectionHeader icon="⚙️" title="Election Control" />
+
+      {phase !== null && (
+        <div className="flex items-center justify-between rounded-lg border border-app bg-app-muted/30 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className={`h-2.5 w-2.5 rounded-full ${
+              phase === 0 ? "bg-sky-400" :
+              phase === 1 ? "bg-emerald-400 animate-pulse" :
+              phase === 2 ? "bg-amber-400 animate-pulse" :
+              "bg-rose-400"
+            }`} />
+            <span className="text-sm font-bold text-app-heading">Phase: {PHASE_NAMES[phase]}</span>
+          </div>
+          {phaseEnd && phaseEnd > now && (
+            <span className="text-xs font-mono text-emerald-400">
+              {formatRemaining(phaseEnd - now)} remaining
+            </span>
+          )}
+          {phaseEnd && phaseEnd <= now && phase > 0 && phase < 3 && (
+            <span className="text-xs font-mono text-rose-400">Deadline passed</span>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         <DateInput

@@ -20,11 +20,13 @@ const POSITIONS = [
  *   3. Lets the student pick a position and submit registerCandidate() on-chain
  *   4. On success, shows a confirmation with the transaction link
  */
-export default function CandidateSelfRegister({ student }) {
+export default function CandidateSelfRegister({ student, regEnd }) {
   const { wallet } = useContext(AuthContext);
   const { success, error: showError } = useToast();
 
   const [phase, setPhase] = useState(null);
+  const [regEndLocal, setRegEndLocal] = useState(regEnd || null);
+  const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   const [identity, setIdentity] = useState(null);
   const [proof, setProof] = useState(null);
   const [guid, setGuid] = useState(student?.student_id || "");
@@ -43,6 +45,11 @@ export default function CandidateSelfRegister({ student }) {
       const p = await contract.getPhase();
       setPhase(Number(p));
 
+      if (!regEndLocal) {
+        const re = await contract.registrationEnd();
+        setRegEndLocal(Number(re));
+      }
+
       if (wallet) {
         const reg = await contract.candidateRegisteredInElection(wallet);
         const electionId = await contract.currentElectionId();
@@ -54,6 +61,11 @@ export default function CandidateSelfRegister({ student }) {
       setLoadingPhase(false);
     }
   };
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const loadIdentityProof = async () => {
     if (!wallet) return;
@@ -113,6 +125,9 @@ export default function CandidateSelfRegister({ student }) {
     }
   };
 
+  const remaining = regEndLocal ? regEndLocal - now : 0;
+  const effectivelyOpen = phase === 1 && remaining > 0;
+
   if (loadingPhase) {
     return (
       <div className="rounded-xl border border-app bg-app-surface p-5 animate-pulse">
@@ -138,13 +153,27 @@ export default function CandidateSelfRegister({ student }) {
     );
   }
 
+  const expired = phase === 1 && remaining <= 0;
+
   if (phase !== 1) {
     return (
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-2">
         <span className="text-2xl block">📋</span>
         <p className="text-sm font-bold text-amber-400">Registration Not Open</p>
         <p className="text-xs text-app-body">
-          The Registration phase has not started yet. The admin must open it before you can register on-chain.
+          The {expired ? "registration window has expired" : "Registration phase has not started yet"}. {expired ? "Contact the admin." : "The admin must open it before you can register on-chain."}
+        </p>
+      </div>
+    );
+  }
+
+  if (!effectivelyOpen) {
+    return (
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-2">
+        <span className="text-2xl block">⏰</span>
+        <p className="text-sm font-bold text-amber-400">Registration Ended</p>
+        <p className="text-xs text-app-body">
+          The registration window has expired. Contact the admin if you need an extension.
         </p>
       </div>
     );
@@ -154,10 +183,20 @@ export default function CandidateSelfRegister({ student }) {
     <div className="rounded-xl border border-app bg-app-surface p-5 space-y-4">
       <div className="flex items-center gap-2.5 pb-3 border-b border-app/50">
         <span className="text-lg">📝</span>
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-bold text-app-heading">Register as Candidate</p>
           <p className="text-xs text-app-muted-text">Your identity is verified via Merkle tree proof</p>
         </div>
+        {remaining > 0 && (
+          <div className="text-right shrink-0">
+            <p className="text-[10px] uppercase tracking-wider text-app-muted-text">Closes in</p>
+            <p className="text-xs font-mono font-bold text-emerald-400">
+              {remaining > 3600
+                ? `${Math.floor(remaining / 3600)}h ${String(Math.floor((remaining % 3600) / 60)).padStart(2, "0")}m`
+                : `${Math.floor(remaining / 60)}m ${String(remaining % 60).padStart(2, "0")}s`}
+            </p>
+          </div>
+        )}
       </div>
 
       {identity ? (
