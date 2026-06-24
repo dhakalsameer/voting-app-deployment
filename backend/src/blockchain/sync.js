@@ -39,16 +39,50 @@ export function startBlockchainSync(io) {
     });
 
     electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position) => {
-      console.log(`👤 [V3] Candidate registered on-chain: ${name} (ID: ${id}, position: ${position})`);
+      console.log(`👤 [V3] Candidate registered on-chain: ${name} (ID: ${id}, wallet: ${candidateAddr}, position: ${position})`);
       try {
         const posName = position === 0 ? "President" : position === 1 ? "Secretary" : "General Member";
-        await db.query(
-          `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status, year, gender, applied_by, created_at)
-           VALUES ($1, NULL, $2, NULL, $3, 0, 'approved', NULL, NULL, NULL, NOW())
-           ON CONFLICT (blockchain_id)
-           DO UPDATE SET name = $1, position = $2, status = 'approved', updated_at = NOW()`,
-          [name, posName, Number(id)]
+
+        // Look up the student by wallet address
+        const studentRes = await db.query(
+          `SELECT student_id, name, year, gender FROM students WHERE LOWER(wallet_address) = LOWER($1)`,
+          [candidateAddr]
         );
+
+        if (studentRes.rows.length > 0) {
+          const student = studentRes.rows[0];
+          // Update existing candidate record (from applyCandidate flow) with blockchain_id
+          const updateRes = await db.query(
+            `UPDATE candidates
+             SET blockchain_id = $1, status = 'approved', name = $2, position = $3, updated_at = NOW()
+             WHERE applied_by = $4 AND (blockchain_id IS NULL OR blockchain_id = $1)
+             RETURNING id`,
+            [Number(id), name, posName, student.student_id]
+          );
+
+          if (updateRes.rows.length > 0) {
+            console.log(`   → Linked on-chain ID ${id} to existing candidate record for ${student.student_id}`);
+          } else {
+            // No existing DB record — create one
+            await db.query(
+              `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status, year, gender, applied_by)
+               VALUES ($1, $2, $3, NULL, $4, 0, 'approved', $5, $6, $7)`,
+              [name, student.student_id, posName, Number(id), student.year, student.gender, student.student_id]
+            );
+            console.log(`   → Created new candidate record for ${student.student_id} from on-chain event`);
+          }
+        } else {
+          // No student found with this wallet — insert with NULL student_id
+          await db.query(
+            `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status)
+             VALUES ($1, NULL, $2, NULL, $3, 0, 'approved')
+             ON CONFLICT (blockchain_id)
+             DO UPDATE SET name = $1, position = $2, status = 'approved', updated_at = NOW()`,
+            [name, posName, Number(id)]
+          );
+          console.log(`   → No matching student for wallet ${candidateAddr}, created orphan candidate record`);
+        }
+
         broadcastResults();
       } catch (err) {
         console.error("[V3] candidate sync error:", err.message);

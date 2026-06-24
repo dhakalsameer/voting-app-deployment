@@ -1,9 +1,11 @@
-import { useState, useEffect, useContext, createContext, useRef } from "react";
+import { useState, useEffect, useContext, createContext, useRef, useCallback } from "react";
 import { ethers } from "ethers";
 import { AuthContext } from "../context/AuthContextValue";
 import { API_URL } from "../config";
 import { useBalance } from "../hooks/useBalance";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
+import CandidateSelfRegister from "./CandidateSelfRegister";
+import { useToast } from "./ui/Toast";
 
 function getImageUrl(imageCid) {
   if (!imageCid) return null;
@@ -378,8 +380,133 @@ function ProfileCard({ student, onPhotoChange }) {
   );
 }
 
+function CandidateSection({ student, authFetch }) {
+  const { success } = useToast();
+  const [application, setApplication] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [selectedPos, setSelectedPos] = useState("");
+  const [error, setError] = useState("");
+
+  const loadApplication = useCallback(async () => {
+    if (!student?.student_id) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/candidates?applied_by=${student.student_id}`);
+      const data = await res.json();
+      setApplication(Array.isArray(data) ? data[0] : null);
+    } catch (err) {
+      console.error("Failed to load application:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [student?.student_id]);
+
+  useEffect(() => {
+    loadApplication();
+  }, [loadApplication]);
+
+  const handleApply = async () => {
+    if (!selectedPos) return setError("Select a position");
+    setApplying(true);
+    setError("");
+    try {
+      await authFetch("/api/candidates/apply", {
+        method: "POST",
+        body: JSON.stringify({ position: selectedPos }),
+      });
+      setSelectedPos("");
+      await loadApplication();
+      success("Application submitted. Pending admin approval.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const statusBadge = (status) => {
+    if (status === "pending")
+      return <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Pending</span>;
+    if (status === "approved")
+      return <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Approved</span>;
+    if (status === "rejected")
+      return <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">Rejected</span>;
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse">
+        <p className="text-xs text-app-muted-text">Loading application status…</p>
+      </div>
+    );
+  }
+
+  if (application) {
+    return (
+      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Candidate Application</h4>
+          {statusBadge(application.status)}
+        </div>
+        <p className="text-sm text-app-body">
+          Position: <span className="font-semibold text-app-heading">{application.position}</span>
+        </p>
+        {application.status === "approved" && student.eligibleToVote && (
+          <CandidateSelfRegister student={student} />
+        )}
+        {application.status === "approved" && !student.eligibleToVote && (
+          <p className="text-xs text-amber-400">You must be whitelisted before you can register on-chain.</p>
+        )}
+        {application.status === "rejected" && (
+          <p className="text-xs text-app-muted-text">Contact the election committee for more information.</p>
+        )}
+      </div>
+    );
+  }
+
+  if (!student.eligibleToVote) {
+    return (
+      <div className="rounded-xl border border-app bg-app-surface p-4">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Application</h4>
+        <p className="mt-1 text-xs text-app-muted-text">You must be whitelisted before applying.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
+      <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Apply as Candidate</h4>
+      <div className="grid grid-cols-3 gap-2">
+        {["President", "Secretary", "General Member"].map((pos) => (
+          <button
+            key={pos}
+            onClick={() => setSelectedPos(pos)}
+            className={`rounded-lg border px-2 py-2 text-xs font-bold transition-all cursor-pointer ${
+              selectedPos === pos
+                ? "border-app-accent bg-app-accent-soft text-app-accent"
+                : "border-app bg-app-input text-app-muted-text hover:text-app-heading"
+            }`}
+          >
+            {pos}
+          </button>
+        ))}
+      </div>
+      {error && <p className="text-xs text-rose-400">{error}</p>}
+      <button
+        onClick={handleApply}
+        disabled={applying || !selectedPos}
+        className="btn-primary w-full text-xs"
+      >
+        {applying ? "Submitting…" : "Submit Application"}
+      </button>
+    </div>
+  );
+}
+
 function Dashboard() {
-  const { student, logout, save } = usePortal();
+  const { student, logout, save, authFetch } = usePortal();
   const { balance, loading: balanceLoading } = useBalance(student?.wallet_address);
   if (!student) return null;
 
@@ -396,6 +523,8 @@ function Dashboard() {
         <ProfileCard student={student} onPhotoChange={(s) => save(null, { ...student, image_cid: s.image_cid })} />
         <button onClick={logout} className="text-xs text-app-muted-text hover:text-app-heading cursor-pointer">Sign out</button>
       </div>
+
+      <CandidateSection student={student} authFetch={authFetch} />
 
       <div className="grid grid-cols-2 gap-3">
         {student.year && (
