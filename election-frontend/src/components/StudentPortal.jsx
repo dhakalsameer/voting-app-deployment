@@ -5,6 +5,7 @@ import { API_URL } from "../config";
 import { useBalance } from "../hooks/useBalance";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
 import CandidateSelfRegister from "./CandidateSelfRegister";
+import { getContractV3 } from "../contract";
 import { useToast } from "./ui/Toast";
 
 function getImageUrl(imageCid) {
@@ -637,9 +638,6 @@ function CandidateSection({ student, authFetch }) {
             </div>
           </div>
         </div>
-        {application.status === "approved" && student.eligibleToVote && (
-          <CandidateSelfRegister student={student} />
-        )}
         {application.status === "approved" && !student.eligibleToVote && (
           <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
             <p className="text-xs text-amber-400">
@@ -727,6 +725,122 @@ function CandidateSection({ student, authFetch }) {
   );
 }
 
+/*
+ * RegistrationSection: shown prominently at the top of the Dashboard.
+ * Fetches the contract phase and displays:
+ *   - 🟢 Registration Open + form (for approved candidates) or
+ *     "You must be whitelisted" guidance
+ *   - 🔴 Registration Closed with explanation
+ * This is the primary place voters see registration status — not buried in a profile card.
+ */
+function RegistrationSection({ student }) {
+  const { wallet } = useContext(AuthContext);
+  const [phase, setPhase] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [application, setApplication] = useState(null);
+  const [appLoading, setAppLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const contract = await getContractV3();
+        const p = await contract.getPhase();
+        if (!cancelled) setPhase(Number(p));
+      } catch (err) {
+        console.error("Failed to load phase:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!student?.student_id) return;
+    setAppLoading(true);
+    fetch(`${API_URL}/api/candidates?applied_by=${student.student_id}`)
+      .then((r) => r.json())
+      .then((data) => setApplication(Array.isArray(data) ? data[0] : null))
+      .catch(() => {})
+      .finally(() => setAppLoading(false));
+  }, [student?.student_id]);
+
+  if (loading) {
+    return (
+      <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse">
+        <div className="h-4 w-32 bg-app-muted rounded" />
+      </div>
+    );
+  }
+
+  const isOpen = phase === 1;
+
+  if (!isOpen) {
+    return (
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-center space-y-2">
+        <div className="mx-auto h-10 w-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+          <span className="text-amber-400 text-base">⏸</span>
+        </div>
+        <p className="text-sm font-bold text-amber-400">Candidate Registration</p>
+        <p className="text-xs text-app-muted-text">
+          Registration is not open yet. The admin will open it when ready.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+      <div className="flex items-center gap-2.5">
+        <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+        <div>
+          <p className="text-sm font-bold text-emerald-400">Registration Open</p>
+          <p className="text-[10px] text-app-muted-text">Candidates can now register on-chain</p>
+        </div>
+      </div>
+
+      {appLoading ? (
+        <div className="rounded-lg border border-app bg-app-muted/30 p-3 animate-pulse">
+          <p className="text-xs text-app-muted-text">Checking your application status…</p>
+        </div>
+      ) : application?.status === "approved" && student.eligibleToVote ? (
+        <CandidateSelfRegister student={student} />
+      ) : application?.status === "approved" && !student.eligibleToVote ? (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <p className="text-xs text-amber-400">
+            Your candidate application is approved but you must be whitelisted as a voter before you can register on-chain.
+          </p>
+        </div>
+      ) : !student.eligibleToVote ? (
+        <div className="rounded-lg border border-app bg-app-muted/30 p-3">
+          <p className="text-xs text-app-muted-text">
+            You must be whitelisted as a voter to apply as a candidate.
+          </p>
+        </div>
+      ) : !application ? (
+        <div className="rounded-lg border border-app bg-app-muted/30 p-3">
+          <p className="text-xs text-app-muted-text">
+            Registration is open. Apply as a candidate below.
+          </p>
+        </div>
+      ) : application?.status === "pending" ? (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+          <p className="text-xs text-amber-400">
+            Your application is under review. Wait for admin approval.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
+          <p className="text-xs text-rose-400">
+            Your application was rejected. Contact the election committee.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Dashboard() {
   const { student, logout, save, authFetch } = usePortal();
   const { balance, loading: balanceLoading } = useBalance(student?.wallet_address);
@@ -745,6 +859,8 @@ function Dashboard() {
         <ProfileCard student={student} onPhotoChange={(s) => save(null, { ...student, image_cid: s.image_cid })} />
         <button onClick={logout} className="text-xs text-app-muted-text hover:text-app-heading cursor-pointer">Sign out</button>
       </div>
+
+      <RegistrationSection student={student} />
 
       <CandidateSection student={student} authFetch={authFetch} />
 
