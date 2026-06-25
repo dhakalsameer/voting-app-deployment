@@ -38,11 +38,12 @@ contract Election3 {
         bool exists;
     }
 
+    uint256 public constant GENERAL_MEMBERS_ELECTED = 5;
+
     struct ElectionResult {
         uint256 presidentWinnerId;
         uint256 secretaryWinnerId;
-        uint256 generalMemberWinnerId1;
-        uint256 generalMemberWinnerId2;
+        uint256[GENERAL_MEMBERS_ELECTED] generalMemberWinnerIds;
         uint256 totalCandidates;
         uint256 timestamp;
     }
@@ -250,25 +251,26 @@ contract Election3 {
         uint256 presWinner = _findWinner(Position.President);
         uint256 secWinner = _findWinner(Position.Secretary);
 
-        // Count GM candidates — require at least 2 if any GMs registered
+        // Count GM candidates — enforce 5-minimum and 2-female if any GMs exist
         uint256 gmCount;
+        uint256 femaleGMCount;
         for (uint256 i = 1; i <= candidateCount; i++) {
             if (candidates[i].exists && candidates[i].position == Position.GeneralMember) {
                 gmCount++;
+                if (candidates[i].isFemale) femaleGMCount++;
             }
         }
         if (gmCount > 0) {
-            require(gmCount >= 2, "Need at least 2 GM candidates");
+            require(gmCount >= GENERAL_MEMBERS_ELECTED, "Need at least 5 GM candidates");
+            require(femaleGMCount >= 2, "Need at least 2 female GM candidates");
         }
 
-        uint256 gm1 = _findWinner(Position.GeneralMember);
-        uint256 gm2 = gmCount >= 2 ? _findWinner(Position.GeneralMember, gm1) : 0;
+        uint256[GENERAL_MEMBERS_ELECTED] memory gmWinners = _selectGMWinners();
 
         electionHistory[historyCount] = ElectionResult({
             presidentWinnerId: presWinner,
             secretaryWinnerId: secWinner,
-            generalMemberWinnerId1: gm1,
-            generalMemberWinnerId2: gm2,
+            generalMemberWinnerIds: gmWinners,
             totalCandidates: candidateCount,
             timestamp: block.timestamp
         });
@@ -293,22 +295,12 @@ contract Election3 {
         view
         returns (uint256 winnerId)
     {
-        return _findWinner(_position, 0);
-    }
-
-    function _findWinner(Position _position, uint256 _excludeId)
-        private
-        view
-        returns (uint256 winnerId)
-    {
         uint256 maxVotes;
 
         for (uint256 i = 1; i <= candidateCount; i++) {
             Candidate storage c = candidates[i];
 
-            if (!c.exists || c.position != _position || c.id == _excludeId) {
-                continue;
-            }
+            if (!c.exists || c.position != _position) continue;
 
             if (
                 c.voteCount > maxVotes
@@ -323,6 +315,58 @@ contract Election3 {
         }
 
         return winnerId;
+    }
+
+    function _selectGMWinners()
+        private
+        view
+        returns (uint256[GENERAL_MEMBERS_ELECTED] memory winners)
+    {
+        uint256 count;
+
+        // Pass 1: select top 2 female GM candidates
+        for (uint256 f = 0; f < 2; f++) {
+            uint256 bestId;
+            uint256 bestVotes;
+            for (uint256 i = 1; i <= candidateCount; i++) {
+                Candidate storage c = candidates[i];
+                if (!c.exists || c.position != Position.GeneralMember || !c.isFemale) continue;
+
+                bool already;
+                for (uint256 j = 0; j < count; j++) {
+                    if (winners[j] == c.id) { already = true; break; }
+                }
+                if (already) continue;
+
+                if (c.voteCount > bestVotes || (c.voteCount == bestVotes && (bestId == 0 || c.id < bestId))) {
+                    bestVotes = c.voteCount;
+                    bestId = c.id;
+                }
+            }
+            if (bestId != 0) winners[count++] = bestId;
+        }
+
+        // Pass 2: select top 3 remaining GM candidates (any gender)
+        for (uint256 r = 0; r < 3; r++) {
+            uint256 bestId;
+            uint256 bestVotes;
+            for (uint256 i = 1; i <= candidateCount; i++) {
+                Candidate storage c = candidates[i];
+                if (!c.exists || c.position != Position.GeneralMember) continue;
+
+                bool already;
+                for (uint256 j = 0; j < count; j++) {
+                    if (winners[j] == c.id) { already = true; break; }
+                }
+                if (already) continue;
+
+                if (c.voteCount > bestVotes || (c.voteCount == bestVotes && (bestId == 0 || c.id < bestId))) {
+                    bestVotes = c.voteCount;
+                    bestId = c.id;
+                }
+            }
+            if (bestId != 0) winners[count++] = bestId;
+        }
     }
 
     // =========================

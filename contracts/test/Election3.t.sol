@@ -388,8 +388,8 @@ contract Election3Test is Test {
         Election3.ElectionResult memory result = election.getElectionResult(0);
         assertEq(result.presidentWinnerId, 1); // Alice won with 2 votes
         assertEq(result.secretaryWinnerId, 2); // Bob is the only secretary
-        assertEq(result.generalMemberWinnerId1, 0); // No general member registered
-        assertEq(result.generalMemberWinnerId2, 0);
+        assertEq(result.generalMemberWinnerIds[0], 0); // No general member registered
+        assertEq(result.generalMemberWinnerIds[1], 0);
         assertEq(result.totalCandidates, 2);
         assertTrue(result.timestamp > 0);
     }
@@ -435,8 +435,8 @@ contract Election3Test is Test {
         Election3.ElectionResult memory r = election.getElectionResult(0);
         assertEq(r.presidentWinnerId, 1);
         assertEq(r.secretaryWinnerId, 2);
-        assertEq(r.generalMemberWinnerId1, 0);
-        assertEq(r.generalMemberWinnerId2, 0);
+        assertEq(r.generalMemberWinnerIds[0], 0);
+        assertEq(r.generalMemberWinnerIds[1], 0);
     }
 
     // =========================

@@ -168,14 +168,17 @@ export default function ElectionControl() {
         const r = await contract.electionHistory(i);
         const pres = r.presidentWinnerId > 0 ? await contract.getCandidate(r.presidentWinnerId) : null;
         const sec = r.secretaryWinnerId > 0 ? await contract.getCandidate(r.secretaryWinnerId) : null;
-        const mem = r.generalMemberWinnerId > 0 ? await contract.getCandidate(r.generalMemberWinnerId) : null;
+        const gmIds = r.generalMemberWinnerIds || [];
+        const gmNames = (await Promise.all(
+          gmIds.map(id => id > 0 ? contract.getCandidate(id) : null)
+        )).filter(c => c !== null).map(c => c.name);
         items.push({
           id: i,
           timestamp: new Date(Number(r.timestamp) * 1000).toLocaleString(),
           totalCandidates: Number(r.totalCandidates),
           pres: pres?.name || "—",
           sec: sec?.name || "—",
-          mem: mem?.name || "—",
+          mem: gmNames.join(", ") || "—",
         });
       }
       setHistory(items);
