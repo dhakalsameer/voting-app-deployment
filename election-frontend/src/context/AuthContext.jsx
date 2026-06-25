@@ -20,6 +20,8 @@ export function AuthProvider({ children }) {
     verified: false,
     canVote: false,
     hasVoted: false,
+    image_cid: null,
+    name: null,
   });
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -56,6 +58,8 @@ export function AuthProvider({ children }) {
         verified: Boolean(data.verified),
         canVote: Boolean(data.canVote),
         hasVoted: Boolean(data.hasVoted),
+        image_cid: data.image_cid || null,
+        name: data.name || null,
       });
     } catch (err) {
       console.error("Status check error:", err);
@@ -98,6 +102,8 @@ export function AuthProvider({ children }) {
           verified: false,
           canVote: false,
           hasVoted: false,
+          image_cid: null,
+          name: null,
         });
       }
     };

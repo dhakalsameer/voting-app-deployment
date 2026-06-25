@@ -3,6 +3,7 @@ import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useBalance } from "../../hooks/useBalance";
 import { useToast } from "../ui/Toast";
+import BlockExplorerLink from "../ui/BlockExplorerLink";
 
 export default function GasDistribution() {
   const { wallet } = useContext(AuthContext);
@@ -363,14 +364,7 @@ export default function GasDistribution() {
                     <td className="px-3 py-2 text-app-body">{r.year}</td>
                     <td className="px-3 py-2 font-mono">
                       {r.tx_hash ? (
-                        <a
-                          href={`https://sepolia.etherscan.io/tx/${r.tx_hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sky-300 hover:text-sky-200 hover:underline"
-                        >
-                          {r.tx_hash.slice(0, 10)}…
-                        </a>
+                        <BlockExplorerLink hash={r.tx_hash} />
                       ) : (
                         <span className="text-app-muted">—</span>
                       )}

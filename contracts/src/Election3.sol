@@ -41,7 +41,8 @@ contract Election3 {
     struct ElectionResult {
         uint256 presidentWinnerId;
         uint256 secretaryWinnerId;
-        uint256 generalMemberWinnerId;
+        uint256 generalMemberWinnerId1;
+        uint256 generalMemberWinnerId2;
         uint256 totalCandidates;
         uint256 timestamp;
     }
@@ -130,6 +131,7 @@ contract Election3 {
 
     function startRegistration(uint256 _end) external onlyAdmin {
         require(phase == Phase.Created || phase == Phase.Ended, "Invalid phase");
+        require(_end > block.timestamp, "End must be in future");
         phase = Phase.Registration;
         registrationEnd = _end;
         emit PhaseChanged(Phase.Registration);
@@ -137,6 +139,7 @@ contract Election3 {
 
     function startVoting(uint256 _end) external onlyAdmin {
         require(phase == Phase.Registration, "Not ready");
+        require(_end > block.timestamp, "End must be in future");
         phase = Phase.Voting;
         votingEnd = _end;
         emit PhaseChanged(Phase.Voting);
@@ -179,6 +182,12 @@ contract Election3 {
             "Identity not verified"
         );
 
+        if (_position == Position.President) {
+            require(_year == 4, "President must be 4th year");
+        } else if (_position == Position.Secretary) {
+            require(_year >= 3 && _year <= 4, "Secretary must be 3rd or 4th year");
+        }
+
         candidateCount++;
 
         candidates[candidateCount] = Candidate({
@@ -211,6 +220,7 @@ contract Election3 {
         external
         inPhase(Phase.Voting)
     {
+        require(block.timestamp <= votingEnd, "Voting ended");
         require(
             votedInElection[msg.sender] != currentElectionId,
             "Already voted"
@@ -239,22 +249,33 @@ contract Election3 {
 
         uint256 presWinner = _findWinner(Position.President);
         uint256 secWinner = _findWinner(Position.Secretary);
-        uint256 memWinner = _findWinner(Position.GeneralMember);
+
+        // Count GM candidates — require at least 2 if any GMs registered
+        uint256 gmCount;
+        for (uint256 i = 1; i <= candidateCount; i++) {
+            if (candidates[i].exists && candidates[i].position == Position.GeneralMember) {
+                gmCount++;
+            }
+        }
+        if (gmCount > 0) {
+            require(gmCount >= 2, "Need at least 2 GM candidates");
+        }
+
+        uint256 gm1 = _findWinner(Position.GeneralMember);
+        uint256 gm2 = gmCount >= 2 ? _findWinner(Position.GeneralMember, gm1) : 0;
 
         electionHistory[historyCount] = ElectionResult({
             presidentWinnerId: presWinner,
             secretaryWinnerId: secWinner,
-            generalMemberWinnerId: memWinner,
+            generalMemberWinnerId1: gm1,
+            generalMemberWinnerId2: gm2,
             totalCandidates: candidateCount,
             timestamp: block.timestamp
         });
         historyCount++;
 
-        // Advance election — old candidate data is effectively ignored
         currentElectionId++;
         candidateCount = 0;
-        // votedInElection and candidateRegisteredInElection are keyed by electionId,
-        // so they naturally reset for the new election.
 
         phase = Phase.Created;
         registrationEnd = 0;
@@ -272,12 +293,20 @@ contract Election3 {
         view
         returns (uint256 winnerId)
     {
-        uint256 maxVotes = 0;
+        return _findWinner(_position, 0);
+    }
+
+    function _findWinner(Position _position, uint256 _excludeId)
+        private
+        view
+        returns (uint256 winnerId)
+    {
+        uint256 maxVotes;
 
         for (uint256 i = 1; i <= candidateCount; i++) {
             Candidate storage c = candidates[i];
 
-            if (!c.exists || c.position != _position) {
+            if (!c.exists || c.position != _position || c.id == _excludeId) {
                 continue;
             }
 

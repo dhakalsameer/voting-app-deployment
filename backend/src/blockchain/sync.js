@@ -1,8 +1,14 @@
 import { electionContract, electionContractV3 } from "./electionContract.js";
 import { db } from "../db.js";
+import { addEvent } from "../services/eventStore.js";
 
 export function startBlockchainSync(io) {
   console.log("🔄 Blockchain sync engine running (Real-time Broadcast enabled)...");
+
+  function emitEvent(event) {
+    addEvent(event);
+    if (io) io.emit("blockchainEvent", event);
+  }
 
   async function broadcastResults() {
     if (!io) return;
@@ -16,7 +22,7 @@ export function startBlockchainSync(io) {
 
   // V3 Syncing
   if (electionContractV3.target && electionContractV3.target !== "0x0000000000000000000000000000000000000000") {
-    electionContractV3.on("VoteCast", async (voter, candidateId) => {
+    electionContractV3.on("VoteCast", async (voter, candidateId, event) => {
       console.log(`🗳️ [V3] Vote detected from ${voter} for candidate ${candidateId}`);
       try {
         await db.query(
@@ -30,20 +36,25 @@ export function startBlockchainSync(io) {
           `UPDATE candidates SET vote_count = vote_count + 1 WHERE blockchain_id = $1`,
           [Number(candidateId)]
         );
-        
-        // 🔥 Real-time Broadcast
+
+        emitEvent({
+          eventName: "VoteCast",
+          txHash: event?.transactionHash || null,
+          blockNumber: event?.blockNumber || null,
+          args: { voter, candidateId: Number(candidateId) },
+        });
+
         broadcastResults();
       } catch (err) {
         console.error("[V3] sync error:", err.message);
       }
     });
 
-    electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position) => {
+    electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position, event) => {
       console.log(`👤 [V3] Candidate registered on-chain: ${name} (ID: ${id}, wallet: ${candidateAddr}, position: ${position})`);
       try {
         const posName = position === 0 ? "President" : position === 1 ? "Secretary" : "General Member";
 
-        // Look up the student by wallet address
         const studentRes = await db.query(
           `SELECT student_id, name, year, gender FROM students WHERE LOWER(wallet_address) = LOWER($1)`,
           [candidateAddr]
@@ -51,7 +62,6 @@ export function startBlockchainSync(io) {
 
         if (studentRes.rows.length > 0) {
           const student = studentRes.rows[0];
-          // Update existing candidate record (from applyCandidate flow) with blockchain_id
           const updateRes = await db.query(
             `UPDATE candidates
              SET blockchain_id = $1, status = 'approved', name = $2, position = $3, updated_at = NOW()
@@ -63,7 +73,6 @@ export function startBlockchainSync(io) {
           if (updateRes.rows.length > 0) {
             console.log(`   → Linked on-chain ID ${id} to existing candidate record for ${student.student_id}`);
           } else {
-            // No existing DB record — create one
             await db.query(
               `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status, year, gender, applied_by)
                VALUES ($1, $2, $3, NULL, $4, 0, 'approved', $5, $6, $7)`,
@@ -72,7 +81,6 @@ export function startBlockchainSync(io) {
             console.log(`   → Created new candidate record for ${student.student_id} from on-chain event`);
           }
         } else {
-          // No student found with this wallet — insert with NULL student_id
           await db.query(
             `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status)
              VALUES ($1, NULL, $2, NULL, $3, 0, 'approved')
@@ -83,9 +91,47 @@ export function startBlockchainSync(io) {
           console.log(`   → No matching student for wallet ${candidateAddr}, created orphan candidate record`);
         }
 
+        emitEvent({
+          eventName: "CandidateRegistered",
+          txHash: event?.transactionHash || null,
+          blockNumber: event?.blockNumber || null,
+          args: { id: Number(id), candidate: candidateAddr, name, position: Number(position) },
+        });
+
         broadcastResults();
       } catch (err) {
         console.error("[V3] candidate sync error:", err.message);
+      }
+    });
+
+    electionContractV3.on("NewElectionStarted", async (newElectionId, event) => {
+      console.log(`🏁 [V3] New election started — ID: ${newElectionId}, snapshotting previous results`);
+
+      try {
+        const snapshotRes = await db.query(
+          `SELECT name, position, vote_count FROM candidates WHERE status = 'approved' ORDER BY position, vote_count DESC`
+        );
+
+        if (snapshotRes.rows.length > 0) {
+          const electionNum = Number(newElectionId) - 1;
+          for (const row of snapshotRes.rows) {
+            await db.query(
+              `INSERT INTO election_history (election_number, candidate_name, candidate_position, vote_count)
+               VALUES ($1, $2, $3, $4)`,
+              [electionNum, row.name, row.position, row.vote_count]
+            );
+          }
+          console.log(`   → Snapshot saved for election #${electionNum} (${snapshotRes.rows.length} candidates)`);
+        }
+
+        emitEvent({
+          eventName: "NewElectionStarted",
+          txHash: event?.transactionHash || null,
+          blockNumber: event?.blockNumber || null,
+          args: { electionId: Number(newElectionId) },
+        });
+      } catch (err) {
+        console.error("[V3] snapshot error:", err.message);
       }
     });
   }

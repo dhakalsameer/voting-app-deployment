@@ -27,11 +27,7 @@ The contract function is: registerCandidate(guid, name, year, isFemale, imageCID
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <SectionHeader
-        icon="ℹ️"
-        title="Candidate Registration"
-        subtitle="Self-Service Flow"
-      />
+      <SectionHeader icon="ℹ️" title="Candidate Registration" />
 
       <div className="rounded-xl border border-app bg-app-input p-5 space-y-4">
         <p className="text-sm text-app-muted">

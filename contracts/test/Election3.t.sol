@@ -12,6 +12,7 @@ contract Election3Test is Test {
     address student1 = address(0x1234);
     address student2 = address(0x5678);
     address student3 = address(0x9ABC);
+    address student4 = address(0xDEF0);
 
     bytes32 voterRoot;
     bytes32 identityRoot;
@@ -20,9 +21,9 @@ contract Election3Test is Test {
         // Single-leaf voter tree: leaf = keccak256(address(this)) == root
         voterRoot = keccak256(abi.encodePacked(student1));
 
-        // Single-leaf identity tree for student1
+        // Single-leaf identity tree for student1 (year 4 for President)
         identityRoot = keccak256(
-            abi.encodePacked(student1, "Alice", uint8(3), true)
+            abi.encodePacked(student1, "Alice", uint8(4), true)
         );
 
         election = new Election3(voterRoot);
@@ -126,11 +127,10 @@ contract Election3Test is Test {
         election.registerCandidate(
             "ST-001",
             "Alice",
-            3,
+            4,
             true,
             "ipfs://img",
             Election3.Position.President,
-            // single-leaf tree: empty proof
             new bytes32[](0)
         );
 
@@ -139,7 +139,7 @@ contract Election3Test is Test {
         Election3.Candidate memory c = election.getCandidate(1);
         assertEq(c.name, "Alice");
         assertEq(c.studentId, "ST-001");
-        assertEq(c.year, 3);
+        assertEq(c.year, 4);
         assertTrue(c.isFemale);
         assertEq(c.imageCID, "ipfs://img");
         assertEq(uint256(c.position), uint256(Election3.Position.President));
@@ -165,7 +165,7 @@ contract Election3Test is Test {
         vm.prank(student1);
         vm.expectRevert("Registration ended");
         election.registerCandidate(
-            "ST-001", "Alice", 3, true, "ipfs://img",
+            "ST-001", "Alice", 4, true, "ipfs://img",
             Election3.Position.President, new bytes32[](0)
         );
     }
@@ -178,7 +178,7 @@ contract Election3Test is Test {
         vm.prank(student2);
         vm.expectRevert("Identity not verified");
         election.registerCandidate(
-            "ST-002", "Bob", 2, false, "ipfs://img",
+            "ST-002", "Bob", 3, false, "ipfs://img",
             Election3.Position.Secretary, new bytes32[](0)
         );
     }
@@ -189,13 +189,13 @@ contract Election3Test is Test {
 
         vm.startPrank(student1);
         election.registerCandidate(
-            "ST-001", "Alice", 3, true, "ipfs://img",
+            "ST-001", "Alice", 4, true, "ipfs://img",
             Election3.Position.President, new bytes32[](0)
         );
 
         vm.expectRevert("Already registered");
         election.registerCandidate(
-            "ST-001", "Alice", 3, true, "ipfs://img",
+            "ST-001", "Alice", 4, true, "ipfs://img",
             Election3.Position.Secretary, new bytes32[](0)
         );
         vm.stopPrank();
@@ -203,8 +203,8 @@ contract Election3Test is Test {
 
     function testMultipleCandidatesCanRegister() public {
         // Build a 2-leaf identity tree
-        bytes32 leaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(3), true));
-        bytes32 leaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(2), false));
+        bytes32 leaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(4), true));
+        bytes32 leaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(3), false));
 
         bytes32 node;
         if (leaf1 < leaf2) {
@@ -226,13 +226,13 @@ contract Election3Test is Test {
 
         vm.prank(student1);
         election.registerCandidate(
-            "ST-001", "Alice", 3, true, "ipfs://img",
+            "ST-001", "Alice", 4, true, "ipfs://img",
             Election3.Position.President, proof1
         );
 
         vm.prank(student2);
         election.registerCandidate(
-            "ST-002", "Bob", 2, false, "ipfs://img",
+            "ST-002", "Bob", 3, false, "ipfs://img",
             Election3.Position.Secretary, proof2
         );
 
@@ -252,7 +252,7 @@ contract Election3Test is Test {
 
         vm.prank(student1);
         election.registerCandidate(
-            "ST-001", "Alice", 3, true, "ipfs://img",
+            "ST-001", "Alice", 4, true, "ipfs://img",
             Election3.Position.President, new bytes32[](0)
         );
 
@@ -323,8 +323,8 @@ contract Election3Test is Test {
         election.setMerkleRoot(voterNode);
 
         // Build a 2-leaf identity tree
-        bytes32 idLeaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(3), true));
-        bytes32 idLeaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(2), false));
+        bytes32 idLeaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(4), true));
+        bytes32 idLeaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(3), false));
         bytes32 idNode;
         if (idLeaf1 < idLeaf2) {
             idNode = keccak256(abi.encodePacked(idLeaf1, idLeaf2));
@@ -344,11 +344,11 @@ contract Election3Test is Test {
         proof2[0] = idLeaf1;
 
         vm.prank(student1);
-        election.registerCandidate("ST-001", "Alice", 3, true, "ipfs://a",
+        election.registerCandidate("ST-001", "Alice", 4, true, "ipfs://a",
             Election3.Position.President, proof1);
 
         vm.prank(student2);
-        election.registerCandidate("ST-002", "Bob", 2, false, "ipfs://b",
+        election.registerCandidate("ST-002", "Bob", 3, false, "ipfs://b",
             Election3.Position.Secretary, proof2);
 
         vm.warp(regEnd + 1);
@@ -388,7 +388,8 @@ contract Election3Test is Test {
         Election3.ElectionResult memory result = election.getElectionResult(0);
         assertEq(result.presidentWinnerId, 1); // Alice won with 2 votes
         assertEq(result.secretaryWinnerId, 2); // Bob is the only secretary
-        assertEq(result.generalMemberWinnerId, 0); // No general member registered
+        assertEq(result.generalMemberWinnerId1, 0); // No general member registered
+        assertEq(result.generalMemberWinnerId2, 0);
         assertEq(result.totalCandidates, 2);
         assertTrue(result.timestamp > 0);
     }
@@ -400,12 +401,12 @@ contract Election3Test is Test {
         uint256 regEnd = block.timestamp + 3 hours;
         election.startRegistration(regEnd);
 
-        // Identity tree still valid, so student1 can register again
+        // Identity tree still valid (student1 year 4, student2 year 3), so student1 can register again
         bytes32[] memory idProof = new bytes32[](1);
-        idProof[0] = keccak256(abi.encodePacked(student2, "Bob", uint8(2), false));
+        idProof[0] = keccak256(abi.encodePacked(student2, "Bob", uint8(3), false));
 
         vm.prank(student1);
-        election.registerCandidate("ST-001", "Alice", 3, true, "ipfs://a",
+        election.registerCandidate("ST-001", "Alice", 4, true, "ipfs://a",
             Election3.Position.President, idProof);
 
         assertEq(election.candidateCount(), 1);
@@ -434,6 +435,8 @@ contract Election3Test is Test {
         Election3.ElectionResult memory r = election.getElectionResult(0);
         assertEq(r.presidentWinnerId, 1);
         assertEq(r.secretaryWinnerId, 2);
+        assertEq(r.generalMemberWinnerId1, 0);
+        assertEq(r.generalMemberWinnerId2, 0);
     }
 
     // =========================
@@ -441,9 +444,9 @@ contract Election3Test is Test {
     // =========================
 
     function testWinnerTiebreakerUsesLowestId() public {
-        // Build 2-leaf identity tree for 2 presidents
-        bytes32 idLeaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(3), true));
-        bytes32 idLeaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(2), false));
+        // Build 2-leaf identity tree for 2 presidents (both year 4)
+        bytes32 idLeaf1 = keccak256(abi.encodePacked(student1, "Alice", uint8(4), true));
+        bytes32 idLeaf2 = keccak256(abi.encodePacked(student2, "Bob", uint8(4), false));
         bytes32 idNode;
         if (idLeaf1 < idLeaf2) {
             idNode = keccak256(abi.encodePacked(idLeaf1, idLeaf2));
@@ -461,11 +464,11 @@ contract Election3Test is Test {
         proof2[0] = idLeaf1;
 
         vm.prank(student1);
-        election.registerCandidate("ST-001", "Alice", 3, true, "ipfs://a",
+        election.registerCandidate("ST-001", "Alice", 4, true, "ipfs://a",
             Election3.Position.President, proof1);
 
         vm.prank(student2);
-        election.registerCandidate("ST-002", "Bob", 2, false, "ipfs://b",
+        election.registerCandidate("ST-002", "Bob", 4, false, "ipfs://b",
             Election3.Position.President, proof2);
 
         vm.warp(regEnd + 1);

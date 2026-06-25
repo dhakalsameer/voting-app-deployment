@@ -1,9 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { ethers } from "ethers";
-import Election3ABI from "../abi/Election3.json";
-import { CONTRACT_ADDRESS_V3, SEPOLIA_EXPLORER } from "../config";
-
-const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+import { socket } from "../socket";
+import { API_URL, CONTRACT_ADDRESS_V3, SEPOLIA_EXPLORER } from "../config";
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
 const POSITION_NAMES = ["President", "Secretary", "General Member"];
@@ -16,8 +13,6 @@ const EVENT_META = {
   IdentityMerkleRootUpdated: { label: "Identity Root",  color: "cyan",    icon: "🆔" },
   NewElectionStarted:      { label: "New Election",     color: "rose",    icon: "🏁" },
 };
-
-const EVENT_NAMES = Object.keys(EVENT_META);
 
 function timeAgo(ts) {
   const sec = Math.floor((Date.now() - ts * 1000) / 1000);
@@ -54,7 +49,7 @@ function copyToClipboard(text) {
   navigator.clipboard?.writeText(text);
 }
 
-function formatValue(key, value) {
+function valueDisplay(key, value) {
   if (key === "voter" || key === "candidate" || key === "account" || key === "candidateAddr")
     return `${value.slice(0, 6)}...${value.slice(-4)}`;
   if (key === "newPhase" || key === "phase")
@@ -178,7 +173,7 @@ function EventCard({ event }) {
             {Object.entries(args).filter(([k]) => isNaN(Number(k))).map(([k, v]) => (
               <div key={k} className="contents">
                 <span className="text-app-muted-text capitalize">{k}</span>
-                <span className="text-app-heading font-mono">{formatValue(k, v)}</span>
+                <span className="text-app-heading font-mono">{valueDisplay(k, v)}</span>
               </div>
             ))}
           </div>
@@ -186,6 +181,20 @@ function EventCard({ event }) {
       </div>
     </div>
   );
+}
+
+function updateStatsFromAll(events) {
+  const s = { total: 0, votes: 0, candidates: 0, phaseChanges: 0, merkleUpdates: 0, identityUpdates: 0, elections: 0 };
+  for (const e of events) {
+    s.total++;
+    s.votes      += e.eventName === "VoteCast" ? 1 : 0;
+    s.candidates += e.eventName === "CandidateRegistered" ? 1 : 0;
+    s.phaseChanges      += e.eventName === "PhaseChanged" ? 1 : 0;
+    s.merkleUpdates      += e.eventName === "MerkleRootUpdated" ? 1 : 0;
+    s.identityUpdates    += e.eventName === "IdentityMerkleRootUpdated" ? 1 : 0;
+    s.elections          += e.eventName === "NewElectionStarted" ? 1 : 0;
+  }
+  return s;
 }
 
 export default function LiveBlockchainDashboard() {
@@ -197,188 +206,55 @@ export default function LiveBlockchainDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const feedRef = useRef(null);
-  const contractRef = useRef(null);
 
   useEffect(() => {
-    if (!CONTRACT_ADDRESS_V3 || CONTRACT_ADDRESS_V3 === "0x0000000000000000000000000000000000000000") {
-      setError("No contract address configured");
-      setLoading(false);
-      return;
-    }
-
     let mounted = true;
-    let provider;
-    let contract;
 
-    const attach = async () => {
+    const load = async () => {
       try {
-        provider = new ethers.JsonRpcProvider(RPC_URL);
-        contract = new ethers.Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, provider);
-        contractRef.current = contract;
-
+        const res = await fetch(`${API_URL}/api/events`);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
         if (!mounted) return;
-
-        // Fetch recent logs for all event types
-        const currentBlock = await provider.getBlockNumber();
-        const fromBlock = Math.max(0, currentBlock - 5000);
-
-        const filterPromises = EVENT_NAMES.map(name => {
-          try {
-            return contract.queryFilter(name, fromBlock);
-          } catch {
-            return [];
-          }
-        });
-
-        const results = await Promise.allSettled(filterPromises);
-        if (!mounted) return;
-
-        const historical = [];
-
-        for (let i = 0; i < EVENT_NAMES.length; i++) {
-          const result = results[i];
-          if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
-          for (const log of result.value) {
-            const args = {};
-            try {
-              const parsed = contract.interface.parseLog({ topics: log.topics, data: log.data });
-              if (parsed) {
-                parsed.args.forEach((val, idx) => {
-                  const key = parsed.fragment.inputs[idx]?.name || `arg${idx}`;
-                  args[key] = val;
-                });
-              }
-            } catch { /* ignore parse errors */ }
-
-            let timestamp = null;
-            try {
-              const block = await provider.getBlock(log.blockNumber);
-              timestamp = block?.timestamp;
-            } catch { /* ignore */ }
-
-            historical.push({
-              eventName: EVENT_NAMES[i],
-              txHash: log.transactionHash,
-              blockNumber: log.blockNumber,
-              logIndex: log.index,
-              timestamp,
-              args,
-            });
-          }
-        }
-
-        historical.sort((a, b) => {
-          if (a.blockNumber !== b.blockNumber) return b.blockNumber - a.blockNumber;
-          return (b.logIndex || 0) - (a.logIndex || 0);
-        });
-
-        if (mounted) {
-          setEvents(historical);
-          updateStats(historical);
-          setLoading(false);
-        }
+        setEvents(data);
+        setStats(updateStatsFromAll(data));
+        setLoading(false);
       } catch (err) {
-        console.error("Blockchain dashboard init error:", err);
+        console.error("Failed to load blockchain events:", err);
         if (mounted) {
-          setError(err.message || "Failed to connect to RPC");
+          setError(err.message || "Failed to load events from server");
           setLoading(false);
         }
       }
     };
 
-    attach();
+    load();
 
     return () => { mounted = false; };
   }, []);
 
-  // Subscribe to live events after historical load
   useEffect(() => {
-    if (!contractRef.current || loading) return;
-
-    const contract = contractRef.current;
-    let mounted = true;
-
-    const handleEvent = (eventName) => async (...args) => {
-      if (!mounted) return;
-
-      const event = args[args.length - 1];
-      let timestamp = null;
-      try {
-        const block = await event.getBlock();
-        timestamp = block.timestamp;
-      } catch { /* ignore */ }
-
-      const decoded = {};
-      try {
-        const parsed = contract.interface.parseLog({ topics: event.topics, data: event.data });
-        if (parsed) {
-          parsed.args.forEach((val, idx) => {
-            const key = parsed.fragment.inputs[idx]?.name || `arg${idx}`;
-            decoded[key] = val;
-          });
-        }
-      } catch { /* ignore */ }
-
-      const entry = {
-        eventName,
-        txHash: event.transactionHash,
-        blockNumber: event.blockNumber,
-        logIndex: event.index,
-        timestamp,
-        args: decoded,
-      };
-
-      setEvents(prev => [entry, ...prev]);
+    const handler = (event) => {
+      setEvents(prev => [event, ...prev]);
       setStats(prev => {
         const updated = { ...prev, total: prev.total + 1 };
-        updated.votes      += eventName === "VoteCast" ? 1 : 0;
-        updated.candidates += eventName === "CandidateRegistered" ? 1 : 0;
-        updated.phaseChanges      += eventName === "PhaseChanged" ? 1 : 0;
-        updated.merkleUpdates      += eventName === "MerkleRootUpdated" ? 1 : 0;
-        updated.identityUpdates    += eventName === "IdentityMerkleRootUpdated" ? 1 : 0;
-        updated.elections          += eventName === "NewElectionStarted" ? 1 : 0;
+        updated.votes      += event.eventName === "VoteCast" ? 1 : 0;
+        updated.candidates += event.eventName === "CandidateRegistered" ? 1 : 0;
+        updated.phaseChanges      += event.eventName === "PhaseChanged" ? 1 : 0;
+        updated.merkleUpdates      += event.eventName === "MerkleRootUpdated" ? 1 : 0;
+        updated.identityUpdates    += event.eventName === "IdentityMerkleRootUpdated" ? 1 : 0;
+        updated.elections          += event.eventName === "NewElectionStarted" ? 1 : 0;
         return updated;
       });
     };
 
-    const listeners = {};
-    for (const name of EVENT_NAMES) {
-      listeners[name] = handleEvent(name);
-      try {
-        contract.on(name, listeners[name]);
-      } catch (err) {
-        console.warn(`Failed to subscribe to ${name}:`, err);
-      }
-    }
+    socket.on("blockchainEvent", handler);
+    return () => socket.off("blockchainEvent", handler);
+  }, []);
 
-    return () => {
-      mounted = false;
-      for (const name of EVENT_NAMES) {
-        try {
-          contract.off(name, listeners[name]);
-        } catch { /* ignore */ }
-      }
-    };
-  }, [loading]);
-
-  // Scroll to top when new events arrive
   useEffect(() => {
     feedRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [events.length]);
-
-  const updateStats = (eventList) => {
-    const s = { total: 0, votes: 0, candidates: 0, phaseChanges: 0, merkleUpdates: 0, identityUpdates: 0, elections: 0 };
-    for (const e of eventList) {
-      s.total++;
-      s.votes      += e.eventName === "VoteCast" ? 1 : 0;
-      s.candidates += e.eventName === "CandidateRegistered" ? 1 : 0;
-      s.phaseChanges      += e.eventName === "PhaseChanged" ? 1 : 0;
-      s.merkleUpdates      += e.eventName === "MerkleRootUpdated" ? 1 : 0;
-      s.identityUpdates    += e.eventName === "IdentityMerkleRootUpdated" ? 1 : 0;
-      s.elections          += e.eventName === "NewElectionStarted" ? 1 : 0;
-    }
-    setStats(s);
-  };
 
   const filtered = useMemo(() => {
     if (filter === "All") return events;
@@ -387,11 +263,14 @@ export default function LiveBlockchainDashboard() {
 
   const tabCounts = useMemo(() => {
     const counts = { All: events.length };
+    const EVENT_NAMES = Object.keys(EVENT_META);
     for (const name of EVENT_NAMES) {
       counts[name] = events.filter(e => e.eventName === name).length;
     }
     return counts;
   }, [events]);
+
+  const EVENT_NAMES = useMemo(() => Object.keys(EVENT_META), []);
 
   if (loading) {
     return (
@@ -406,7 +285,7 @@ export default function LiveBlockchainDashboard() {
         </div>
         <div className="rounded-xl border border-app bg-app-surface p-8 text-center space-y-3">
           <div className="animate-spin mx-auto h-6 w-6 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full" />
-          <p className="text-xs text-app-muted-text">Querying on-chain event logs (last 5000 blocks)…</p>
+          <p className="text-xs text-app-muted-text">Loading blockchain events from server…</p>
         </div>
       </div>
     );
@@ -424,7 +303,7 @@ export default function LiveBlockchainDashboard() {
         </div>
         <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-6 text-center">
           <p className="text-sm text-rose-400">{error}</p>
-          <p className="text-xs text-app-muted-text mt-2">Check your RPC connection and contract address configuration.</p>
+          <p className="text-xs text-app-muted-text mt-2">Make sure the backend server is running.</p>
         </div>
       </div>
     );
@@ -486,7 +365,7 @@ export default function LiveBlockchainDashboard() {
               {filter === "All" ? "No on-chain events detected yet." : `No ${EVENT_META[filter]?.label || filter} events yet.`}
             </p>
             <p className="text-xs text-app-muted-text mt-1">
-              Events will appear here in real-time as they are mined on Sepolia.
+              Events will appear here in real-time as the sync engine detects them.
             </p>
           </div>
         ) : (
@@ -495,7 +374,7 @@ export default function LiveBlockchainDashboard() {
       </div>
 
       <p className="text-[10px] text-app-muted-text leading-relaxed italic">
-        Connected to <span className="font-mono">publicnode.com</span> (Sepolia). All event data is fetched directly from the blockchain — no backend cache involved.
+        Powered by the backend sync engine + Socket.IO — blockchain events are indexed server-side.
       </p>
     </div>
   );

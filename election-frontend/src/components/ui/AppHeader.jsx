@@ -1,154 +1,194 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../../context/AuthContextValue";
 import WalletButton from "../WalletButton";
 import ThemeToggle from "./ThemeToggle";
+import { API_URL } from "../../config";
 
-function MenuIcon({ open }) {
-  if (open) {
-    return (
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
-      </svg>
-    );
-  }
+function getImageUrl(imageCid) {
+  if (!imageCid) return null;
+  if (imageCid.startsWith("local:")) return `${API_URL}/uploads/${imageCid.slice(6)}`;
+  if (imageCid.startsWith("http")) return imageCid;
+  return `https://ipfs.io/ipfs/${imageCid}`;
+}
+
+function VoterAvatar({ student }) {
+  if (!student) return null;
+  const url = getImageUrl(student.image_cid);
+  const initials = (student.name || "?").split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
+
   return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
-    </svg>
+    <div className="h-8 w-8 rounded-lg overflow-hidden border border-app shrink-0">
+      {url ? (
+        <img src={url} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-sky-500 text-[10px] font-black text-slate-950">
+          {initials}
+        </div>
+      )}
+    </div>
   );
 }
 
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const drawerVariants = {
+  hidden: { x: "100%" },
+  visible: { x: 0, transition: { type: "spring", stiffness: 300, damping: 32 } },
+  exit: { x: "100%", transition: { type: "spring", stiffness: 300, damping: 32 } },
+};
+
 export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
-  const { isAdmin } = useContext(AuthContext);
+  const { isAdmin, student, wallet } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
 
   const tabs = isAdmin
     ? [
-        { id: "admin", label: "Admin Console", icon: "⚙️" },
-        { id: "results", label: "Results", icon: "📊" },
-        { id: "activity", label: "Live Activity", icon: "⚡" },
-        { id: "docs", label: "How It Works", icon: "📘" },
+        { id: "admin", label: "Admin" },
+        { id: "results", label: "Results" },
+        { id: "activity", label: "Activity" },
+        { id: "docs", label: "Docs" },
       ]
     : [
-        { id: "vote", label: "Vote", icon: "🗳️" },
-        { id: "results", label: "Results", icon: "📊" },
-        { id: "activity", label: "Live Activity", icon: "⚡" },
-        { id: "docs", label: "How It Works", icon: "📘" },
+        { id: "vote", label: "Vote" },
+        { id: "results", label: "Results" },
+        { id: "activity", label: "Activity" },
+        { id: "docs", label: "Docs" },
       ];
 
   return (
-    <header className="glass-panel sticky top-0 z-30 border-b border-app shadow-card">
-      <div className="page-container py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-3">
-          {/* Brand */}
-          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3 shrink-0">
-            <div className="shrink-0 rounded-xl bg-gradient-to-br from-amber-300 via-emerald-500 to-sky-500 p-2 sm:p-2.5 shadow-neon-glow">
-              <span className="text-base sm:text-xl font-black tracking-tighter text-slate-950">IT</span>
+    <header className="sticky top-0 z-30 border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
+      <div className="page-container flex items-center justify-between h-14">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-amber-300 via-emerald-500 to-sky-500">
+              <span className="text-xs font-black text-slate-950">IT</span>
             </div>
-            <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-base sm:text-xl lg:text-2xl font-black uppercase tracking-tight text-app-heading truncate">
-                Club Election
-                <span className="h-2 w-2 shrink-0 rounded-full bg-sky-400 animate-pulse" />
-              </h1>
-              <p className="hidden sm:block text-xs sm:text-sm font-bold uppercase tracking-widest text-sky-400/70 font-mono">
-                Decentralized Voting System v3
-              </p>
-            </div>
+            <span className="text-base font-bold tracking-tight text-app-heading hidden sm:block">Election</span>
           </div>
 
-          {/* Desktop Navigation - Center */}
-          <nav className="hidden md:flex items-center gap-1 xl:gap-2 mx-auto">
+          <nav className="hidden md:flex items-center gap-0.5 ml-3">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs xl:text-sm uppercase tracking-wider font-black transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                   activeTab === tab.id
-                    ? "bg-sky-400/10 text-sky-300 border border-sky-400/25 shadow-neon-glow"
-                    : "border border-transparent text-app-muted-text hover:text-app-heading hover:bg-app-muted/60"
+                    ? "text-app-accent bg-app-accent-soft"
+                    : "text-app-muted-text hover:text-app-heading"
                 }`}
               >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                {tab.label}
               </button>
             ))}
           </nav>
+        </div>
 
-          {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
-            {!isAdmin && (
-              <button
-                onClick={onOpenPortal}
-                className="btn-secondary whitespace-nowrap"
-              >
-                <span aria-hidden="true">🎓</span>
-                Student Portal
+            {!isAdmin && wallet && student && (
+              <button onClick={onOpenPortal} className="flex items-center gap-2 text-sm font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-2 py-1.5">
+                <VoterAvatar student={student} />
+                <span className="hidden lg:inline truncate max-w-[80px]">{student.name}</span>
+              </button>
+            )}
+            {!isAdmin && (!wallet || !student) && (
+              <button onClick={onOpenPortal} className="text-sm font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-2 py-1.5">
+                Portal
               </button>
             )}
             <WalletButton />
           </div>
 
-          {/* Mobile menu toggle */}
           <button
-            type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-app bg-app-input text-app-accent transition-colors hover:bg-app-elevated cursor-pointer"
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-app text-app-muted-text cursor-pointer"
+            aria-label="Menu"
           >
-            <MenuIcon open={menuOpen} />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
         </div>
-
-        {/* Mobile dropdown */}
-        {menuOpen && (
-          <div className="md:hidden mt-3 pt-3 border-t border-app/60 flex flex-col gap-2 animate-fade-in">
-            {/* Mobile Nav Links */}
-            <div className="flex flex-col gap-1.5 mb-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm uppercase tracking-wider font-black transition-all flex items-center gap-2.5 cursor-pointer ${
-                    activeTab === tab.id
-                      ? "bg-sky-400/10 text-sky-300 border border-sky-400/25"
-                      : "border border-transparent text-app-muted-text hover:text-app-heading hover:bg-app-muted"
-                  }`}
-                >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <hr className="border-app/40 my-1" />
-
-            <div className="flex justify-between items-center px-2 py-1">
-              <span className="text-xs font-bold text-app-muted-text uppercase">Theme</span>
-              <ThemeToggle />
-            </div>
-            {!isAdmin && (
-              <button
-                onClick={() => {
-                  onOpenPortal();
-                  setMenuOpen(false);
-                }}
-                className="btn-secondary w-full justify-center"
-              >
-                <span aria-hidden="true">🎓</span>
-                Student Portal
-              </button>
-            )}
-            <div className="flex justify-center py-1">
-              <WalletButton />
-            </div>
-          </div>
-        )}
       </div>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              key="overlay"
+              variants={overlayVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="fixed inset-0 z-40 bg-black/50 md:hidden"
+              onClick={() => setMenuOpen(false)}
+            />
+            <motion.div
+              key="drawer"
+              variants={drawerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="fixed top-0 right-0 z-50 h-full w-64 border-l border-app bg-app-surface-solid md:hidden"
+            >
+              <div className="flex items-center justify-between px-4 h-14 border-b border-app">
+                <span className="text-sm font-bold text-app-heading">Menu</span>
+                <button onClick={() => setMenuOpen(false)} className="h-8 w-8 flex items-center justify-center cursor-pointer text-app-muted-text">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-3 space-y-0.5">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setActiveTab(tab.id); setMenuOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                      activeTab === tab.id
+                        ? "text-app-accent bg-app-accent-soft"
+                        : "text-app-muted-text hover:text-app-heading"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="border-t border-app p-3 space-y-3">
+                {!isAdmin && wallet && student && (
+                  <button onClick={() => { onOpenPortal(); setMenuOpen(false); }} className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading cursor-pointer">
+                    <VoterAvatar student={student} />
+                    <span className="truncate">{student.name}</span>
+                  </button>
+                )}
+                {!isAdmin && (!wallet || !student) && (
+                  <button onClick={() => { onOpenPortal(); setMenuOpen(false); }} className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading cursor-pointer">
+                    Portal
+                  </button>
+                )}
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-sm text-app-muted-text">Theme</span>
+                  <ThemeToggle />
+                </div>
+                <WalletButton />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

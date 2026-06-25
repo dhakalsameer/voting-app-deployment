@@ -7,9 +7,9 @@ import { useToast } from "./ui/Toast";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
 
 const POSITIONS = [
-  { value: 0, label: "President", icon: "👤" },
-  { value: 1, label: "Secretary", icon: "📝" },
-  { value: 2, label: "General Member", icon: "🤝" },
+  { value: 0, label: "President", icon: "👤", minYear: 4, maxYear: 4 },
+  { value: 1, label: "Secretary", icon: "📝", minYear: 3, maxYear: 4 },
+  { value: 2, label: "General Member", icon: "🤝", minYear: 1, maxYear: 4 },
 ];
 
 /*
@@ -259,21 +259,36 @@ export default function CandidateSelfRegister({ student, regEnd }) {
       <div>
         <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1.5">Position</p>
         <div className="grid grid-cols-3 gap-2">
-          {POSITIONS.map((pos) => (
-            <button
-              key={pos.value}
-              type="button"
-              onClick={() => setPosition(pos.value)}
-              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-bold transition-all cursor-pointer ${
-                position === pos.value
-                  ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30"
-                  : "border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated"
-              }`}
-            >
-              <span className="text-base">{pos.icon}</span>
-              <span>{pos.label}</span>
-            </button>
-          ))}
+          {POSITIONS.map((pos) => {
+            const year = identity?.year;
+            const allowed = year >= pos.minYear && year <= pos.maxYear;
+            return (
+              <div key={pos.value} className="relative group">
+                <button
+                  type="button"
+                  onClick={() => allowed && setPosition(pos.value)}
+                  disabled={!allowed}
+                  className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-bold transition-all w-full ${
+                    !allowed
+                      ? "border-app-border/30 bg-app-muted/30 text-app-muted-text/40 cursor-not-allowed"
+                      : position === pos.value
+                        ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30 cursor-pointer"
+                        : "border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated cursor-pointer"
+                  }`}
+                >
+                  <span className="text-base">{pos.icon}</span>
+                  <span>{pos.label}</span>
+                </button>
+                {!allowed && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-10">
+                    <div className="bg-slate-900 text-white text-[10px] rounded-lg px-2 py-1 whitespace-nowrap shadow-lg border border-slate-700">
+                      {pos.label === "President" ? "Only 4th-year students" : "Only 3rd or 4th-year students"}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

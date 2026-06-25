@@ -549,13 +549,7 @@ function ProfileCard({ student, onPhotoChange }) {
  *   - Approved + eligible → directs user to the main page registration section
  *   - Rejected → "contact committee"
  */
-function CandidateSection({ student, authFetch }) {
-  const { success } = useToast();
-  const [application, setApplication] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const [selectedPos, setSelectedPos] = useState("");
-  const [error, setError] = useState("");
+function CandidateSection({ student }) {
   const [phase, setPhase] = useState(null);
   const [regEnd, setRegEnd] = useState(null);
   const [phaseLoading, setPhaseLoading] = useState(true);
@@ -581,54 +575,7 @@ function CandidateSection({ student, authFetch }) {
     return () => { mounted = false; };
   }, []);
 
-  const loadApplication = useCallback(async () => {
-    if (!student?.student_id) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/candidates?applied_by=${student.student_id}`);
-      const data = await res.json();
-      setApplication(Array.isArray(data) ? data[0] : null);
-    } catch (err) {
-      console.error("Failed to load application:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [student?.student_id]);
-
-  useEffect(() => {
-    loadApplication();
-  }, [loadApplication]);
-
-  const handleApply = async () => {
-    if (!selectedPos) return setError("Select a position");
-    setApplying(true);
-    setError("");
-    try {
-      await authFetch("/api/candidates/apply", {
-        method: "POST",
-        body: JSON.stringify({ position: selectedPos }),
-      });
-      setSelectedPos("");
-      await loadApplication();
-      success("Application submitted. Pending admin approval.");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setApplying(false);
-    }
-  };
-
-  const statusBadge = (status) => {
-    if (status === "pending")
-      return <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Pending</span>;
-    if (status === "approved")
-      return <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Approved</span>;
-    if (status === "rejected")
-      return <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">Rejected</span>;
-    return null;
-  };
-
-  if (loading) {
+  if (phaseLoading) {
     return (
       <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse space-y-2">
         <div className="h-3 w-24 bg-app-muted rounded" />
@@ -637,78 +584,25 @@ function CandidateSection({ student, authFetch }) {
     );
   }
 
-  if (application) {
-    return (
-      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🎯</span>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Candidate Application</h4>
-          </div>
-          {statusBadge(application.status)}
-        </div>
-        <div className="rounded-lg border border-app bg-app-muted/30 p-3">
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <p className="text-app-muted-text uppercase tracking-wider text-[10px]">Position</p>
-              <p className="font-semibold text-app-heading mt-0.5">{application.position}</p>
-            </div>
-            <div>
-              <p className="text-app-muted-text uppercase tracking-wider text-[10px]">Submitted</p>
-              <p className="font-semibold text-app-heading mt-0.5">
-                {application.applied_at ? new Date(application.applied_at).toLocaleDateString() : "—"}
-              </p>
-            </div>
-          </div>
-        </div>
-        {application.status === "approved" && !student.eligibleToVote && (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-            <p className="text-xs text-amber-400">
-              Your application is approved. You must be whitelisted by the admin before you can register on-chain.
-            </p>
-          </div>
-        )}
-        {application.status === "pending" && (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-            <p className="text-xs text-amber-400">
-              Your application is under review by the election committee.
-            </p>
-          </div>
-        )}
-        {application.status === "rejected" && (
-          <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
-            <p className="text-xs text-rose-400">Your application was not approved. Contact the election committee for more information.</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (phaseLoading) {
-    return (
-      <div className="rounded-xl border border-app bg-app-surface p-4 animate-pulse space-y-2">
-        <div className="h-3 w-32 bg-app-muted rounded" />
-        <div className="h-8 w-full bg-app-muted rounded" />
-      </div>
-    );
-  }
-
   const now = Math.floor(Date.now() / 1000);
   const isRegistrationOpen = phase === 1 && regEnd > now;
+
+  const studentYear = Number(student.year);
+  const eligiblePositions = [];
+  if (studentYear === 4) eligiblePositions.push("President");
+  if (studentYear >= 3) eligiblePositions.push("Secretary");
+  eligiblePositions.push("General Member");
 
   if (!student.eligibleToVote) {
     return (
       <div className="rounded-xl border border-app bg-app-surface p-4 space-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm">🎯</span>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Application</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Registration</h4>
         </div>
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
           <p className="text-xs text-amber-400">
-            You must be whitelisted as a voter before you can apply as a candidate.
-          </p>
-          <p className="text-[10px] text-app-muted-text mt-1">
-            Please wait for the admin to whitelist you in the voter list.
+            You must be whitelisted as a voter before you can register as a candidate.
           </p>
         </div>
       </div>
@@ -721,18 +615,11 @@ function CandidateSection({ student, authFetch }) {
       <div className="rounded-xl border border-app bg-app-surface p-4 space-y-2">
         <div className="flex items-center gap-2">
           <span className="text-sm">🎯</span>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Application</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Registration</h4>
         </div>
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
           <p className="text-xs text-amber-400">
-            {expired
-              ? "The registration window has expired."
-              : "Registration is not open yet."}
-          </p>
-          <p className="text-[10px] text-app-muted-text mt-1">
-            {expired
-              ? "Contact the admin if you need an extension."
-              : "Wait for the admin to start the registration phase."}
+            {expired ? "The registration window has expired." : "Registration is not open yet."}
           </p>
         </div>
       </div>
@@ -743,49 +630,29 @@ function CandidateSection({ student, authFetch }) {
     <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
       <div className="flex items-center gap-2">
         <span className="text-sm">🎯</span>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Apply as Candidate</h4>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Register as Candidate</h4>
       </div>
-      <p className="text-[10px] text-app-muted-text">Select a position to apply for candidacy</p>
-      <div className="grid grid-cols-3 gap-2">
-        {["President", "Secretary", "General Member"].map((pos) => (
-          <button
-            key={pos}
-            onClick={() => setSelectedPos(pos)}
-            className={`rounded-lg border px-2 py-2.5 text-xs font-bold transition-all cursor-pointer ${
-              selectedPos === pos
-                ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30"
-                : "border-app bg-app-input text-app-muted-text hover:text-app-heading"
-            }`}
-          >
-            {pos}
-          </button>
-        ))}
-      </div>
-      {error && (
-        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
-          <p className="text-xs text-rose-400">{error}</p>
+      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 space-y-2">
+        <p className="text-xs text-emerald-400">
+          Registration is open. You are eligible to run for:
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {eligiblePositions.map((pos) => (
+            <span key={pos} className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+              {pos}
+            </span>
+          ))}
         </div>
-      )}
-      <button
-        onClick={handleApply}
-        disabled={applying || !selectedPos}
-        className="btn-primary w-full text-xs"
-      >
-        {applying ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="h-3 w-3 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-            Submitting…
-          </span>
-        ) : (
-          "Submit Application"
-        )}
-      </button>
+        <p className="text-[10px] text-app-muted-text pt-1">
+          Use the <strong>Candidate Registration</strong> banner on the main page to register directly on-chain. Your wallet will sign the transaction and you pay the gas fee.
+        </p>
+      </div>
     </div>
   );
 }
 
 function Dashboard() {
-  const { student, logout, save, authFetch } = usePortal();
+  const { student, logout, save } = usePortal();
   const { balance, loading: balanceLoading } = useBalance(student?.wallet_address);
   if (!student) return null;
 
@@ -803,7 +670,7 @@ function Dashboard() {
         <button onClick={logout} className="text-xs text-app-muted-text hover:text-app-heading cursor-pointer">Sign out</button>
       </div>
 
-      <CandidateSection student={student} authFetch={authFetch} />
+      <CandidateSection student={student} />
 
       <div className="grid grid-cols-2 gap-3">
         {student.year && (

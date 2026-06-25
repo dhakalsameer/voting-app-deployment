@@ -1,7 +1,8 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useToast } from "../ui/Toast";
+import { socket } from "../../socket";
 
 const POSITION_LABELS = [
   { value: "President", label: "President", icon: "👤" },
@@ -35,6 +36,14 @@ export default function PendingCandidates() {
   useEffect(() => {
     if (wallet) loadPending();
   }, [wallet]);
+
+  // Real-time refresh on candidate changes
+  useEffect(() => {
+    if (!wallet) return;
+    const handler = () => loadPending();
+    socket.on("dataChanged", handler);
+    return () => socket.off("dataChanged", handler);
+  }, [wallet, loadPending]);
 
   const handleAction = async (id, action) => {
     setProcessing((prev) => ({ ...prev, [id]: action }));
@@ -106,6 +115,10 @@ export default function PendingCandidates() {
           const pos = POSITION_LABELS.find(
             (p) => p.value.toLowerCase() === String(c.position).toLowerCase()
           ) || POSITION_LABELS[2];
+          const year = Number(c.year);
+          const invalidYear =
+            (pos.value === "President" && year !== 4) ||
+            (pos.value === "Secretary" && (year < 3 || year > 4));
           const busy = processing[c.id];
 
           return (
@@ -135,10 +148,15 @@ export default function PendingCandidates() {
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-app-muted">
                   <span className="font-mono">ID: {c.applied_by}</span>
-                  <span className="text-emerald-400 capitalize">{c.year} year</span>
+                  <span className={`capitalize ${invalidYear ? "text-rose-400" : "text-emerald-400"}`}>{c.year} year</span>
                   <span className="text-sky-400 capitalize">{c.gender}</span>
                   <span className="font-mono">{c.wallet_address?.slice(0, 8)}…{c.wallet_address?.slice(-4)}</span>
                 </div>
+                {invalidYear && (
+                  <p className="text-[10px] text-rose-400 mt-1">
+                    ⚠ Year restriction — {pos.value === "President" ? "President must be 4th year" : "Secretary must be 3rd or 4th year"}
+                  </p>
+                )}
                 {c.applied_at && (
                   <p className="text-xs text-app-muted mt-1.5">
                     Applied {new Date(c.applied_at).toLocaleString()}

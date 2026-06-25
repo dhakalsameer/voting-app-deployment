@@ -6,6 +6,8 @@ import SectionHeader from "../ui/SectionHeader";
 import StatCard from "../ui/StatCard";
 import EmptyState from "../ui/EmptyState";
 import DataTable from "../ui/DataTable";
+import BlockExplorerLink from "../ui/BlockExplorerLink";
+import { socket } from "../../socket";
 
 export default function VerifyVoter() {
   const { wallet } = useContext(AuthContext);
@@ -57,6 +59,14 @@ export default function VerifyVoter() {
     return () => { cancelled = true; };
   }, [isAdmin, wallet, showError]);
 
+  // Real-time refresh on voter/student changes
+  useEffect(() => {
+    if (!isAdmin) return;
+    const handler = () => handleLoadData();
+    socket.on("dataChanged", handler);
+    return () => socket.off("dataChanged", handler);
+  }, [isAdmin, handleLoadData]);
+
   const toggleStudent = (studentId) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -78,7 +88,7 @@ export default function VerifyVoter() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Verification failed");
-      success(`Verified ${studentId}${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      success(`Verified ${studentId}`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
       await handleLoadData();
     } catch (err) {
       showError(err.message || "Verification failed");
@@ -100,7 +110,7 @@ export default function VerifyVoter() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Batch verification failed");
-      success(`Verified ${data.verifiedCount || ids.length} student(s)${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      success(`Verified ${data.verifiedCount || ids.length} student(s)`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
       setSelected(new Set());
       await handleLoadData();
     } catch (err) {
@@ -122,7 +132,7 @@ export default function VerifyVoter() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Revoke failed");
-      success(`Revoked ${studentId}${data.txHash ? `. Tx: ${data.txHash.slice(0, 8)}…${data.txHash.slice(-6)}` : ""}`);
+      success(`Revoked ${studentId}`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
       await handleLoadData();
     } catch (err) {
       showError(err.message || "Revoke failed");
@@ -139,7 +149,7 @@ export default function VerifyVoter() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <SectionHeader icon="✓" title="Verify Voters" subtitle="Whitelist & Revoke" />
+      <SectionHeader icon="✓" title="Verify Voters" />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard label="Total Registry" value={students.length} />
@@ -266,6 +276,17 @@ export default function VerifyVoter() {
                   key: "gender",
                   label: "Gender",
                   render: (s) => (s.gender ? s.gender.charAt(0).toUpperCase() + s.gender.slice(1) : "—"),
+                },
+                {
+                  key: "wallet",
+                  label: "Wallet",
+                  cellClassName: "font-mono text-xs",
+                  render: (s) =>
+                    s.wallet_address ? (
+                      <BlockExplorerLink hash={s.wallet_address} type="address" />
+                    ) : (
+                      <span className="text-app-muted">—</span>
+                    ),
                 },
                 {
                   key: "status",

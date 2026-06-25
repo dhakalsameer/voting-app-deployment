@@ -106,7 +106,7 @@ export default function VotingPanelV3() {
             rows
               .filter(c => {
                 const id = Number(c.blockchain_id);
-                return Number.isFinite(id);
+                return Number.isFinite(id) && id > 0;
               })
               .map(c => ({
                 id: Number(c.blockchain_id),

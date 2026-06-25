@@ -1,15 +1,23 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import BlockExplorerLink from "./BlockExplorerLink";
 
 const ToastContext = createContext(null);
 
 let toastIdCounter = 0;
 
+function normalizeOptions(arg) {
+  if (arg == null) return { duration: 4000 };
+  if (typeof arg === "number") return { duration: arg };
+  return { duration: arg.duration ?? 4000, txHash: arg.txHash };
+}
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = useCallback((message, type = "info", duration = 4000) => {
+  const addToast = useCallback((message, type = "info", options) => {
+    const { duration, txHash } = normalizeOptions(options);
     const id = ++toastIdCounter;
-    const toast = { id, message, type, duration };
+    const toast = { id, message, type, duration, txHash };
     setToasts((prev) => [...prev, toast]);
 
     if (duration > 0) {
@@ -25,15 +33,15 @@ export function ToastProvider({ children }) {
   }, []);
 
   const success = useCallback(
-    (message, duration) => addToast(message, "success", duration),
+    (message, options) => addToast(message, "success", options),
     [addToast]
   );
   const error = useCallback(
-    (message, duration) => addToast(message, "error", duration),
+    (message, options) => addToast(message, "error", options),
     [addToast]
   );
   const info = useCallback(
-    (message, duration) => addToast(message, "info", duration),
+    (message, options) => addToast(message, "info", options),
     [addToast]
   );
 
@@ -101,7 +109,15 @@ function ToastContainer({ toasts, onRemove }) {
             role="alert"
           >
             <div className={`mt-0.5 shrink-0 ${style.iconColor}`}>{style.icon}</div>
-            <p className={`text-sm font-medium leading-relaxed flex-1 min-w-0 ${style.text}`}>{toast.message}</p>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-medium leading-relaxed ${style.text}`}>{toast.message}</p>
+              {toast.txHash && (
+                <div className="mt-1.5">
+                  <span className="text-xs text-slate-500 mr-1.5">Tx:</span>
+                  <BlockExplorerLink hash={toast.txHash} />
+                </div>
+              )}
+            </div>
             <button
               onClick={() => onRemove(toast.id)}
               className="ml-auto -mt-1 -mr-1 shrink-0 rounded-lg p-1 text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors cursor-pointer"

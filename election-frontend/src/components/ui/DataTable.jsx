@@ -22,15 +22,15 @@ export default function DataTable({
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden md:block glass-panel rounded-2xl border border-app overflow-hidden shadow-card">
-        <div className="table-responsive">
-          <table className="w-full text-sm">
+      <div className="hidden md:block rounded-xl border border-app overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px] text-sm">
             <thead className="bg-app-elevated border-b border-app">
               <tr>
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className={`px-4 lg:px-5 py-3.5 text-xs font-mono font-bold uppercase tracking-widest text-app-muted ${
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider text-app-muted-text ${
                       col.align === "right" ? "text-right" : "text-left"
                     } ${col.className || ""}`}
                   >
@@ -39,16 +39,16 @@ export default function DataTable({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-app/40 bg-app-muted/30">
+            <tbody className="divide-y divide-app/40">
               {data.map((row, index) => (
                 <tr
                   key={getKey(row, index)}
-                  className={`hover:bg-emerald-500/5 transition-colors ${rowClassName?.(row) || ""}`}
+                  className={`hover:bg-app-accent-soft transition-colors ${rowClassName?.(row) || ""}`}
                 >
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className={`px-4 lg:px-5 py-3.5 text-sm text-app-body ${
+                      className={`px-4 py-3 text-sm text-app-body ${
                         col.align === "right" ? "text-right" : "text-left"
                       } ${col.cellClassName || ""}`}
                     >
@@ -67,16 +67,16 @@ export default function DataTable({
         {data.map((row, index) => (
           <div
             key={getKey(row, index)}
-            className={`glass-panel rounded-xl border border-app p-4 space-y-2.5 ${rowClassName?.(row) || ""}`}
+            className={`rounded-xl border border-app bg-app-surface p-4 space-y-2.5 ${rowClassName?.(row) || ""}`}
           >
             {columns
               .filter((col) => !col.hideOnMobile)
               .map((col) => (
                 <div key={col.key} className="flex items-start justify-between gap-3">
-                  <span className="shrink-0 text-xs font-mono font-bold uppercase tracking-wider text-app-muted">
+                  <span className="shrink-0 text-xs font-bold uppercase tracking-wider text-app-muted-text">
                     {col.label}
                   </span>
-                  <span className={`text-sm text-right text-app-body ${col.cellClassName || ""}`}>
+                  <span className="text-sm text-right text-app-body ml-2 overflow-hidden text-ellipsis">
                     {cellValue(row, col)}
                   </span>
                 </div>
