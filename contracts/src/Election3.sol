@@ -79,7 +79,8 @@ contract Election3 {
         uint256 indexed id,
         address indexed candidate,
         string name,
-        Position position
+        Position position,
+        string imageCID
     );
     event VoteCast(address indexed voter, uint256 candidateId);
     event PhaseChanged(Phase newPhase);
@@ -209,7 +210,8 @@ contract Election3 {
             candidateCount,
             msg.sender,
             _name,
-            _position
+            _position,
+            _imageCID
         );
     }
 

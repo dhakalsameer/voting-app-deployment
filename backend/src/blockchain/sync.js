@@ -49,10 +49,11 @@ export function startBlockchainSync(io) {
       }
     });
 
-    electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position, event) => {
+    electionContractV3.on("CandidateRegistered", async (id, candidateAddr, name, position, imageCID, event) => {
       console.log(`👤 Candidate registered on-chain: ${name} (ID: ${id}, wallet: ${candidateAddr}, position: ${position})`);
       try {
         const posName = position === 0 ? "President" : position === 1 ? "Secretary" : "General Member";
+        const cid = imageCID || null;
 
         const studentRes = await db.query(
           `SELECT student_id, name, year, gender FROM students WHERE LOWER(wallet_address) = LOWER($1)`,
@@ -63,10 +64,10 @@ export function startBlockchainSync(io) {
           const student = studentRes.rows[0];
           const updateRes = await db.query(
             `UPDATE candidates
-             SET blockchain_id = $1, status = 'approved', name = $2, position = $3, updated_at = NOW()
-             WHERE applied_by = $4 AND (blockchain_id IS NULL OR blockchain_id = $1)
+             SET blockchain_id = $1, status = 'approved', name = $2, position = $3, image_cid = COALESCE(NULLIF($4, ''), image_cid), updated_at = NOW()
+             WHERE applied_by = $5 AND (blockchain_id IS NULL OR blockchain_id = $1)
              RETURNING id`,
-            [Number(id), name, posName, student.student_id]
+            [Number(id), name, posName, cid, student.student_id]
           );
 
           if (updateRes.rows.length > 0) {
@@ -74,18 +75,18 @@ export function startBlockchainSync(io) {
           } else {
             await db.query(
               `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status, year, gender, applied_by)
-               VALUES ($1, $2, $3, NULL, $4, 0, 'approved', $5, $6, $7)`,
-              [name, student.student_id, posName, Number(id), student.year, student.gender, student.student_id]
+               VALUES ($1, $2, $3, $4, $5, 0, 'approved', $6, $7, $8)`,
+              [name, student.student_id, posName, cid, Number(id), student.year, student.gender, student.student_id]
             );
             console.log(`   → Created new candidate record for ${student.student_id} from on-chain event`);
           }
         } else {
           await db.query(
             `INSERT INTO candidates (name, student_id, position, image_cid, blockchain_id, vote_count, status)
-             VALUES ($1, NULL, $2, NULL, $3, 0, 'approved')
+             VALUES ($1, NULL, $2, $3, $4, 0, 'approved')
              ON CONFLICT (blockchain_id)
-             DO UPDATE SET name = $1, position = $2, status = 'approved', updated_at = NOW()`,
-            [name, posName, Number(id)]
+             DO UPDATE SET name = $1, position = $2, image_cid = COALESCE(NULLIF($3, ''), candidates.image_cid), status = 'approved', updated_at = NOW()`,
+            [name, posName, cid, Number(id)]
           );
           console.log(`   → No matching student for wallet ${candidateAddr}, created orphan candidate record`);
         }
@@ -94,7 +95,7 @@ export function startBlockchainSync(io) {
           eventName: "CandidateRegistered",
           txHash: event?.transactionHash || null,
           blockNumber: event?.blockNumber || null,
-          args: { id: Number(id), candidate: candidateAddr, name, position: Number(position) },
+          args: { id: Number(id), candidate: candidateAddr, name, position: Number(position), imageCID: cid },
         });
 
         broadcastResults();
