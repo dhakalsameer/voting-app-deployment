@@ -135,6 +135,9 @@ contract Election3 {
     function startRegistration(uint256 _end) external onlyAdmin {
         require(phase == Phase.Created || phase == Phase.Ended, "Invalid phase");
         require(_end > block.timestamp, "End must be in future");
+        if (phase == Phase.Created) {
+            emit NewElectionStarted(currentElectionId);
+        }
         phase = Phase.Registration;
         registrationEnd = _end;
         emit PhaseChanged(Phase.Registration);
