@@ -193,3 +193,32 @@ export async function distributeGas(req, res) {
     });
   }
 }
+
+export async function getDistributionHistory(req, res) {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const offset = (page - 1) * limit;
+
+    const countResult = await db.query("SELECT COUNT(*) FROM distribution_log");
+    const total = parseInt(countResult.rows[0].count);
+
+    const result = await db.query(`
+      SELECT id, student_id, wallet_address, amount_eth, tx_hash, status, error, distributed_at
+      FROM distribution_log
+      ORDER BY distributed_at DESC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    return res.json({
+      logs: result.rows,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error("getDistributionHistory error:", error);
+    return res.status(500).json({ error: "Failed to load distribution history" });
+  }
+}

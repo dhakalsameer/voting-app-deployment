@@ -76,7 +76,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
     <header className="sticky top-0 z-30 border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
       <div className="page-container flex items-center justify-between h-20">
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("home")}>
             <img
               src="/images/gu-icon.png"
               alt="GU"

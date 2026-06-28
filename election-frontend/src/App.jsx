@@ -212,7 +212,7 @@ function App() {
         <main className="relative z-10 page-container py-8">
           <div className={`mx-auto ${currentTab === "vote" || currentTab === "home" ? "max-w-3xl" : "max-w-6xl"}`}>
             <AnimatePresence mode="wait">
-              {currentTab === "home" && !wallet && (
+              {currentTab === "home" && (
                 <AnimatedPage key="home">
                   <LandingPage onOpenPortal={() => setPortalOpen(true)} blockHeight={blockHeight} />
                 </AnimatedPage>

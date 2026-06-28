@@ -1,11 +1,70 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useBalance } from "../../hooks/useBalance";
 import { useToast } from "../ui/Toast";
 import BlockExplorerLink from "../ui/BlockExplorerLink";
+import GasHistory from "./GasHistory";
+
+const GAS_TABS = [
+  { id: "distribute", label: "Distribute", icon: "⛽" },
+  { id: "history", label: "History", icon: "📋" },
+];
 
 export default function GasDistribution() {
+  const [subTab, setSubTab] = useState("distribute");
+  const [subStuck, setSubStuck] = useState(false);
+  const subSentinelRef = useRef(null);
+
+  useEffect(() => {
+    const el = subSentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setSubStuck(!entry.isIntersecting),
+      { rootMargin: "-160px 0px 0px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wide text-app-heading">
+            ⛽ Sepolia ETH Distribution
+          </h3>
+          <p className="text-sm text-app-muted mt-1">
+            Send test ETH to verified voters by year group. Only eligible students (wallet linked + verified) are shown.
+          </p>
+        </div>
+      </div>
+
+      <div ref={subSentinelRef} className="h-px" />
+      <div className={`flex gap-3 mb-6 pb-5 border-b border-app overflow-x-auto sticky top-[10rem] z-20 transition-all duration-200 ${subStuck ? "bg-app-background/80 backdrop-blur-sm" : "bg-transparent"} -mx-6 px-6`}>
+        {GAS_TABS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-base font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              subTab === t.id
+                ? "text-app-accent bg-app-accent-soft shadow-sm"
+                : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
+            }`}
+          >
+            <span className="text-lg">{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "distribute" && <GasDistribute />}
+      {subTab === "history" && <GasHistory />}
+    </div>
+  );
+}
+
+function GasDistribute() {
   const { wallet } = useContext(AuthContext);
   const { balance } = useBalance(wallet);
   const { success, error: showError, info } = useToast();
@@ -108,23 +167,12 @@ export default function GasDistribution() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-black uppercase tracking-wide text-app-heading">
-            ⛽ Sepolia ETH Distribution
-          </h3>
-          <p className="text-sm text-app-muted mt-1">
-            Send test ETH to verified voters by year group. Only eligible students (wallet linked + verified) are shown.
-          </p>
+      {balance && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-400/10 px-3 py-1.5 text-sm font-mono font-bold text-amber-200 w-fit">
+          <span>Ξ</span>
+          <span>{Number(balance).toFixed(4)} ETH</span>
         </div>
-        {balance && (
-          <div className="flex items-center gap-2 rounded-xl border border-amber-300/25 bg-amber-400/10 px-3 py-1.5 text-sm font-mono font-bold text-amber-200">
-            <span>Ξ</span>
-            <span>{Number(balance).toFixed(4)} ETH</span>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Year Selection */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
