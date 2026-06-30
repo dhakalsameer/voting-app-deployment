@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { API_URL } from "../config";
+import { getContractV3 } from "../contract";
 import { socket } from "../socket";
 
 const POSITIONS = ["President", "Secretary", "General Member"];
@@ -307,12 +308,71 @@ export default function Results() {
   const [selectedElection, setSelectedElection] = useState("live");
 
   useEffect(() => {
+    const loadHistoryFromContract = async () => {
+      try {
+        const contract = await getContractV3();
+        const hc = Number(await contract.historyCount());
+        if (hc === 0) return;
+        const items = [];
+        for (let i = 0; i < hc; i++) {
+          const r = await contract.getElectionResult(i);
+          const candidates = [];
+          const presId = Number(r.presidentWinnerId);
+          if (presId > 0) {
+            const c = await contract.getCandidate(presId);
+            if (c.exists) {
+              candidates.push({
+                name: c.name, position: "President",
+                vote_count: Number(c.voteCount), year: String(c.year),
+                gender: c.isFemale ? "female" : "male",
+                photo: getImageUrl(c.imageCID),
+              });
+            }
+          }
+          const secId = Number(r.secretaryWinnerId);
+          if (secId > 0) {
+            const c = await contract.getCandidate(secId);
+            if (c.exists) {
+              candidates.push({
+                name: c.name, position: "Secretary",
+                vote_count: Number(c.voteCount), year: String(c.year),
+                gender: c.isFemale ? "female" : "male",
+                photo: getImageUrl(c.imageCID),
+              });
+            }
+          }
+          const gmIds = r.generalMemberWinnerIds.map(Number);
+          for (const gid of gmIds) {
+            if (gid === 0) continue;
+            const c = await contract.getCandidate(gid);
+            if (c.exists) {
+              candidates.push({
+                name: c.name, position: "General Member",
+                vote_count: Number(c.voteCount), year: String(c.year),
+                gender: c.isFemale ? "female" : "male",
+                photo: getImageUrl(c.imageCID),
+              });
+            }
+          }
+          items.push({
+            election_number: i + 1,
+            snapshot_at: new Date(Number(r.timestamp) * 1000).toISOString(),
+            candidates,
+          });
+        }
+        if (items.length > 0) setHistory(prev => prev.length === 0 ? items : prev);
+      } catch (err) {
+        console.error("Contract fallback failed:", err);
+      }
+    };
+
     const fetchHistory = async () => {
       try {
         const res = await fetch(`${API_URL}/api/results/history`);
         const d = await res.json();
-        if (Array.isArray(d)) setHistory(d);
+        if (Array.isArray(d) && d.length > 0) { setHistory(d); return; }
       } catch {}
+      await loadHistoryFromContract();
     };
     fetchHistory();
   }, []);

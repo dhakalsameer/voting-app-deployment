@@ -56,7 +56,7 @@ export default function VoterStatusCard({ voterStatus, balance }) {
           </div>
         </div>
         {balance !== null && Number(balance) < 0.001 && (
-          <span className="text-xs font-mono text-rose-400">Low gas</span>
+          <span className="text-sm font-mono text-rose-400">Low gas</span>
         )}
       </div>
 

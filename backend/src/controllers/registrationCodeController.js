@@ -152,7 +152,7 @@ export const listCodes = async (req, res) => {
     const { used, studentId } = req.query;
     let sql = `
       SELECT rc.id, rc.student_id, rc.code, rc.used, rc.created_at, rc.used_at,
-             s.registered AS student_registered
+             s.name, s.registered AS student_registered
       FROM registration_codes rc
       LEFT JOIN students s ON s.student_id = rc.student_id`;
     const where = [];

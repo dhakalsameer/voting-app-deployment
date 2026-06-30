@@ -133,7 +133,7 @@ function VoterSection() {
         ))}
       </div>
 
-      {subTab === "verify" && <VerifyVoter />}
+      {subTab === "verify" && <VerifyVoter onWhitelisted={() => setSubTab("students")} />}
       {subTab === "codes" && <GenerateCodes />}
       {subTab === "students" && <StudentList />}
     </div>

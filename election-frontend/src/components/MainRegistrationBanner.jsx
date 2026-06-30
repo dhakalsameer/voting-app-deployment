@@ -68,7 +68,7 @@ export default function MainRegistrationBanner() {
           </div>
           <div>
             <p className="text-sm font-bold text-amber-400">Candidate Registration {expired ? "Ended" : "Closed"}</p>
-            <p className="text-xs text-app-muted-text mt-0.5">
+            <p className="text-sm text-app-muted-text mt-0.5">
               {expired
                 ? "The registration window has expired. Contact the admin if you need an extension."
                 : "Registration is not open yet. Wait for the admin to open it."}
@@ -104,13 +104,13 @@ export default function MainRegistrationBanner() {
         </div>
       ) : !student ? (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-          <p className="text-xs text-amber-400">
+          <p className="text-sm text-amber-400">
             You are not registered as a student. Open the Student Portal to create your account first.
           </p>
         </div>
       ) : !student.verified ? (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-          <p className="text-xs text-amber-400">
+          <p className="text-sm text-amber-400">
             You must be whitelisted as a voter before registering as a candidate. Contact the admin.
           </p>
         </div>

@@ -300,15 +300,8 @@ function LandingPage({ onOpenPortal, blockHeight }) {
         const num = await provider.getBlockNumber();
         if (num === lastChecked || !mounted) return;
         lastChecked = num;
-        const block = await provider.getBlock(num, true);
+        const block = await provider.getBlock(num);
         if (!block || !mounted) return;
-
-        const match = block.transactions?.some(
-          tx => tx.to?.toLowerCase() === CONTRACT_ADDRESS_V3.toLowerCase()
-             || (tx.from && tx.from.toLowerCase() === CONTRACT_ADDRESS_V3.toLowerCase())
-        );
-
-        if (!match) return;
 
         setLiveBlocks(prev => {
           const next = [{
@@ -390,7 +383,7 @@ function LandingPage({ onOpenPortal, blockHeight }) {
           {liveBlocks.length === 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-surface-solid/40 px-4 py-3">
               <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
-              <span className="text-xs text-app-muted-text">Waiting for next block...</span>
+              <span className="text-sm text-app-muted-text">Waiting for next block...</span>
             </div>
           )}
           {liveBlocks.map((block, i) => (
@@ -411,10 +404,10 @@ function LandingPage({ onOpenPortal, blockHeight }) {
                 )}
                 #{(block.num).toLocaleString()}
               </div>
-              <div className="text-[10px] text-app-muted-text font-mono mb-1">
+              <div className="text-xs text-app-muted-text font-mono mb-1">
                 0x{block.hash.slice(2, 6)}...{block.hash.slice(-4)}
               </div>
-              <div className="text-xs text-app-muted-text">{block.txs} txns</div>
+              <div className="text-sm text-app-muted-text">{block.txs} txns</div>
             </div>
           ))}
         </div>

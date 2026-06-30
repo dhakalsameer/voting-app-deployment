@@ -5,6 +5,7 @@ import { API_URL } from "../config";
 import { getProof } from "../utils/merkle";
 import { useBalance } from "../hooks/useBalance";
 import { useToast } from "./ui/Toast";
+import { formatContractError } from "../utils/errors";
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -68,14 +69,14 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
           {candidate.name}
         </p>
         {candidate.studentId && (
-          <p className="text-[10px] font-mono text-app-muted-text truncate">{candidate.studentId}</p>
+          <p className="text-xs font-mono text-app-muted-text truncate">{candidate.studentId}</p>
         )}
         {candidate.year && (
-          <p className="text-[10px] font-mono text-app-muted-text">{candidate.year} Year</p>
+          <p className="text-xs font-mono text-app-muted-text">{candidate.year} Year</p>
         )}
         <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
           {candidate.isFemale !== undefined && (
-            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+            <span className={`text-xs font-bold uppercase px-1.5 py-0.5 rounded ${
               candidate.isFemale ? "bg-pink-500/10 text-pink-400" : "bg-sky-500/10 text-sky-400"
             }`}>
               {candidate.isFemale ? "Female" : "Male"}
@@ -218,8 +219,7 @@ export default function VotingPanelV3() {
     [selectedGMIds, candidates]
   );
 
-  const disableFemale = selectedGMIds.length >= GM_MAX ||
-    (selectedGMIds.length > 0 && gmFemaleSelected >= GM_MIN_FEMALE);
+  const disableFemale = selectedGMIds.length >= GM_MAX;
   const disableMale = selectedGMIds.length >= GM_MAX;
 
   const totalSelected = (selectedPresidentId ? 1 : 0) +
@@ -261,7 +261,7 @@ export default function VotingPanelV3() {
       setSelectedSecretaryId(null);
       setSelectedGMIds([]);
     } catch (err) {
-      showError(err.message || "Transaction failed");
+      showError(formatContractError(err, "Transaction failed"));
     } finally {
       setCasting(false);
     }
@@ -276,7 +276,7 @@ export default function VotingPanelV3() {
         <div>
           <h2 className="text-base font-semibold text-app-heading">Cast Your Ballot</h2>
           {totalCandidates > 0 && (
-            <p className="text-xs text-app-muted-text mt-0.5">
+            <p className="text-sm text-app-muted-text mt-0.5">
               {totalCandidates} candidate{totalCandidates !== 1 ? "s" : ""}
               {phase !== null && ` · ${PHASE_NAMES[phase]} Phase`}
             </p>
@@ -287,16 +287,16 @@ export default function VotingPanelV3() {
             <div className="text-right">
               {phase === 2 && votingEnd && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-app-muted-text leading-tight">Voting ends</p>
+                  <p className="text-xs uppercase tracking-wider text-app-muted-text leading-tight">Voting ends</p>
                   <p className="text-xs font-mono font-bold text-app-accent">{formatTime(votingEnd)}</p>
-                  <p className="text-[10px] font-mono text-emerald-400">{formatRemaining(votingEnd - now)}</p>
+                  <p className="text-xs font-mono text-emerald-400">{formatRemaining(votingEnd - now)}</p>
                 </>
               )}
               {phase === 1 && regEnd && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-app-muted-text leading-tight">Registration ends</p>
+                  <p className="text-xs uppercase tracking-wider text-app-muted-text leading-tight">Registration ends</p>
                   <p className="text-xs font-mono font-bold text-app-accent">{formatTime(regEnd)}</p>
-                  <p className="text-[10px] font-mono text-emerald-400">{formatRemaining(regEnd - now)}</p>
+                  <p className="text-xs font-mono text-emerald-400">{formatRemaining(regEnd - now)}</p>
                 </>
               )}
             </div>
@@ -320,7 +320,7 @@ export default function VotingPanelV3() {
           <>
             {!voterStatus.hasVoted && !votingPhaseActive && phase !== null && phase !== 2 && (
               <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
-                <p className="text-xs text-amber-400 font-medium">
+                <p className="text-sm text-amber-400 font-medium">
                   {phase === 0 || phase === 1
                     ? "Voting has not started yet. Check back during the voting phase."
                     : phase === 3
@@ -333,13 +333,13 @@ export default function VotingPanelV3() {
             {voterStatus.hasVoted && (
               <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
                 <p className="text-sm font-bold text-emerald-400">✓ You have already voted</p>
-                <p className="text-xs text-app-muted-text mt-1">Candidates are shown for reference.</p>
+                <p className="text-sm text-app-muted-text mt-1">Candidates are shown for reference.</p>
               </div>
             )}
 
             {votingPhaseActive && !voterStatus.canVote && !voterStatus.hasVoted && (
               <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
-                <p className="text-xs text-amber-400 font-medium">
+                <p className="text-sm text-amber-400 font-medium">
                   You are not eligible to vote. Make sure your wallet is connected and you are whitelisted.
                 </p>
               </div>
@@ -350,10 +350,10 @@ export default function VotingPanelV3() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm">🏛️</span>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-app-heading">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
                     President{phase === 2 ? " (choose 1)" : ""}
                   </h3>
-                  <span className="text-[10px] font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[0].length}</span>
+                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[0].length}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {grouped[0].map(c => (
@@ -375,10 +375,10 @@ export default function VotingPanelV3() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm">📋</span>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-app-heading">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
                     Secretary{phase === 2 ? " (choose 1)" : ""}
                   </h3>
-                  <span className="text-[10px] font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[1].length}</span>
+                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[1].length}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {grouped[1].map(c => (
@@ -400,10 +400,10 @@ export default function VotingPanelV3() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm">👥</span>
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-app-heading">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
                     General Member{phase === 2 ? ` (choose up to ${GM_MAX}, at least ${GM_MIN_FEMALE} female)` : ""}
                   </h3>
-                  <span className="text-[10px] font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">
+                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">
                     {phase === 2 ? `${selectedGMIds.length}/${GM_MAX}` : `${grouped[2].length}`}
                   </span>
                 </div>
@@ -420,12 +420,12 @@ export default function VotingPanelV3() {
                   ))}
                 </div>
                 {canVote && selectedGMIds.length > 0 && gmFemaleSelected < GM_MIN_FEMALE && (
-                  <p className="text-[11px] text-rose-400 mt-2">
+                  <p className="text-xs text-rose-400 mt-2">
                     Select {GM_MIN_FEMALE - gmFemaleSelected} more female GM candidate{GM_MIN_FEMALE - gmFemaleSelected > 1 ? "s" : ""}
                   </p>
                 )}
                 {canVote && gmFemaleRemaining === 0 && gmFemaleSelected < GM_MIN_FEMALE && selectedGMIds.length < GM_MAX && (
-                  <p className="text-[11px] text-rose-400 mt-1">
+                  <p className="text-xs text-rose-400 mt-1">
                     No more female GM candidates available
                   </p>
                 )}
@@ -439,13 +439,13 @@ export default function VotingPanelV3() {
             {canVote && totalSelected > 0 && (
               <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-center space-y-1">
                 {selectedPresidentId && (
-                  <p className="text-xs text-sky-400">President: <span className="font-bold">{selectedName(selectedPresidentId)}</span></p>
+                  <p className="text-sm text-sky-400">President: <span className="font-bold">{selectedName(selectedPresidentId)}</span></p>
                 )}
                 {selectedSecretaryId && (
-                  <p className="text-xs text-sky-400">Secretary: <span className="font-bold">{selectedName(selectedSecretaryId)}</span></p>
+                  <p className="text-sm text-sky-400">Secretary: <span className="font-bold">{selectedName(selectedSecretaryId)}</span></p>
                 )}
                 {selectedGMIds.length > 0 && (
-                  <p className="text-xs text-sky-400">
+                  <p className="text-sm text-sky-400">
                     General Members ({selectedGMIds.length}):{" "}
                     <span className="font-bold">{selectedGMIds.map(id => selectedName(id)).join(", ")}</span>
                   </p>

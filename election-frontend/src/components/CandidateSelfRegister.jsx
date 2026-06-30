@@ -5,6 +5,7 @@ import { getContractV3 } from "../contract";
 import { API_URL } from "../config";
 import { useToast } from "./ui/Toast";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
+import { formatContractError } from "../utils/errors";
 
 const POSITIONS = [
   { value: 0, label: "President", icon: "👤", minYear: 4, maxYear: 4 },
@@ -163,7 +164,7 @@ export default function CandidateSelfRegister({ student, regEnd }) {
       setIsRegistered(true);
     } catch (err) {
       console.error(err);
-      showError(err.reason || err.shortMessage || err.message || "Registration failed");
+      showError(formatContractError(err, "Registration failed"));
     } finally {
       setRegistering(false);
     }
@@ -174,22 +175,25 @@ export default function CandidateSelfRegister({ student, regEnd }) {
 
   if (loadingPhase) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface p-5 animate-pulse">
-        <p className="text-sm text-app-muted-text">Checking election phase…</p>
+      <div className="rounded-xl border border-app bg-app-surface p-6 animate-pulse">
+        <div className="flex items-center gap-3">
+          <span className="h-5 w-5 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
+          <p className="text-base text-app-muted-text font-medium">Checking election phase…</p>
+        </div>
       </div>
     );
   }
 
   if (isRegistered) {
     return (
-      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 text-center space-y-2">
-        <div className="mx-auto h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <span className="text-emerald-400 text-sm">✓</span>
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center space-y-3">
+        <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center">
+          <span className="text-emerald-400 text-lg font-bold">✓</span>
         </div>
-        <p className="text-sm font-bold text-emerald-400">Already Registered On-Chain</p>
-        <p className="text-xs text-app-body">You have already registered as a candidate for this election.</p>
-        {txHash && (
-          <div className="text-xs font-mono pt-1">
+        <p className="text-lg font-bold text-emerald-400">Already Registered On-Chain</p>
+        <p className="text-base text-app-body">You have already registered as a candidate for this election.</p>
+          {txHash && (
+            <div className="pt-2">
             <BlockExplorerLink hash={txHash} />
           </div>
         )}
@@ -201,10 +205,12 @@ export default function CandidateSelfRegister({ student, regEnd }) {
 
   if (phase !== 1) {
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-2">
-        <span className="text-2xl block">📋</span>
-        <p className="text-sm font-bold text-amber-400">Registration Not Open</p>
-        <p className="text-xs text-app-body">
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center space-y-3">
+        <div className="mx-auto h-12 w-12 rounded-full bg-amber-500/10 border-2 border-amber-500/20 flex items-center justify-center">
+          <span className="text-2xl">📋</span>
+        </div>
+        <p className="text-lg font-bold text-amber-400">Registration Not Open</p>
+        <p className="text-base text-app-body max-w-md mx-auto">
           The {expired ? "registration window has expired" : "Registration phase has not started yet"}. {expired ? "Contact the admin." : "The admin must open it before you can register on-chain."}
         </p>
       </div>
@@ -213,10 +219,12 @@ export default function CandidateSelfRegister({ student, regEnd }) {
 
   if (!effectivelyOpen) {
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-2">
-        <span className="text-2xl block">⏰</span>
-        <p className="text-sm font-bold text-amber-400">Registration Ended</p>
-        <p className="text-xs text-app-body">
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-6 text-center space-y-3">
+        <div className="mx-auto h-12 w-12 rounded-full bg-amber-500/10 border-2 border-amber-500/20 flex items-center justify-center">
+          <span className="text-2xl">⏰</span>
+        </div>
+        <p className="text-lg font-bold text-amber-400">Registration Ended</p>
+        <p className="text-base text-app-body max-w-md mx-auto">
           The registration window has expired. Contact the admin if you need an extension.
         </p>
       </div>
@@ -224,17 +232,19 @@ export default function CandidateSelfRegister({ student, regEnd }) {
   }
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface p-5 space-y-4">
-      <div className="flex items-center gap-2.5 pb-3 border-b border-app/50">
-        <span className="text-lg">📝</span>
-        <div className="flex-1">
-          <p className="text-sm font-bold text-app-heading">Register as Candidate</p>
-          <p className="text-xs text-app-muted-text">Your identity is verified via Merkle tree proof</p>
+    <div className="rounded-xl border border-app bg-app-surface p-6 space-y-6">
+      <div className="flex items-start gap-4 pb-4 border-b border-app/50">
+        <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <span className="text-2xl">📝</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-app-heading">Register as Candidate</h2>
+          <p className="text-sm text-app-muted-text mt-0.5">Your identity is verified via Merkle tree proof</p>
         </div>
         {remaining > 0 && (
-          <div className="text-right shrink-0">
-            <p className="text-[10px] uppercase tracking-wider text-app-muted-text">Closes in</p>
-            <p className="text-xs font-mono font-bold text-emerald-400">
+          <div className="text-right shrink-0 pt-1">
+            <p className="text-xs uppercase tracking-wider text-app-muted-text">Closes in</p>
+            <p className="text-base font-mono font-bold text-emerald-400">
               {remaining > 3600
                 ? `${Math.floor(remaining / 3600)}h ${String(Math.floor((remaining % 3600) / 60)).padStart(2, "0")}m`
                 : `${Math.floor(remaining / 60)}m ${String(remaining % 60).padStart(2, "0")}s`}
@@ -244,67 +254,68 @@ export default function CandidateSelfRegister({ student, regEnd }) {
       </div>
 
       {identity ? (
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">✓ Identity Verified</span>
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="text-sm text-emerald-400 font-bold uppercase tracking-wider">Identity Verified</span>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-6">
             <div>
-              <p className="text-[10px] text-app-muted-text uppercase">Name</p>
-              <p className="text-sm font-semibold text-app-heading truncate">{identity.name}</p>
+              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Name</p>
+              <p className="text-lg font-bold text-app-heading mt-1 truncate">{identity.name}</p>
             </div>
             <div>
-              <p className="text-[10px] text-app-muted-text uppercase">Year</p>
-              <p className="text-sm font-semibold text-app-heading">{identity.year}</p>
+              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Year</p>
+              <p className="text-lg font-bold text-app-heading mt-1">{identity.year}</p>
             </div>
             <div>
-              <p className="text-[10px] text-app-muted-text uppercase">Gender</p>
-              <p className="text-sm font-semibold text-app-heading capitalize">{identity.isFemale ? "Female" : "Male"}</p>
+              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Gender</p>
+              <p className="text-lg font-bold text-app-heading mt-1 capitalize">{identity.isFemale ? "Female" : "Male"}</p>
             </div>
           </div>
         </div>
       ) : loadingProof ? (
-        <div className="rounded-lg border border-app bg-app-muted/30 p-4 animate-pulse flex items-center gap-2">
-          <span className="h-3 w-3 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
-          <span className="text-xs text-app-muted-text">Verifying your identity via Merkle tree…</span>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-6 animate-pulse flex items-center justify-center gap-3">
+          <span className="h-5 w-5 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
+          <span className="text-base text-app-muted-text font-medium">Verifying your identity via Merkle tree…</span>
         </div>
       ) : (
-        <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
-          <p className="text-xs text-rose-400">
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-5">
+          <p className="text-base text-rose-400 font-medium">
             Could not load your verified identity. Make sure your wallet is connected and you're whitelisted as a voter.
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-6">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Student ID</label>
+          <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text">Student ID</label>
           <input
             type="text"
             value={guid}
             disabled
-            className="input-field mt-1 text-sm font-mono opacity-60 cursor-not-allowed"
+            className="input-field mt-2 text-base font-mono opacity-60 cursor-not-allowed"
           />
         </div>
 
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Photo</label>
-          <div className="mt-1 flex items-center gap-3">
+          <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text">Photo</label>
+          <div className="mt-2 flex items-center gap-4">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingPhoto}
-              className="flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-lg border border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer disabled:opacity-40"
+              className="flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-lg border border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer disabled:opacity-40"
             >
               {uploadingPhoto ? (
                 <>
-                  <span className="h-3 w-3 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
+                  <span className="h-4 w-4 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
                   Uploading…
                 </>
               ) : (
                 <>
-                  <span className="text-base">📷</span>
-                  {photoPreview ? "Change photo" : "Upload photo"}
+                  <span className="text-lg">📷</span>
+                  <span>{photoPreview ? "Change photo" : "Upload photo"}</span>
                 </>
               )}
             </button>
@@ -320,12 +331,12 @@ export default function CandidateSelfRegister({ student, regEnd }) {
                 <img
                   src={photoPreview}
                   alt="Preview"
-                  className="h-10 w-10 rounded-lg object-cover border border-app"
+                  className="h-14 w-14 rounded-xl object-cover border-2 border-app"
                 />
                 <button
                   type="button"
                   onClick={() => { setPhotoPreview(null); setImageCID(""); }}
-                  className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center hover:bg-rose-400 transition-colors cursor-pointer"
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center hover:bg-rose-400 transition-colors cursor-pointer shadow-lg"
                 >
                   ×
                 </button>
@@ -333,14 +344,14 @@ export default function CandidateSelfRegister({ student, regEnd }) {
             )}
           </div>
           {imageCID && !photoPreview && (
-            <p className="text-[10px] text-app-muted-text mt-1 truncate font-mono">{imageCID}</p>
+            <p className="text-xs text-app-muted-text mt-2 truncate font-mono">{imageCID}</p>
           )}
         </div>
       </div>
 
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text mb-1.5">Position</p>
-        <div className="grid grid-cols-3 gap-2">
+        <p className="text-base font-bold uppercase tracking-wider text-app-muted-text mb-3">Choose Position</p>
+        <div className="grid grid-cols-3 gap-3">
           {POSITIONS.map((pos) => {
             const year = identity?.year;
             const allowed = year >= pos.minYear && year <= pos.maxYear;
@@ -350,20 +361,20 @@ export default function CandidateSelfRegister({ student, regEnd }) {
                   type="button"
                   onClick={() => allowed && setPosition(pos.value)}
                   disabled={!allowed}
-                  className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-bold transition-all w-full ${
+                   className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-5 text-base font-bold transition-all w-full ${
                     !allowed
                       ? "border-app-border/30 bg-app-muted/30 text-app-muted-text/40 cursor-not-allowed"
                       : position === pos.value
-                        ? "border-app-accent bg-app-accent-soft text-app-accent ring-1 ring-app-accent/30 cursor-pointer"
+                        ? "border-app-accent bg-app-accent-soft text-app-accent ring-2 ring-app-accent/30 cursor-pointer"
                         : "border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated cursor-pointer"
                   }`}
                 >
-                  <span className="text-base">{pos.icon}</span>
+                  <span className="text-2xl">{pos.icon}</span>
                   <span>{pos.label}</span>
                 </button>
                 {!allowed && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-10">
-                    <div className="bg-slate-900 text-white text-[10px] rounded-lg px-2 py-1 whitespace-nowrap shadow-lg border border-slate-700">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-slate-900 text-white text-sm rounded-lg px-3 py-1.5 whitespace-nowrap shadow-lg border border-slate-700">
                       {pos.label === "President" ? "Only 4th-year students" : "Only 3rd or 4th-year students"}
                     </div>
                   </div>
@@ -377,11 +388,11 @@ export default function CandidateSelfRegister({ student, regEnd }) {
       <button
         onClick={handleRegister}
         disabled={registering || loadingProof || !identity}
-        className="btn-primary w-full text-sm"
+        className="btn-primary w-full text-base py-3"
       >
         {registering ? (
           <span className="flex items-center justify-center gap-2">
-            <span className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+            <span className="h-5 w-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
             Registering on-chain…
           </span>
         ) : (

@@ -409,6 +409,12 @@ export function startBlockchainSync(io) {
         }
 
         if (prevPhase === 0 && prevCandidateCount === 0) {
+          const existing = await db.query("SELECT COUNT(*)::int AS cnt FROM candidates");
+          if (existing.rows[0].cnt > 0) {
+            const prevElectionNum = prevElectionId > 0 ? prevElectionId - 1 : 0;
+            console.log(`📦 Startup: snapshotted ${existing.rows[0].cnt} leftover candidates to election #${prevElectionNum}`);
+            await snapshotResults(prevElectionNum);
+          }
           await db.query("DELETE FROM candidates");
           await db.query("DELETE FROM events");
         }

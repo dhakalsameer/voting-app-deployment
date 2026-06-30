@@ -85,24 +85,24 @@ function EventCard({ event }) {
           <span className="text-base">{meta.icon}</span>
           <Badge variant={meta.color}>{meta.label}</Badge>
           {event.fromAddress && (
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-app-muted-text uppercase tracking-wider font-bold">From</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
               <button
                 onClick={() => handleCopy(event.fromAddress, setFromCopied)}
-                className="text-xs font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer"
+                className="text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy wallet address"
               >
                 {truncate(event.fromAddress)}
               </button>
-              {fromCopied && <span className="text-[10px] text-emerald-400 font-medium">Copied</span>}
+              {fromCopied && <span className="text-xs text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
           {event.txHash && (
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
               <button
                 onClick={() => handleCopy(event.txHash, setCopied)}
-                className="text-xs font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer"
+                className="text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy tx hash"
               >
                 {truncate(event.txHash)}
@@ -111,12 +111,12 @@ function EventCard({ event }) {
                 href={`${SEPOLIA_EXPLORER}/tx/${event.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-app-muted-text hover:text-app-accent transition-colors"
+                className="text-base text-app-heading hover:text-app-accent transition-colors font-bold"
                 title="View on Etherscan"
               >
                 ↗
               </a>
-              {copied && <span className="text-[10px] text-emerald-400 font-medium">Copied</span>}
+              {copied && <span className="text-xs text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
         </div>

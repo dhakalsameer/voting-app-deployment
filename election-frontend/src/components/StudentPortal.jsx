@@ -5,6 +5,7 @@ import { API_URL, CONTRACT_ADDRESS_V3 } from "../config";
 import { useBalance } from "../hooks/useBalance";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
 import { useToast } from "./ui/Toast";
+import { formatAPIError } from "../utils/errors";
 
 function getImageUrl(imageCid) {
   if (!imageCid) return null;
@@ -127,40 +128,40 @@ function LoginView({ onRegister }) {
   };
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-      <h2 className="text-lg font-semibold text-app-heading">Sign in</h2>
+    <form onSubmit={submit} className="space-y-5">
+      <h2 className="text-xl font-semibold text-app-heading">Sign in</h2>
 
       <div>
-        <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Student ID</label>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">Student ID</label>
         <input
           type="text"
           value={id}
           onChange={(e) => setId(e.target.value)}
-          className="input-field px-3.5 py-2.5"
+          className="input-field px-4 py-3 text-base"
           placeholder="e.g. GUSD430"
           required
         />
       </div>
 
       <div>
-        <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Password</label>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">Password</label>
         <input
           type="password"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
-          className="input-field px-3.5 py-2.5"
+          className="input-field px-4 py-3 text-base"
           placeholder="Enter your password"
           required
         />
       </div>
 
-      {error && <p className="text-sm text-rose-400">{error}</p>}
+      {error && <p className="text-base text-rose-400">{error}</p>}
 
-      <button type="submit" disabled={loading} className="btn-primary w-full">
+      <button type="submit" disabled={loading} className="btn-primary w-full text-base py-3">
         {loading ? "Signing in..." : "Sign in"}
       </button>
 
-      <p className="text-sm text-center text-app-muted-text">
+      <p className="text-base text-center text-app-muted-text">
         New here?{" "}
         <button type="button" onClick={onRegister} className="text-app-accent hover:underline cursor-pointer">
           Register
@@ -260,7 +261,7 @@ function RegisterView({ onLogin }) {
       save(data.token, data.student);
       setStep(4);
     } catch (err) {
-      setError(err.message);
+      setError(formatAPIError(err, "Registration failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -273,21 +274,21 @@ function RegisterView({ onLogin }) {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {step < 4 && (
         <>
           <div className="text-center">
-            <h2 className="text-base font-semibold text-app-heading">Create Account</h2>
-            <p className="text-xs text-app-muted-text mt-1">Complete all steps to register for the election</p>
+            <h2 className="text-lg font-semibold text-app-heading">Create Account</h2>
+            <p className="text-sm text-app-muted-text mt-1">Complete all steps to register for the election</p>
           </div>
 
           <div className="relative">
-            <div className="absolute top-4 left-6 right-6 h-px bg-app-border/60" />
+            <div className="absolute top-5 left-7 right-7 h-px bg-app-border/60" />
             <div className="flex justify-between relative">
               {steps.map((s) => (
-                <div key={s.label} className="flex flex-col items-center gap-1.5">
+                <div key={s.label} className="flex flex-col items-center gap-2">
                   <span
-                    className={`relative z-10 h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                    className={`relative z-10 h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                       step > s.num
                         ? "bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40"
                         : step === s.num
@@ -298,7 +299,7 @@ function RegisterView({ onLogin }) {
                     {step > s.num ? "✓" : s.num}
                   </span>
                   <span
-                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                    className={`text-sm font-bold uppercase tracking-wider ${
                       step >= s.num ? "text-app-heading" : "text-app-muted-text"
                     }`}
                   >
@@ -312,70 +313,70 @@ function RegisterView({ onLogin }) {
       )}
 
       {step === 1 && (
-        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base">🔐</span>
-            <p className="text-xs font-medium text-app-heading">Enter your registration credentials</p>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🔐</span>
+              <p className="text-base font-medium text-app-heading">Enter your registration credentials</p>
           </div>
           <div>
-            <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Student ID</label>
+            <label className="text-base font-medium text-app-muted-text mb-2 block">Student ID</label>
             <input
-              className="input-field px-3.5 py-2.5"
+              className="input-field px-4 py-3 text-base"
               placeholder="e.g. GUSD430"
               value={id}
               onChange={(e) => setId(e.target.value.toUpperCase())}
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Registration Code</label>
+            <label className="text-base font-medium text-app-muted-text mb-2 block">Registration Code</label>
             <input
-              className="input-field font-mono tracking-[0.15em] px-3.5 py-2.5"
+              className="input-field font-mono tracking-[0.15em] px-4 py-3 text-base"
               placeholder="XXXX-XXXX-XXXX"
               value={code}
               onChange={(e) => setCode(formatCode(e.target.value))}
             />
           </div>
           {error && (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
-              <p className="text-xs text-rose-400">{error}</p>
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+              <p className="text-base text-rose-400">{error}</p>
             </div>
           )}
-          <button onClick={verify} disabled={loading} className="btn-primary w-full text-sm">
+          <button onClick={verify} disabled={loading} className="btn-primary w-full text-base py-3">
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="h-3.5 w-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                <span className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
                 Verifying…
               </span>
             ) : (
               "Verify Code"
             )}
           </button>
-          <p className="text-xs text-center text-app-muted-text">
-            Have an account?{" "}
+            <p className="text-base text-center text-app-muted-text">
+              Have an account?{" "}
             <button type="button" onClick={onLogin} className="text-app-accent hover:underline cursor-pointer font-medium">Sign in</button>
           </p>
         </div>
       )}
 
       {step === 2 && (
-        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base">✏️</span>
-            <p className="text-xs font-medium text-app-heading">Set up your profile and password</p>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">✏️</span>
+            <p className="text-base font-medium text-app-heading">Set up your profile and password</p>
           </div>
           <div>
-            <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Full Name</label>
+            <label className="text-base font-medium text-app-muted-text mb-2 block">Full Name</label>
             <input
-              className="input-field px-3.5 py-2.5"
+              className="input-field px-4 py-3 text-base"
               placeholder="e.g. Ram Sharma"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Password</label>
+            <label className="text-base font-medium text-app-muted-text mb-2 block">Password</label>
             <input
-              className="input-field px-3.5 py-2.5"
+              className="input-field px-4 py-3 text-base"
               type="password"
               placeholder="Min 6 characters"
               value={pw}
@@ -383,9 +384,9 @@ function RegisterView({ onLogin }) {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-app-muted-text mb-1.5 block">Confirm Password</label>
+            <label className="text-base font-medium text-app-muted-text mb-2 block">Confirm Password</label>
             <input
-              className="input-field px-3.5 py-2.5"
+              className="input-field px-4 py-3 text-base"
               type="password"
               placeholder="Re-enter password"
               value={confirm}
@@ -393,68 +394,68 @@ function RegisterView({ onLogin }) {
             />
           </div>
           {error && (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
-              <p className="text-xs text-rose-400">{error}</p>
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+              <p className="text-base text-rose-400">{error}</p>
             </div>
           )}
-          <div className="flex gap-2 pt-1">
-            <button onClick={() => setStep(1)} className="btn-secondary flex-1 text-sm">← Back</button>
-            <button onClick={submitDetails} className="btn-primary flex-1 text-sm">Next →</button>
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setStep(1)} className="btn-secondary flex-1 text-base py-3">← Back</button>
+            <button onClick={submitDetails} className="btn-primary flex-1 text-base py-3">Next →</button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="rounded-xl border border-app bg-app-muted/30 p-4 space-y-3.5">
-          <div className="flex items-center gap-2.5">
-            <span className="text-base">🦊</span>
-            <p className="text-xs font-medium text-app-heading">Link your wallet to complete registration</p>
+        <div className="rounded-xl border border-app bg-app-muted/30 p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🦊</span>
+            <p className="text-base font-medium text-app-heading">Link your wallet to complete registration</p>
           </div>
 
           {!wallet ? (
             <button
               onClick={connectWallet}
-              className="w-full rounded-xl border-2 border-dashed border-app-accent/40 bg-app-accent-soft/10 py-6 flex flex-col items-center gap-2 hover:bg-app-accent-soft/20 hover:border-app-accent/60 transition-all cursor-pointer"
+              className="w-full rounded-xl border-2 border-dashed border-app-accent/40 bg-app-accent-soft/10 py-8 flex flex-col items-center gap-3 hover:bg-app-accent-soft/20 hover:border-app-accent/60 transition-all cursor-pointer"
             >
-              <span className="text-2xl">🦊</span>
-              <span className="text-sm font-bold text-app-accent">Connect MetaMask</span>
-              <span className="text-[10px] text-app-muted-text">Your wallet will be linked to your account</span>
+              <span className="text-3xl">🦊</span>
+              <span className="text-base font-bold text-app-accent">Connect MetaMask</span>
+              <span className="text-sm text-app-muted-text">Your wallet will be linked to your account</span>
             </button>
           ) : (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center space-y-2">
-              <div className="mx-auto h-8 w-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                <span className="text-emerald-400 text-xs">✓</span>
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-5 text-center space-y-3">
+              <div className="mx-auto h-10 w-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <span className="text-emerald-400 text-base">✓</span>
               </div>
-              <p className="text-xs font-mono text-app-accent break-all">{wallet}</p>
-              <p className="text-[10px] text-emerald-400 font-medium">Wallet connected</p>
+              <p className="text-base font-mono text-app-accent break-all">{wallet}</p>
+              <p className="text-sm text-emerald-400 font-medium">Wallet connected</p>
             </div>
           )}
 
           {wallet && (
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
-              <p className="text-[10px] text-amber-400 font-medium">Signature required</p>
-              <p className="text-xs text-app-muted-text mt-0.5">
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+              <p className="text-sm text-amber-400 font-medium">Signature required</p>
+              <p className="text-base text-app-muted-text mt-1">
                 You will be asked to sign a message to prove wallet ownership.
               </p>
             </div>
           )}
 
           {error && (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2">
-              <p className="text-xs text-rose-400">{error}</p>
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+              <p className="text-base text-rose-400">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-2 pt-1">
-            <button onClick={() => setStep(2)} className="btn-secondary flex-1 text-sm">← Back</button>
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setStep(2)} className="btn-secondary flex-1 text-base py-3">← Back</button>
             <button
               onClick={signAndRegister}
               disabled={loading || !wallet}
-              className="btn-primary flex-1 text-sm"
+              className="btn-primary flex-1 text-base py-3"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <span className="h-3.5 w-3.5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
+                  <span className="h-4 w-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
                   Registering…
                 </span>
               ) : (
@@ -466,15 +467,15 @@ function RegisterView({ onLogin }) {
       )}
 
       {step === 4 && (
-        <div className="py-8 text-center space-y-4">
-          <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center animate-bounce">
-            <span className="text-emerald-400 text-2xl">✓</span>
+        <div className="py-10 text-center space-y-5">
+          <div className="mx-auto h-20 w-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center animate-bounce">
+            <span className="text-emerald-400 text-3xl">✓</span>
           </div>
           <div>
-            <p className="text-base font-bold text-emerald-400">Registration Complete!</p>
-            <p className="text-xs text-app-muted-text mt-1">You can now sign in and access the portal.</p>
+            <p className="text-lg font-bold text-emerald-400">Registration Complete!</p>
+            <p className="text-base text-app-muted-text mt-1">You can now sign in and access the portal.</p>
           </div>
-          <button onClick={() => setStep(1)} className="btn-primary text-sm px-8 mx-auto">
+          <button onClick={() => setStep(1)} className="btn-primary text-base px-10 py-3 mx-auto">
             Go to Dashboard
           </button>
         </div>
@@ -512,13 +513,13 @@ function ProfileCard({ student, onPhotoChange }) {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <div className="relative group">
-        <div className="h-14 w-14 rounded-xl overflow-hidden border border-app bg-app-elevated">
+        <div className="h-16 w-16 rounded-xl overflow-hidden border border-app bg-app-elevated">
           {imageUrl ? (
             <img src={imageUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-black text-slate-950">
+            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-600 text-lg font-black text-slate-950">
               {initials}
             </div>
           )}
@@ -526,7 +527,7 @@ function ProfileCard({ student, onPhotoChange }) {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 border-2 border-app-surface-solid flex items-center justify-center text-slate-950 text-xs font-bold hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50"
+          className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 border-2 border-app-surface-solid flex items-center justify-center text-slate-950 text-sm font-bold hover:bg-emerald-400 transition-colors cursor-pointer disabled:opacity-50"
         >
           {uploading ? "…" : "+"}
         </button>
@@ -534,12 +535,12 @@ function ProfileCard({ student, onPhotoChange }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-bold text-app-heading truncate">{student.name}</p>
+          <p className="text-base font-bold text-app-heading truncate">{student.name}</p>
           {student.walletVerified && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Verified</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Verified</span>
           )}
         </div>
-        <p className="text-xs text-app-muted-text font-mono">{student.student_id}</p>
+        <p className="text-base text-app-muted-text font-mono">{student.student_id}</p>
       </div>
     </div>
   );
@@ -598,13 +599,13 @@ function CandidateSection({ student }) {
 
   if (!student.eligibleToVote) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">🎯</span>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Registration</h4>
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-xl">🎯</span>
+          <h4 className="text-base font-bold text-app-heading">Candidate Registration</h4>
         </div>
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-          <p className="text-xs text-amber-400">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+          <p className="text-base text-amber-400 font-medium">
             You must be whitelisted as a voter before you can register as a candidate.
           </p>
         </div>
@@ -615,13 +616,13 @@ function CandidateSection({ student }) {
   if (!isRegistrationOpen) {
     const expired = phase === 1 && regEnd <= now;
     return (
-      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">🎯</span>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidate Registration</h4>
+      <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="text-xl">🎯</span>
+          <h4 className="text-base font-bold text-app-heading">Candidate Registration</h4>
         </div>
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-          <p className="text-xs text-amber-400">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+          <p className="text-base text-amber-400 font-medium">
             {expired ? "The registration window has expired." : "Registration is not open yet."}
           </p>
         </div>
@@ -630,23 +631,23 @@ function CandidateSection({ student }) {
   }
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">🎯</span>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-app-heading">Register as Candidate</h4>
+    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+      <div className="flex items-center gap-3">
+        <span className="text-xl">🎯</span>
+        <h4 className="text-base font-bold text-app-heading">Register as Candidate</h4>
       </div>
-      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 space-y-2">
-        <p className="text-xs text-emerald-400">
+      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 space-y-3">
+        <p className="text-base text-emerald-400 font-medium">
           Registration is open. You are eligible to run for:
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {eligiblePositions.map((pos) => (
-            <span key={pos} className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+            <span key={pos} className="text-sm font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded">
               {pos}
             </span>
           ))}
         </div>
-        <p className="text-[10px] text-app-muted-text pt-1">
+        <p className="text-sm text-app-muted-text pt-1">
           Use the <strong>Candidate Registration</strong> banner on the main page to register directly on-chain. Your wallet will sign the transaction and you pay the gas fee.
         </p>
       </div>
@@ -666,64 +667,81 @@ function Dashboard() {
     { label: "Whitelisted", done: Boolean(student.eligibleToVote) },
   ];
 
+  const doneCount = steps.filter((s) => s.done).length;
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-app bg-app-surface p-4 space-y-3">
+    <div className="space-y-5">
+      <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
         <ProfileCard student={student} onPhotoChange={(s) => save(null, { ...student, image_cid: s.image_cid })} />
-        <button onClick={logout} className="text-xs text-app-muted-text hover:text-app-heading cursor-pointer">Sign out</button>
+        <div className="flex items-center justify-between pt-1 border-t border-app">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-app-muted-text">Progress</span>
+            <span className="text-sm font-bold text-app-heading">{doneCount}/{steps.length}</span>
+          </div>
+          <button onClick={logout} className="text-sm font-medium text-app-muted-text hover:text-app-heading cursor-pointer">Sign out</button>
+        </div>
       </div>
 
       <CandidateSection student={student} />
 
-      <div className="grid grid-cols-2 gap-3">
-        {student.year && (
-          <div className="rounded-lg border border-app bg-app-elevated/30 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Year</p>
-            <p className="text-sm font-semibold text-app-heading mt-0.5">{student.year}</p>
-          </div>
-        )}
-        {student.gender && (
-          <div className="rounded-lg border border-app bg-app-elevated/30 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Gender</p>
-            <p className="text-sm font-semibold text-app-heading mt-0.5 capitalize">{student.gender}</p>
-          </div>
-        )}
-        {student.wallet_address && (
-          <div className="col-span-2 rounded-lg border border-app bg-app-elevated/30 px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-app-muted-text">Wallet</p>
-            <div className="flex items-center justify-between mt-0.5">
-              <BlockExplorerLink hash={student.wallet_address} type="address" />
-              {balanceLoading ? (
-                <span className="text-xs text-app-muted-text animate-pulse">...</span>
-              ) : balance != null ? (
-                <span className="text-sm font-mono font-bold text-emerald-400">{Number(balance).toFixed(4)} ETH</span>
-              ) : null}
+      <div>
+        <h3 className="text-base font-bold text-app-heading mb-3">Profile Details</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {student.year && (
+            <div className="rounded-xl border border-app bg-app-elevated/30 px-4 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Year</p>
+              <p className="text-base font-semibold text-app-heading mt-1">{student.year}</p>
             </div>
-          </div>
-        )}
+          )}
+          {student.gender && (
+            <div className="rounded-xl border border-app bg-app-elevated/30 px-4 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Gender</p>
+              <p className="text-base font-semibold text-app-heading mt-1 capitalize">{student.gender}</p>
+            </div>
+          )}
+          {student.wallet_address && (
+            <div className="col-span-2 rounded-xl border border-app bg-app-elevated/30 px-4 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Wallet</p>
+              <div className="flex items-center justify-between mt-1">
+                <BlockExplorerLink hash={student.wallet_address} type="address" />
+                {balanceLoading ? (
+                  <span className="text-sm text-app-muted-text animate-pulse">...</span>
+                ) : balance != null ? (
+                  <span className="text-base font-mono font-bold text-emerald-400">{Number(balance).toFixed(4)} ETH</span>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-1">
-        {steps.map((s) => (
-          <div key={s.label} className={`flex-1 h-1.5 rounded-full ${s.done ? "bg-emerald-400" : "bg-app-border/50"}`} />
-        ))}
-      </div>
+      <div>
+        <h3 className="text-base font-bold text-app-heading mb-3">Verification Progress</h3>
+        <div className="flex gap-1.5 mb-3">
+          {steps.map((s) => (
+            <div key={s.label} className={`flex-1 h-2 rounded-full ${s.done ? "bg-emerald-400" : "bg-app-border/50"}`} />
+          ))}
+        </div>
 
-      <div className="space-y-2">
-        {steps.map((s, i) => (
-          <div key={s.label} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-xs ${
-            s.done
-              ? "border-emerald-500/20 bg-emerald-500/5"
-              : "border-app-border bg-app-muted/50"
-          }`}>
-            <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-              s.done ? "bg-emerald-500/20 text-emerald-400" : "bg-app-border/30 text-app-muted-text"
+        <div className="space-y-2">
+          {steps.map((s, i) => (
+            <div key={s.label} className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-base ${
+              s.done
+                ? "border-emerald-500/20 bg-emerald-500/5"
+                : "border-app-border bg-app-muted/50"
             }`}>
-              {s.done ? "✓" : i + 1}
-            </span>
-            <span className={s.done ? "text-emerald-400 font-medium" : "text-app-muted-text"}>{s.label}</span>
-          </div>
-        ))}
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                s.done ? "bg-emerald-500/20 text-emerald-400" : "bg-app-border/30 text-app-muted-text"
+              }`}>
+                {s.done ? "✓" : i + 1}
+              </span>
+              <span className={s.done ? "text-emerald-400 font-medium" : "text-app-muted-text"}>{s.label}</span>
+              {s.done && (
+                <span className="ml-auto text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Done</span>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -740,14 +758,14 @@ function PortalInner({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-      <div className="bg-app-surface-solid w-full sm:max-w-sm rounded-t-xl sm:rounded-xl border border-app shadow-xl max-h-[85vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-4 h-12 border-b border-app">
-          <span className="text-xs font-semibold text-app-heading">Portal</span>
-          <button onClick={onClose} className="h-7 w-7 flex items-center justify-center text-app-muted-text hover:text-app-heading cursor-pointer text-xs">
+      <div className="bg-app-surface-solid w-full sm:max-w-md rounded-t-xl sm:rounded-xl border border-app shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 h-14 border-b border-app">
+          <span className="text-sm font-semibold text-app-heading">Portal</span>
+          <button onClick={onClose} className="h-8 w-8 flex items-center justify-center text-app-muted-text hover:text-app-heading cursor-pointer text-sm rounded-lg hover:bg-app-muted/30 transition-colors">
             ✕
           </button>
         </div>
-        <div className="p-4">
+        <div className="p-5">
           {view === "dashboard" && <Dashboard />}
           {view === "login" && <LoginView onRegister={() => setView("register")} />}
           {view === "register" && <RegisterView onLogin={() => setView("login")} />}

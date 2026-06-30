@@ -1,6 +1,7 @@
 import { getContractV3 } from "../../contract";
 import { useMemo, useState, useEffect } from "react";
 import { useToast } from "../ui/Toast";
+import { formatContractError } from "../../utils/errors";
 import SectionHeader from "../ui/SectionHeader";
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
@@ -207,7 +208,7 @@ export default function ElectionControl() {
       }
     } catch (err) {
       console.error(err);
-      showError(err.reason || err.shortMessage || err.message || `${actionName} failed`);
+      showError(formatContractError(err, `${actionName} failed`));
     } finally {
       setLoading(false);
       setAction(null);

@@ -9,7 +9,7 @@ import DataTable from "../ui/DataTable";
 import BlockExplorerLink from "../ui/BlockExplorerLink";
 import { socket } from "../../socket";
 
-export default function VerifyVoter() {
+export default function VerifyVoter({ onWhitelisted }) {
   const { wallet } = useContext(AuthContext);
   const { success, error: showError } = useToast();
   const [students, setStudents] = useState([]);
@@ -92,6 +92,7 @@ export default function VerifyVoter() {
       if (!res.ok) throw new Error(data.error || "Verification failed");
       success(`Verified ${studentId}`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
       await handleLoadData();
+      onWhitelisted?.();
     } catch (err) {
       showError(err.message || "Verification failed");
     }
@@ -115,8 +116,9 @@ export default function VerifyVoter() {
       success(`Verified ${data.verifiedCount || ids.length} student(s)`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
       setSelected(new Set());
       await handleLoadData();
+      onWhitelisted?.();
     } catch (err) {
-      showError(err.message || "Verification failed");
+      showError(err.message || "Batch verification failed");
     } finally {
       setVerifyLoading(false);
     }

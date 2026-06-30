@@ -113,6 +113,7 @@ export default function GenerateCodes() {
     if (!q) return true;
     return (
       (c.student_id || "").toUpperCase().includes(q) ||
+      (c.name || "").toUpperCase().includes(q) ||
       (c.code || "").toUpperCase().includes(q)
     );
   });
@@ -270,6 +271,12 @@ export default function GenerateCodes() {
               label: "Voter ID",
               cellClassName: "font-mono text-emerald-400 font-bold",
               render: (c) => c.student_id,
+            },
+            {
+              key: "name",
+              label: "Name",
+              cellClassName: "font-medium text-app-heading",
+              render: (c) => c.name || "—",
             },
             {
               key: "code",
