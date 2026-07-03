@@ -3,6 +3,7 @@ import ElectionControl from "./ElectionControl";
 import VerifyVoter from "./VerifyVoter";
 import GenerateCodes from "./GenerateCodes";
 import StudentList from "./StudentList";
+import PendingCandidates from "./PendingCandidates";
 import GasDistribution from "./GasDistribution";
 
 import { AuthContext } from "../../context/AuthContextValue";
@@ -11,7 +12,7 @@ import { useBalance } from "../../hooks/useBalance";
 const ADMIN_TABS = [
   { id: "controls", label: "Controls", icon: "⚙️" },
   { id: "voters", label: "Voters", icon: "👥" },
-  { id: "gas", label: "Gas", icon: "⛽" },
+  { id: "gas", label: "Funds", icon: "⛽" },
 ];
 
 export default function AdminDashboard() {
@@ -41,7 +42,7 @@ export default function AdminDashboard() {
             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-app-accent-soft text-xl">🛡️</span>
             <div>
               <h2 className="text-2xl font-bold text-app-heading">Admin Dashboard</h2>
-              <p className="text-base text-app-muted-text mt-0.5">Manage election phases, voters, and contract gas</p>
+              <p className="text-base text-app-muted-text mt-0.5">Manage election phases, voters, and funds</p>
             </div>
           </div>
           {balance && (
@@ -110,6 +111,7 @@ function VoterSection() {
   const subTabs = [
     { id: "verify", label: "Verify Voters", icon: "✓" },
     { id: "codes", label: "Registration Codes", icon: "🔑" },
+    { id: "candidates", label: "Candidates", icon: "🏆" },
     { id: "students", label: "Student Registry", icon: "🎓" },
   ];
 
@@ -135,6 +137,7 @@ function VoterSection() {
 
       {subTab === "verify" && <VerifyVoter onWhitelisted={() => setSubTab("students")} />}
       {subTab === "codes" && <GenerateCodes />}
+      {subTab === "candidates" && <PendingCandidates />}
       {subTab === "students" && <StudentList />}
     </div>
   );

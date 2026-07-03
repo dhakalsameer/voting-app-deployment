@@ -50,7 +50,12 @@ export const createStudent = async (req, res) => {
 };
 
 export const getStudents = async (req, res) => {
-  const result = await db.query("SELECT * FROM students");
+  const result = await db.query(
+    `SELECT student_id, name, year, gender, wallet_address, wallet_verified,
+            eligible_to_vote, image_cid, is_verified, registered, email,
+            created_at, updated_at
+     FROM students`
+  );
   res.json(result.rows);
 };
 

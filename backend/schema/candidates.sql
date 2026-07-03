@@ -17,6 +17,9 @@ ALTER TABLE candidates ADD COLUMN IF NOT EXISTS image_cid     TEXT;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS blockchain_id INTEGER;
 ALTER TABLE candidates ADD COLUMN IF NOT EXISTS vote_count    INTEGER NOT NULL DEFAULT 0;
 
+-- Wallet address of the on-chain candidate (set by blockchain sync)
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS wallet_address TEXT;
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_candidates_blockchain_id ON candidates(blockchain_id)
   WHERE blockchain_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_candidates_position ON candidates(position);

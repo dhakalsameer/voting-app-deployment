@@ -7,8 +7,8 @@ set -euo pipefail
 
 set -euo pipefail
 
-RPC_URL="${RPC_URL:-https://eth-sepolia.g.alchemy.com/v2/95pRrhpYhS2hhiYfaqfDw}"
-PRIVATE_KEY="${PRIVATE_KEY:-0x4c54307a0f284fb4493ecf28b1f3fc3e05623c4293672c7081077e8187749d63}"
+RPC_URL="${RPC_URL:?RPC_URL is required — set it in your environment or .env}"
+PRIVATE_KEY="${PRIVATE_KEY:?PRIVATE_KEY is required — set it in your environment or .env}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

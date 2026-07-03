@@ -4,9 +4,9 @@ import { verifyAdmin } from "../middleware/admin.js";
 
 const router = express.Router();
 
-router.post("/", createStudent);
-router.get("/", getStudents);
-router.get("/all", getAllStudents);
+router.post("/", verifyAdmin, createStudent);
+router.get("/", verifyAdmin, getStudents);
+router.get("/all", verifyAdmin, getAllStudents);
 router.delete("/:student_id", verifyAdmin, deleteStudent);
 
 export default router;

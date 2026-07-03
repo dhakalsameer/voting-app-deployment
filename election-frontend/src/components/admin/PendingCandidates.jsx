@@ -25,7 +25,7 @@ export default function PendingCandidates() {
       );
       if (!res.ok) throw new Error("Failed to load pending candidates");
       const data = await res.json();
-      setCandidates(data.candidates || []);
+      setCandidates(Array.isArray(data) ? data : (data.candidates || []));
     } catch (err) {
       showError(err.message || "Could not load pending applications");
     } finally {

@@ -3,8 +3,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
-import { getCandidates } from "../controllers/candidateController.js";
+import { getCandidates, getPendingCandidates, applyAsCandidate, approveCandidate, rejectCandidate, getMyCandidateStatus } from "../controllers/candidateController.js";
 import { uploadToIPFS } from "../services/ipfsService.js";
+import { requireStudentAuth } from "../middleware/auth.js";
+import { verifyAdmin } from "../middleware/admin.js";
 import { config } from "../config/env.js";
 
 const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
@@ -30,7 +32,6 @@ async function persistCandidatePhoto(buffer, originalName) {
     return { cid, url };
   }
 
-  // Local fallback
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
   await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
   const cid = `local:${filename}`;
@@ -42,6 +43,11 @@ async function persistCandidatePhoto(buffer, originalName) {
 const router = express.Router();
 
 router.get("/", getCandidates);
+router.get("/pending", verifyAdmin, getPendingCandidates);
+router.post("/apply", requireStudentAuth, applyAsCandidate);
+router.get("/me", requireStudentAuth, getMyCandidateStatus);
+router.post("/:id/approve", verifyAdmin, approveCandidate);
+router.post("/:id/reject", verifyAdmin, rejectCandidate);
 
 router.post("/upload-photo", upload.single("photo"), async (req, res) => {
   try {
