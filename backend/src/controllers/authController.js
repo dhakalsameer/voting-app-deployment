@@ -396,6 +396,76 @@ export const adminUpdateStudent = async (req, res) => {
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { student_id, code, password } = req.body;
+    if (!student_id || !code || !password) {
+      return res.status(400).json({ error: "student_id, code, and password are required" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    // Allow using registration code regardless of `used` status
+    const codeResult = await db.query(
+      "SELECT id FROM registration_codes WHERE student_id = $1 AND code = $2",
+      [student_id, code]
+    );
+    if (codeResult.rows.length === 0) {
+      return res.status(403).json({ error: "Invalid registration code" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await db.query(
+      "UPDATE students SET password_hash = $1, updated_at = NOW() WHERE student_id = $2",
+      [hashed, student_id]
+    );
+
+    return res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("forgotPassword error:", error);
+    return res.status(500).json({ error: "Password reset failed" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { student_id } = req.user;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "currentPassword and newPassword are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    const result = await db.query(
+      "SELECT password_hash FROM students WHERE student_id = $1",
+      [student_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    const valid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await db.query(
+      "UPDATE students SET password_hash = $1, updated_at = NOW() WHERE student_id = $2",
+      [hashed, student_id]
+    );
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("changePassword error:", error);
+    return res.status(500).json({ error: "Failed to change password" });
+  }
+};
+
 function shape(row) {
   return {
     student_id: row.student_id,

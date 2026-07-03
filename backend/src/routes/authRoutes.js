@@ -5,6 +5,8 @@ import {
   getProfile,
   updateProfile,
   verifyCode,
+  forgotPassword,
+  changePassword,
   listStudents,
   adminUpdateStudent,
   adminBatchUpsertStudents,
@@ -21,6 +23,9 @@ router.post("/login", loginStudent);
 
 router.get("/me", requireStudentAuth, getProfile);
 router.patch("/me", requireStudentAuth, updateProfile);
+router.post("/change-password", requireStudentAuth, changePassword);
+
+router.post("/forgot-password", forgotPassword);
 
 // Photo upload (multipart/form-data, field name "photo")
 router.post(

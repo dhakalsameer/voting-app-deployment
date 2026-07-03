@@ -94,7 +94,7 @@ function PortalAuthProvider({ children }) {
   );
 }
 
-function LoginView({ onRegister }) {
+function LoginView({ onRegister, onForgotPassword }) {
   const { save } = usePortal();
   const { wallet } = useContext(AuthContext);
   const [id, setId] = useState("");
@@ -156,6 +156,12 @@ function LoginView({ onRegister }) {
         />
       </div>
 
+      <div className="flex justify-end -mt-2">
+        <button type="button" onClick={onForgotPassword} className="text-sm text-app-muted-text hover:text-app-accent hover:underline cursor-pointer">
+          Forgot password?
+        </button>
+      </div>
+
       {error && <p className="text-base text-rose-400">{error}</p>}
 
       <button type="submit" disabled={loading} className="btn-primary w-full text-base py-3">
@@ -193,7 +199,6 @@ function RegisterView({ onLogin }) {
   const [code, setCode] = useState("");
   const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [merkleProof, setMerkleProof] = useState(null);
@@ -231,7 +236,6 @@ function RegisterView({ onLogin }) {
 
   const submitDetails = () => {
     setError("");
-    if (!name.trim()) return setError("Enter your name");
     if (pw.length < 6) return setError("Password must be 6+ characters");
     if (pw !== confirm) return setError("Passwords don't match");
     setStep(3);
@@ -279,7 +283,6 @@ function RegisterView({ onLogin }) {
           student_id: id.trim().toUpperCase(),
           code: code.trim().toUpperCase(),
           password: pw,
-          name,
           wallet: addr,
           signature,
         }),
@@ -391,15 +394,6 @@ function RegisterView({ onLogin }) {
           <div className="flex items-center gap-3">
             <span className="text-xl">✏️</span>
             <p className="text-base font-medium text-app-heading">Set up your profile and password</p>
-          </div>
-          <div>
-            <label className="text-base font-medium text-app-muted-text mb-2 block">Full Name</label>
-            <input
-              className="input-field px-4 py-3 text-base"
-              placeholder="e.g. Ram Sharma"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
           </div>
           <div>
             <label className="text-base font-medium text-app-muted-text mb-2 block">Password</label>
@@ -536,6 +530,120 @@ function RegisterView({ onLogin }) {
         </div>
       )}
     </div>
+  );
+}
+
+function ForgotPasswordView({ onBackToLogin }) {
+  const [studentId, setStudentId] = useState("");
+  const [code, setCode] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!studentId.trim()) return setError("Enter your student ID");
+    if (newPw.length < 6) return setError("Password must be 6+ characters");
+    if (newPw !== confirmPw) return setError("Passwords don't match");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: studentId.trim().toUpperCase(),
+          code: code.replace(/-/g, "").trim().toUpperCase(),
+          password: newPw,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Password reset failed");
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="space-y-5">
+        <div className="py-8 text-center space-y-3">
+          <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center">
+            <span className="text-emerald-400 text-2xl">✓</span>
+          </div>
+          <p className="text-lg font-bold text-emerald-400">Password Reset Successful</p>
+          <p className="text-base text-app-muted-text">You can now sign in with your new password.</p>
+        </div>
+        <button onClick={onBackToLogin} className="btn-primary w-full text-base py-3">Sign in</button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleReset} className="space-y-5">
+      <h2 className="text-xl font-semibold text-app-heading">Reset Password</h2>
+      <p className="text-sm text-app-muted-text">Enter your student ID and registration code to set a new password.</p>
+
+      <div>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">Student ID</label>
+        <input
+          type="text"
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value.toUpperCase())}
+          className="input-field px-4 py-3 text-base"
+          placeholder="e.g. GUSD430"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">Registration Code</label>
+        <input
+          className="input-field font-mono tracking-[0.15em] px-4 py-3 text-base"
+          placeholder="XXXX-XXXX-XXXX"
+          value={code}
+          onChange={(e) => setCode(formatCode(e.target.value))}
+        />
+      </div>
+
+      <div>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">New Password</label>
+        <input
+          className="input-field px-4 py-3 text-base"
+          type="password"
+          placeholder="Min 6 characters"
+          value={newPw}
+          onChange={(e) => setNewPw(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label className="text-base font-medium text-app-muted-text mb-2 block">Confirm Password</label>
+        <input
+          className="input-field px-4 py-3 text-base"
+          type="password"
+          placeholder="Re-enter password"
+          value={confirmPw}
+          onChange={(e) => setConfirmPw(e.target.value)}
+        />
+      </div>
+
+      {error && <p className="text-base text-rose-400">{error}</p>}
+
+      <button type="submit" disabled={loading} className="btn-primary w-full text-base py-3">
+        {loading ? "Resetting..." : "Reset Password"}
+      </button>
+
+      <p className="text-base text-center text-app-muted-text">
+        Remember your password?{" "}
+        <button type="button" onClick={onBackToLogin} className="text-app-accent hover:underline cursor-pointer">Sign in</button>
+      </p>
+    </form>
   );
 }
 
@@ -710,6 +818,92 @@ function CandidateSection({ student }) {
   );
 }
 
+function ChangePasswordCard() {
+  const { authFetch } = usePortal();
+  const [open, setOpen] = useState(false);
+  const [currentPw, setCurrentPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+    if (!currentPw) return setError("Enter your current password");
+    if (newPw.length < 6) return setError("Password must be 6+ characters");
+    if (newPw !== confirmPw) return setError("Passwords don't match");
+    setLoading(true);
+    try {
+      await authFetch("/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+      });
+      setSuccess(true);
+      setCurrentPw("");
+      setNewPw("");
+      setConfirmPw("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
+      <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full cursor-pointer">
+        <div className="flex items-center gap-3">
+          <span className="text-xl">🔑</span>
+          <h3 className="text-base font-bold text-app-heading">Change Password</h3>
+        </div>
+        <span className={`text-app-muted-text transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {open && (
+        <form onSubmit={handleChange} className="space-y-3 pt-2 border-t border-app">
+          <div>
+            <label className="text-sm font-medium text-app-muted-text mb-1 block">Current Password</label>
+            <input
+              className="input-field px-4 py-3 text-base"
+              type="password"
+              placeholder="Enter current password"
+              value={currentPw}
+              onChange={(e) => setCurrentPw(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-app-muted-text mb-1 block">New Password</label>
+            <input
+              className="input-field px-4 py-3 text-base"
+              type="password"
+              placeholder="Min 6 characters"
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-app-muted-text mb-1 block">Confirm New Password</label>
+            <input
+              className="input-field px-4 py-3 text-base"
+              type="password"
+              placeholder="Re-enter new password"
+              value={confirmPw}
+              onChange={(e) => setConfirmPw(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+          {success && <p className="text-sm text-emerald-400">Password updated successfully.</p>}
+          <button type="submit" disabled={loading} className="btn-primary w-full text-base py-3">
+            {loading ? "Updating..." : "Update Password"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
 function Dashboard() {
   const { student, logout, save } = usePortal();
   const { balance, loading: balanceLoading } = useBalance(student?.wallet_address);
@@ -798,6 +992,8 @@ function Dashboard() {
           ))}
         </div>
       </div>
+
+      <ChangePasswordCard />
     </div>
   );
 }
@@ -822,8 +1018,9 @@ function PortalInner({ onClose }) {
         </div>
         <div className="p-5">
           {view === "dashboard" && <Dashboard />}
-          {view === "login" && <LoginView onRegister={() => setView("register")} />}
+          {view === "login" && <LoginView onRegister={() => setView("register")} onForgotPassword={() => setView("forgot-password")} />}
           {view === "register" && <RegisterView onLogin={() => setView("login")} />}
+          {view === "forgot-password" && <ForgotPasswordView onBackToLogin={() => setView("login")} />}
         </div>
       </div>
     </div>
