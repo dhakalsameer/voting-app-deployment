@@ -207,9 +207,9 @@ function RegisterView({ onLogin }) {
   const verify = async () => {
     setError("");
     const sid = id.trim().toUpperCase();
-    const raw = code.replace(/-/g, "").trim().toUpperCase();
+    const clean = code.replace(/-/g, "").trim().toUpperCase();
     if (!sid) return setError("Enter your student ID");
-    if (raw.length !== 12) return setError("Invalid code");
+    if (clean.length !== 12) return setError("Invalid code");
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/auth/verify-code`, {
@@ -221,7 +221,7 @@ function RegisterView({ onLogin }) {
       if (!res.ok || !data.valid) throw new Error(data.error || "Invalid code");
 
       // Fetch Merkle proof for on-chain verification (non-blocking for step transition)
-      fetch(`${API_URL}/api/codes/proof?studentId=${sid}&code=${raw}`)
+      fetch(`${API_URL}/api/codes/proof?studentId=${sid}&code=${code.trim().toUpperCase()}`)
         .then(r => r.json())
         .then(d => { if (d.proof) setMerkleProof(d.proof); })
         .catch(() => {});
@@ -260,7 +260,7 @@ function RegisterView({ onLogin }) {
           const provider = new ethers.BrowserProvider(window.ethereum);
           const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, provider);
           const sid = id.trim().toUpperCase();
-          const raw = code.replace(/-/g, "").trim().toUpperCase();
+          const raw = code.trim().toUpperCase();
           const valid = await contract.verifyRegCode(sid, raw, merkleProof);
           setOnChainVerified(valid);
           if (!valid) {
