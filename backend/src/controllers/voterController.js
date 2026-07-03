@@ -316,6 +316,16 @@ export const getIdentityProof = async (req, res) => {
   }
 };
 
+export const adminRebuildMerkle = async (_req, res) => {
+  try {
+    const txHash = await rebuildMerkleTrees();
+    return res.json({ success: true, txHash });
+  } catch (error) {
+    console.error("adminRebuildMerkle error:", error);
+    return res.status(500).json({ error: error.reason || error.message || "Rebuild failed" });
+  }
+};
+
 export const getPendingVoters = async (_req, res) => {
   try {
     const result = await db.query(

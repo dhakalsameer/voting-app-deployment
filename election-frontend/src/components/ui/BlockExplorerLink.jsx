@@ -1,6 +1,6 @@
 import { SEPOLIA_EXPLORER } from "../../config";
 
-export default function BlockExplorerLink({ hash, type = "tx", label }) {
+export default function BlockExplorerLink({ hash, type = "tx", label, className = "" }) {
   const href = `${SEPOLIA_EXPLORER}/${type === "address" ? "address" : "tx"}/${hash}`;
   const display = label || (hash ? `${hash.slice(0, 6)}…${hash.slice(-4)}` : "");
 
@@ -9,7 +9,7 @@ export default function BlockExplorerLink({ hash, type = "tx", label }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-sky-300 hover:text-sky-200 hover:underline transition-colors"
+      className={`inline-flex items-center gap-1.5 text-sky-300 hover:text-sky-200 hover:underline transition-colors ${className}`}
     >
       {display}
       <svg className="w-3 h-3 shrink-0 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

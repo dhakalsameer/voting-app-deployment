@@ -2,6 +2,7 @@ import { useState, useEffect, useContext, createContext, useRef, useCallback } f
 import { ethers } from "ethers";
 import { AuthContext } from "../context/AuthContextValue";
 import { API_URL, CONTRACT_ADDRESS_V3 } from "../config";
+import Election3ABI from "../abi/Election3.json";
 import { useBalance } from "../hooks/useBalance";
 import BlockExplorerLink from "./ui/BlockExplorerLink";
 import { useToast } from "./ui/Toast";
@@ -195,6 +196,8 @@ function RegisterView({ onLogin }) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [merkleProof, setMerkleProof] = useState(null);
+  const [onChainVerified, setOnChainVerified] = useState(null); // null = unchecked, true/false
 
   const verify = async () => {
     setError("");
@@ -211,6 +214,13 @@ function RegisterView({ onLogin }) {
       });
       const data = await res.json();
       if (!res.ok || !data.valid) throw new Error(data.error || "Invalid code");
+
+      // Fetch Merkle proof for on-chain verification (non-blocking for step transition)
+      fetch(`${API_URL}/api/codes/proof?studentId=${sid}&code=${raw}`)
+        .then(r => r.json())
+        .then(d => { if (d.proof) setMerkleProof(d.proof); })
+        .catch(() => {});
+
       setStep(2);
     } catch (err) {
       setError(err.message);
@@ -239,6 +249,24 @@ function RegisterView({ onLogin }) {
       let addr = wallet;
       if (!addr && connectWallet) addr = await connectWallet();
       if (!addr) throw new Error("Connect MetaMask");
+
+      // Optional on-chain verification of the registration code
+      if (merkleProof) {
+        try {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, provider);
+          const sid = id.trim().toUpperCase();
+          const raw = code.replace(/-/g, "").trim().toUpperCase();
+          const valid = await contract.verifyRegCode(sid, raw, merkleProof);
+          setOnChainVerified(valid);
+          if (!valid) {
+            throw new Error("Registration code is not registered on the blockchain. Contact the election committee.");
+          }
+        } catch (err) {
+          if (err.message.includes("not registered on the blockchain")) throw err;
+          console.warn("On-chain verification unavailable:", err.message);
+        }
+      }
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
@@ -428,6 +456,33 @@ function RegisterView({ onLogin }) {
               </div>
               <p className="text-base font-mono text-app-accent break-all">{wallet}</p>
               <p className="text-sm text-emerald-400 font-medium">Wallet connected</p>
+            </div>
+          )}
+
+          {wallet && merkleProof && onChainVerified === null && (
+            <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-4 py-3">
+              <p className="text-sm text-sky-400 font-medium">Code will be verified on-chain</p>
+              <p className="text-base text-app-muted-text mt-1">
+                Your registration code will be verified against the blockchain before registering.
+              </p>
+            </div>
+          )}
+
+          {onChainVerified === true && (
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+              <p className="text-sm text-emerald-400 font-medium">✓ Code verified on-chain</p>
+              <p className="text-base text-app-muted-text mt-1">
+                Your registration code has been verified against the smart contract.
+              </p>
+            </div>
+          )}
+
+          {onChainVerified === false && (
+            <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+              <p className="text-sm text-rose-400 font-medium">✕ Code NOT found on-chain</p>
+              <p className="text-base text-app-muted-text mt-1">
+                This code is not registered on the blockchain. Contact the election committee.
+              </p>
             </div>
           )}
 

@@ -8,12 +8,13 @@ let loaded = false;
 async function loadCache() {
   if (loaded) return;
 
-  // Auto-migration: ensure from_address column exists
+  // Auto-migration: ensure columns exist
   try {
     await db.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS from_address TEXT`);
+    await db.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS election_id INTEGER DEFAULT 0`);
   } catch { /* table may not exist yet */ }
   const result = await db.query(
-    `SELECT id, event_name, tx_hash, block_number, log_index, from_address, args, timestamp
+    `SELECT id, event_name, tx_hash, block_number, log_index, from_address, election_id, args, timestamp
      FROM events ORDER BY timestamp DESC, id DESC LIMIT $1`,
     [MAX_EVENTS]
   );
@@ -23,6 +24,7 @@ async function loadCache() {
     blockNumber: r.block_number,
     logIndex: r.log_index,
     fromAddress: r.from_address,
+    electionId: r.election_id ?? 0,
     args: r.args || {},
     timestamp: Number(r.timestamp),
   }));
@@ -34,9 +36,9 @@ export async function addEvent(event) {
   const args = event.args || {};
 
   await db.query(
-    `INSERT INTO events (event_name, tx_hash, block_number, log_index, from_address, args, timestamp)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)`,
-    [event.eventName, event.txHash || null, event.blockNumber || null, event.logIndex || null, event.fromAddress || null, JSON.stringify(args), timestamp]
+    `INSERT INTO events (event_name, tx_hash, block_number, log_index, from_address, election_id, args, timestamp)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8)`,
+    [event.eventName, event.txHash || null, event.blockNumber || null, event.logIndex || null, event.fromAddress || null, event.electionId ?? 0, JSON.stringify(args), timestamp]
   );
 
   cache.unshift({
@@ -45,6 +47,7 @@ export async function addEvent(event) {
     blockNumber: event.blockNumber || null,
     logIndex: event.logIndex || null,
     fromAddress: event.fromAddress || null,
+    electionId: event.electionId ?? 0,
     args,
     timestamp,
   });
@@ -62,14 +65,48 @@ export async function seedHistoricalEvents() {
 
   const entries = [];
 
-  // Phase → Created (phase 0 is the starting phase)
-  entries.push({
-    eventName: "PhaseChanged",
-    txHash: null,
-    blockNumber: null,
-    args: { newPhase: 0 },
-    timestamp: Math.floor(Date.now() / 1000) - 86400,
-  });
+  // Generate PhaseChanged events for all phases based on current election state
+  let phaseTimestamps = [];
+  try {
+    const { electionContractV3 } = await import("../blockchain/electionContract.js");
+    const currentPhase = Number(await electionContractV3.getPhase());
+    const regEnd = Number(await electionContractV3.registrationEnd());
+    const voteEnd = Number(await electionContractV3.votingEnd());
+    const now = Math.floor(Date.now() / 1000);
+
+    const baseTime = now - 86400; // assume election started ~1 day ago
+    phaseTimestamps = [
+      { newPhase: 0, ts: baseTime },
+    ];
+    if (regEnd > 0) {
+      phaseTimestamps.push({ newPhase: 1, ts: regEnd - 3600 }); // registration phase starts 1h before it ends
+    }
+    if (voteEnd > 0) {
+      phaseTimestamps.push({ newPhase: 2, ts: voteEnd - 3600 }); // voting phase starts 1h before it ends
+    }
+    if (currentPhase >= 3) {
+      phaseTimestamps.push({ newPhase: 3, ts: now });
+    }
+    // Deduplicate and sort by timestamp
+    phaseTimestamps.sort((a, b) => a.ts - b.ts);
+  } catch {
+    // Fallback: simple sequence
+    const now = Math.floor(Date.now() / 1000);
+    phaseTimestamps = [
+      { newPhase: 0, ts: now - 86400 },
+      { newPhase: 1, ts: now - 43200 },
+      { newPhase: 2, ts: now - 3600 },
+    ];
+  }
+  for (const pt of phaseTimestamps) {
+    entries.push({
+      eventName: "PhaseChanged",
+      txHash: null,
+      blockNumber: null,
+      args: { newPhase: pt.newPhase },
+      timestamp: pt.ts,
+    });
+  }
 
   // CandidateRegistered from DB candidates
   const candRes = await db.query(

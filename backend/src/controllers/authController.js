@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { ethers } from "ethers";
 import { db } from "../db.js";
 import { signToken } from "../config/env.js";
+import { rebuildMerkleTrees } from "./voterController.js";
 
 const WALLET_MESSAGE = "Gandaki University Election Wallet Verification";
 
@@ -236,7 +237,7 @@ export const updateProfile = async (req, res) => {
 export const listStudents = async (req, res) => {
   try {
     const { year } = req.query;
-    let sql = `SELECT student_id, name, year, gender, image_cid,
+    let sql = `SELECT student_id, name, year, gender, email, image_cid,
                       wallet_address, wallet_verified, eligible_to_vote, registered, created_at
                FROM students`;
     const params = [];
@@ -261,6 +262,95 @@ export const listStudents = async (req, res) => {
   } catch (error) {
     console.error("listStudents error:", error);
     return res.status(500).json({ error: "Failed to list students" });
+  }
+};
+
+/**
+ * Admin: batch upsert students (update or insert).
+ * Body: { students: [{ student_id, name?, year?, gender?, email? }] }
+ * Upserts without generating registration codes.
+ */
+export const adminBatchUpsertStudents = async (req, res) => {
+  try {
+    const { students } = req.body;
+    if (!Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ error: "students must be a non-empty array" });
+    }
+
+    const processed = [];
+    const errors = [];
+
+    const identityFieldsChanged = [];
+
+    for (const s of students) {
+      const student_id = String(s.student_id || "").trim().toUpperCase();
+      if (!student_id) {
+        errors.push({ student_id: s.student_id, reason: "Missing student_id" });
+        continue;
+      }
+
+      const year = s.year ? String(s.year).trim().toLowerCase() : null;
+      const gender = s.gender ? String(s.gender).trim().toLowerCase() : null;
+
+      if (year && !VALID_YEARS.includes(year)) {
+        errors.push({ student_id, reason: `Invalid year "${year}"` });
+        continue;
+      }
+      if (gender && !VALID_GENDERS.includes(gender)) {
+        errors.push({ student_id, reason: `Invalid gender "${gender}"` });
+        continue;
+      }
+
+      try {
+        const name = s.name ? String(s.name).trim() : null;
+        const email = s.email ? String(s.email).trim().toLowerCase() : null;
+
+        const existing = await db.query(
+          `SELECT name, year, gender, eligible_to_vote FROM students WHERE student_id = $1`,
+          [student_id]
+        );
+        const wasEligible = existing.rows.length > 0 && existing.rows[0].eligible_to_vote;
+        const oldName = existing.rows[0]?.name;
+        const oldYear = existing.rows[0]?.year;
+        const oldGender = existing.rows[0]?.gender;
+
+        const result = await db.query(
+          `INSERT INTO students (student_id, name, year, gender, email)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (student_id) DO UPDATE SET
+             name = $2, year = $3, gender = $4, email = $5, updated_at = NOW()
+           RETURNING student_id, name, year, gender, email, registered, eligible_to_vote`,
+          [student_id, name, year, gender, email]
+        );
+        processed.push(shape(result.rows[0]));
+
+        if (wasEligible) {
+          const nameChanged = (name ?? null) !== (oldName ?? null);
+          const yearChanged = (year ?? null) !== (oldYear ?? null);
+          const genderChanged = (gender ?? null) !== (oldGender ?? null);
+          if (nameChanged || yearChanged || genderChanged) {
+            identityFieldsChanged.push(student_id);
+          }
+        }
+      } catch (err) {
+        errors.push({ student_id, reason: err.message });
+      }
+    }
+
+    let merkleTxHash = null;
+    if (identityFieldsChanged.length > 0) {
+      try {
+        merkleTxHash = await rebuildMerkleTrees();
+        console.log(`Merkle trees rebuilt: ${identityFieldsChanged.length} whitelisted voter(s) had identity fields changed (${identityFieldsChanged.join(", ")})`);
+      } catch (err) {
+        console.error("Failed to rebuild Merkle trees after batch upsert:", err.message);
+      }
+    }
+
+    return res.json({ processed, errors, count: processed.length, merkleTxHash });
+  } catch (error) {
+    console.error("adminBatchUpsertStudents error:", error);
+    return res.status(500).json({ error: "Batch upsert failed" });
   }
 };
 
@@ -312,6 +402,7 @@ function shape(row) {
     name: row.name,
     year: row.year,
     gender: row.gender,
+    email: row.email,
     image_cid: row.image_cid,
     wallet_address: row.wallet_address,
     walletLinked: Boolean(row.wallet_address),

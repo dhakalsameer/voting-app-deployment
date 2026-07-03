@@ -36,7 +36,7 @@ const GM_MIN_FEMALE = 2;
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
 
-function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled, showVoteCount }) {
+function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled, showVoteCount, index }) {
   const [imgErr, setImgErr] = useState(false);
   const url = getImageUrl(candidate.imageCID);
   const initials = candidate.name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
@@ -46,15 +46,23 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
     <button
       onClick={() => !disabled && onToggle(candidate.id)}
       disabled={disabled}
-      className={`group relative flex flex-col items-center gap-2 w-full p-3 rounded-xl border-2 transition-all cursor-pointer ${
-        disabled ? "opacity-30 cursor-not-allowed" : ""
+      className={`group relative flex items-center gap-4 w-full p-4 rounded-xl border-2 transition-all cursor-pointer ${
+        disabled ? "opacity-35 cursor-not-allowed" : ""
       } ${
         selected
-          ? "border-sky-400 bg-sky-400/5 shadow-[0_0_12px_rgba(56,189,248,0.08)]"
-          : "border-app bg-app-elevated/30 hover:bg-app-elevated/50 hover:border-app-border-soft"
+          ? "border-sky-400 bg-sky-400/[0.06] shadow-[0_0_12px_rgba(56,189,248,0.08)]"
+          : "border-app-border/40 bg-app-surface hover:border-app-border-soft hover:bg-app-elevated/20"
       }`}
     >
-      <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border border-app">
+      <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold font-mono transition-all ${
+        selected
+          ? "bg-sky-400/20 text-sky-400 border-2 border-sky-400/30"
+          : "bg-app-muted/40 text-app-muted-text border border-app-border/40"
+      }`}>
+        {index}
+      </div>
+
+      <div className="h-16 w-16 shrink-0 rounded-xl overflow-hidden border-2 border-app-border/20 shadow-sm">
         {url && !imgErr ? (
           <img src={url} alt="" className="h-full w-full object-cover" onError={() => setImgErr(true)} />
         ) : (
@@ -64,34 +72,45 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
         )}
       </div>
 
-      <div className="w-full text-center min-w-0">
-        <p className={`text-sm font-semibold truncate ${selected ? "text-sky-300" : "text-app-heading"}`}>
+      <div className="flex-1 min-w-0 text-left">
+        <p className={`text-base font-bold truncate leading-tight ${selected ? "text-sky-300" : "text-app-heading"}`}>
           {candidate.name}
         </p>
-        {candidate.studentId && (
-          <p className="text-xs font-mono text-app-muted-text truncate">{candidate.studentId}</p>
-        )}
-        {candidate.year && (
-          <p className="text-xs font-mono text-app-muted-text">{candidate.year} Year</p>
-        )}
-        <div className="flex items-center justify-center gap-1 mt-1 flex-wrap">
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          {candidate.studentId && (
+            <span className="text-xs font-mono text-app-muted-text/60">{candidate.studentId}</span>
+          )}
+          {candidate.year && (
+            <>
+              {candidate.studentId && <span className="h-1 w-1 rounded-full bg-app-border/30 shrink-0" />}
+              <span className="text-xs font-mono text-app-muted-text">{candidate.year} Year</span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-1">
           {candidate.isFemale !== undefined && (
-            <span className={`text-xs font-bold uppercase px-1.5 py-0.5 rounded ${
-              candidate.isFemale ? "bg-pink-500/10 text-pink-400" : "bg-sky-500/10 text-sky-400"
+            <span className={`text-xs font-bold tracking-wider px-2 py-0.5 rounded ${
+              candidate.isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
             }`}>
               {candidate.isFemale ? "Female" : "Male"}
             </span>
           )}
+          {showVoteCount && (
+            <span className="text-xs font-mono text-app-accent/80">{candidate.voteCount} vote{candidate.voteCount !== 1 ? "s" : ""}</span>
+          )}
         </div>
-        {showVoteCount && (
-          <p className="text-xs font-mono mt-1 text-app-accent">{candidate.voteCount} vote{candidate.voteCount !== 1 ? "s" : ""}</p>
-        )}
       </div>
 
-      <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-        selected ? "border-sky-400 bg-sky-400/10" : "border-app-border"
+      <div className={`h-9 w-9 shrink-0 rounded-full border-2 flex items-center justify-center transition-all ${
+        selected
+          ? "border-sky-400 bg-sky-400 shadow-sm shadow-sky-400/30"
+          : "border-app-border/60"
       }`}>
-        {selected && <div className="h-2.5 w-2.5 rounded-full bg-sky-400 animate-ping-once" />}
+        {selected && (
+          <svg className="h-5 w-5 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
       </div>
     </button>
   );
@@ -99,12 +118,14 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
 
 function Skeleton() {
   return (
-    <div className="flex flex-col items-center gap-2 p-3 rounded-xl border border-app bg-app-elevated/20 animate-pulse">
-      <div className="h-16 w-16 rounded-xl bg-app-border/30" />
-      <div className="w-full space-y-1.5 text-center">
-        <div className="h-3.5 w-3/4 rounded bg-app-border/30 mx-auto" />
-        <div className="h-3 w-1/2 rounded bg-app-border/20 mx-auto" />
+    <div className="flex items-center gap-4 w-full p-4 rounded-xl border border-app-border/40 bg-app-surface animate-pulse">
+      <div className="h-10 w-10 rounded-full bg-app-border/20" />
+      <div className="h-16 w-16 rounded-xl bg-app-border/20" />
+      <div className="flex-1 space-y-2.5">
+        <div className="h-4 w-2/3 rounded bg-app-border/20" />
+        <div className="h-3.5 w-1/3 rounded bg-app-border/10" />
       </div>
+      <div className="h-9 w-9 rounded-full bg-app-border/20" />
     </div>
   );
 }
@@ -271,56 +292,81 @@ export default function VotingPanelV3() {
   const showVoteCount = phase === 3;
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-      <div className="px-5 py-4 border-b border-app flex items-center justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-app-heading">Cast Your Ballot</h2>
-          {totalCandidates > 0 && (
-            <p className="text-sm text-app-muted-text mt-0.5">
-              {totalCandidates} candidate{totalCandidates !== 1 ? "s" : ""}
-              {phase !== null && ` · ${PHASE_NAMES[phase]} Phase`}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {(phase === 1 || phase === 2) && (
-            <div className="text-right">
-              {phase === 2 && votingEnd && (
-                <>
-                  <p className="text-xs uppercase tracking-wider text-app-muted-text leading-tight">Voting ends</p>
-                  <p className="text-xs font-mono font-bold text-app-accent">{formatTime(votingEnd)}</p>
-                  <p className="text-xs font-mono text-emerald-400">{formatRemaining(votingEnd - now)}</p>
-                </>
-              )}
-              {phase === 1 && regEnd && (
-                <>
-                  <p className="text-xs uppercase tracking-wider text-app-muted-text leading-tight">Registration ends</p>
-                  <p className="text-xs font-mono font-bold text-app-accent">{formatTime(regEnd)}</p>
-                  <p className="text-xs font-mono text-emerald-400">{formatRemaining(regEnd - now)}</p>
-                </>
-              )}
+    <div className="rounded-2xl border border-app/80 bg-app-surface shadow-card overflow-hidden">
+      <div className="px-6 py-5 border-b border-app/50 bg-gradient-to-r from-sky-500/[0.03] via-transparent to-transparent">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10">
+              <span className="text-2xl">🗳️</span>
             </div>
-          )}
-          {balance && (
-            <span className="text-sm font-mono text-app-muted-text">{Number(balance).toFixed(4)} ETH</span>
-          )}
+            <div className="min-w-0">
+              <h2 className="text-xl font-extrabold tracking-tight text-app-heading">Official Ballot</h2>
+              <p className="text-sm text-app-muted-text mt-0.5">IT Club Election {new Date().getFullYear()}</p>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                {totalCandidates > 0 && (
+                  <>
+                    <span className="text-sm text-app-muted-text">{totalCandidates} candidate{totalCandidates !== 1 ? "s" : ""}</span>
+                    <span className="h-1 w-1 rounded-full bg-app-border shrink-0" />
+                  </>
+                )}
+                {phase !== null && (
+                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    phase === 2
+                      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                      : "text-sky-400 bg-sky-500/10 border-sky-500/20"
+                  }`}>
+                    {PHASE_NAMES[phase]}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {(phase === 1 || phase === 2) && (
+              <div className="text-right">
+                {phase === 2 && votingEnd && (
+                  <>
+                    <p className="text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Voting ends</p>
+                    <p className="text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(votingEnd)}</p>
+                    <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(votingEnd - now)}</p>
+                  </>
+                )}
+                {phase === 1 && regEnd && (
+                  <>
+                    <p className="text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Registration ends</p>
+                    <p className="text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(regEnd)}</p>
+                    <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(regEnd - now)}</p>
+                  </>
+                )}
+              </div>
+            )}
+            {balance && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-muted/50 border border-app-border/40">
+                <svg className="h-3.5 w-3.5 text-app-muted-text shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
+                  <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
+                </svg>
+                <span className="text-[11px] font-mono text-app-muted-text">{Number(balance).toFixed(4)} ETH</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-6">
+      <div className="p-6 space-y-8">
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Skeleton /><Skeleton /><Skeleton />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Skeleton /><Skeleton /><Skeleton /><Skeleton />
           </div>
         ) : totalCandidates === 0 ? (
-          <div className="py-8 text-center">
+          <div className="py-12 text-center">
             <p className="text-base text-app-muted-text">No candidates registered</p>
           </div>
         ) : (
           <>
             {!voterStatus.hasVoted && !votingPhaseActive && phase !== null && phase !== 2 && (
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
-                <p className="text-sm text-amber-400 font-medium">
+              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.06] to-amber-500/[0.02] p-5 text-center">
+                <p className="text-sm font-bold text-amber-400">
                   {phase === 0 || phase === 1
                     ? "Voting has not started yet. Check back during the voting phase."
                     : phase === 3
@@ -331,15 +377,20 @@ export default function VotingPanelV3() {
             )}
 
             {voterStatus.hasVoted && (
-              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
-                <p className="text-sm font-bold text-emerald-400">✓ You have already voted</p>
-                <p className="text-sm text-app-muted-text mt-1">Candidates are shown for reference.</p>
+              <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02] p-6 sm:p-8 text-center">
+                <div className="mx-auto h-16 w-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/10">
+                  <span className="text-emerald-400 text-3xl font-bold">✓</span>
+                </div>
+                <p className="text-xl sm:text-2xl font-extrabold text-emerald-400">Vote Recorded</p>
+                <p className="text-sm text-app-muted-text mt-1.5 max-w-sm mx-auto">
+                  You have already cast your ballot. Thank you for participating in the IT Club election.
+                </p>
               </div>
             )}
 
             {votingPhaseActive && !voterStatus.canVote && !voterStatus.hasVoted && (
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
-                <p className="text-sm text-amber-400 font-medium">
+              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.06] to-amber-500/[0.02] p-5 text-center">
+                <p className="text-sm font-bold text-amber-400">
                   You are not eligible to vote. Make sure your wallet is connected and you are whitelisted.
                 </p>
               </div>
@@ -347,16 +398,25 @@ export default function VotingPanelV3() {
 
             {/* President */}
             {grouped[0]?.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm">🏛️</span>
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
-                    President{phase === 2 ? " (choose 1)" : ""}
-                  </h3>
-                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[0].length}</span>
+              <section>
+                <div className="flex items-center justify-between pb-3 border-b border-app/20 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-1 rounded-full bg-gradient-to-b from-sky-400 to-sky-600 shrink-0" />
+                    <span className="text-sm shrink-0">🏛️</span>
+                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-app-heading">President</h3>
+                    <span className="hidden sm:inline text-[11px] text-app-muted-text font-medium">· Vote for one</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {phase === 2 && selectedPresidentId && (
+                      <span className="text-[11px] font-mono font-bold text-sky-400">1 selected</span>
+                    )}
+                    <span className="text-[11px] font-mono text-app-muted-text bg-app-muted/40 px-2 py-0.5 rounded-full border border-app-border/30">
+                      {grouped[0].length}
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {grouped[0].map(c => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {grouped[0].map((c, i) => (
                     <CandidateCard
                       key={c.id}
                       candidate={c}
@@ -364,24 +424,34 @@ export default function VotingPanelV3() {
                       onToggle={selectPresident}
                       disabled={!canVote}
                       showVoteCount={showVoteCount}
+                      index={i + 1}
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
             {/* Secretary */}
             {grouped[1]?.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm">📋</span>
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
-                    Secretary{phase === 2 ? " (choose 1)" : ""}
-                  </h3>
-                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">{grouped[1].length}</span>
+              <section>
+                <div className="flex items-center justify-between pb-3 border-b border-app/20 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-1 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
+                    <span className="text-sm shrink-0">📋</span>
+                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-app-heading">Secretary</h3>
+                    <span className="hidden sm:inline text-[11px] text-app-muted-text font-medium">· Vote for one</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {phase === 2 && selectedSecretaryId && (
+                      <span className="text-[11px] font-mono font-bold text-emerald-400">1 selected</span>
+                    )}
+                    <span className="text-[11px] font-mono text-app-muted-text bg-app-muted/40 px-2 py-0.5 rounded-full border border-app-border/30">
+                      {grouped[1].length}
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {grouped[1].map(c => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {grouped[1].map((c, i) => (
                     <CandidateCard
                       key={c.id}
                       candidate={c}
@@ -389,26 +459,66 @@ export default function VotingPanelV3() {
                       onToggle={selectSecretary}
                       disabled={!canVote}
                       showVoteCount={showVoteCount}
+                      index={i + 1}
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
             {/* General Member */}
             {grouped[2]?.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm">👥</span>
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-app-heading">
-                    General Member{phase === 2 ? ` (choose up to ${GM_MAX}, at least ${GM_MIN_FEMALE} female)` : ""}
-                  </h3>
-                  <span className="text-xs font-mono text-app-muted-text bg-app-muted/50 px-1.5 py-0.5 rounded">
-                    {phase === 2 ? `${selectedGMIds.length}/${GM_MAX}` : `${grouped[2].length}`}
-                  </span>
+              <section>
+                <div className="flex items-center justify-between pb-3 border-b border-app/20 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-1 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 shrink-0" />
+                    <span className="text-sm shrink-0">👥</span>
+                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-app-heading">General Members</h3>
+                    {phase === 2 && (
+                      <span className="hidden sm:inline text-[11px] text-app-muted-text font-medium">
+                        · Vote for up to {GM_MAX}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {phase === 2 && (
+                      <span className={`text-[11px] font-mono font-bold ${
+                        selectedGMIds.length >= GM_MIN_FEMALE
+                          ? "text-emerald-400"
+                          : selectedGMIds.length > 0
+                            ? "text-amber-400"
+                            : "text-app-muted-text"
+                      }`}>
+                        {selectedGMIds.length}/{GM_MAX}
+                      </span>
+                    )}
+                    <span className="text-[11px] font-mono text-app-muted-text bg-app-muted/40 px-2 py-0.5 rounded-full border border-app-border/30">
+                      {grouped[2].length}
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {grouped[2].map(c => (
+
+                {canVote && phase === 2 && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4 px-1">
+                    <span className="text-xs text-app-muted-text">
+                      Select up to <strong className="text-app-heading">{GM_MAX}</strong> candidates
+                    </span>
+                    <span className="text-xs text-app-muted-text">
+                      · at least <strong className="text-pink-400">{GM_MIN_FEMALE}</strong> female
+                    </span>
+                    {selectedGMIds.length > 0 && gmFemaleSelected < GM_MIN_FEMALE && (
+                      <span className="text-xs text-pink-400 font-bold">
+                        {gmFemaleSelected}/{GM_MIN_FEMALE} female selected
+                      </span>
+                    )}
+                    {selectedGMIds.length > 0 && gmFemaleSelected >= GM_MIN_FEMALE && (
+                      <span className="text-xs text-emerald-400 font-bold">✓ female requirement met</span>
+                    )}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {grouped[2].map((c, i) => (
                     <CandidateCard
                       key={c.id}
                       candidate={c}
@@ -416,49 +526,108 @@ export default function VotingPanelV3() {
                       onToggle={toggleGM}
                       disabled={!canVote || (!selectedGMIds.includes(c.id) && (c.isFemale ? disableFemale : disableMale))}
                       showVoteCount={showVoteCount}
+                      index={i + 1}
                     />
                   ))}
                 </div>
-                {canVote && selectedGMIds.length > 0 && gmFemaleSelected < GM_MIN_FEMALE && (
-                  <p className="text-xs text-rose-400 mt-2">
-                    Select {GM_MIN_FEMALE - gmFemaleSelected} more female GM candidate{GM_MIN_FEMALE - gmFemaleSelected > 1 ? "s" : ""}
-                  </p>
+
+                {canVote && phase === 2 && selectedGMIds.length > 0 && gmFemaleSelected < GM_MIN_FEMALE && (
+                  <div className="flex items-center gap-3 mt-3 px-1">
+                    <div className="flex-1 max-w-xs h-2 rounded-full bg-app-border/20 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-pink-400 to-pink-500 transition-all duration-500"
+                        style={{ width: `${Math.min((gmFemaleSelected / GM_MIN_FEMALE) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-pink-400 font-semibold whitespace-nowrap">
+                      {gmFemaleSelected}/{GM_MIN_FEMALE} female required
+                    </span>
+                  </div>
                 )}
-                {canVote && gmFemaleRemaining === 0 && gmFemaleSelected < GM_MIN_FEMALE && selectedGMIds.length < GM_MAX && (
-                  <p className="text-xs text-rose-400 mt-1">
-                    No more female GM candidates available
-                  </p>
+                {canVote && phase === 2 && gmFemaleRemaining === 0 && gmFemaleSelected < GM_MIN_FEMALE && selectedGMIds.length < GM_MAX && (
+                  <p className="text-xs text-rose-400 mt-2 font-medium">No more eligible female candidates available</p>
                 )}
-              </div>
+              </section>
             )}
           </>
         )}
 
         {totalCandidates > 0 && (
-          <div className="space-y-3 pt-2 border-t border-app/50">
+          <div className="space-y-4 pt-4 border-t border-app/40">
             {canVote && totalSelected > 0 && (
-              <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-center space-y-1">
-                {selectedPresidentId && (
-                  <p className="text-sm text-sky-400">President: <span className="font-bold">{selectedName(selectedPresidentId)}</span></p>
-                )}
-                {selectedSecretaryId && (
-                  <p className="text-sm text-sky-400">Secretary: <span className="font-bold">{selectedName(selectedSecretaryId)}</span></p>
-                )}
-                {selectedGMIds.length > 0 && (
-                  <p className="text-sm text-sky-400">
-                    General Members ({selectedGMIds.length}):{" "}
-                    <span className="font-bold">{selectedGMIds.map(id => selectedName(id)).join(", ")}</span>
-                  </p>
-                )}
+              <div className="rounded-xl border border-sky-500/20 bg-gradient-to-br from-sky-500/[0.06] to-sky-500/[0.02] p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-sky-500/20 flex items-center justify-center">
+                      <svg className="h-3.5 w-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-bold text-sky-400">Ballot Summary</p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/20">
+                    {totalSelected} vote{totalSelected > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-sm">
+                  {selectedPresidentId && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-app-muted-text font-medium w-20 shrink-0">President:</span>
+                      <span className="text-app-heading font-bold truncate">{selectedName(selectedPresidentId)}</span>
+                    </div>
+                  )}
+                  {selectedSecretaryId && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-app-muted-text font-medium w-20 shrink-0">Secretary:</span>
+                      <span className="text-app-heading font-bold truncate">{selectedName(selectedSecretaryId)}</span>
+                    </div>
+                  )}
+                  {selectedGMIds.length > 0 && (
+                    <div>
+                      <span className="text-app-muted-text font-medium">General Members ({selectedGMIds.length}/{GM_MAX}):</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {selectedGMIds.map(id => (
+                          <span key={id} className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-app-surface border border-app-border/40 text-app-heading shadow-sm">
+                            {selectedName(id)}
+                            <button type="button" onClick={() => toggleGM(id)} className="text-app-muted-text hover:text-rose-400 transition-colors cursor-pointer p-0.5 -mr-0.5">
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
+
             {phase === 2 && (
               <button
                 onClick={castVote}
                 disabled={casting || !canSubmit}
-                className="w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 text-base font-bold uppercase tracking-wide hover:bg-emerald-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-base font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer"
               >
-                {casting ? "Confirming on-chain…" : canSubmit ? `Cast ${totalSelected} Vote${totalSelected > 1 ? "s" : ""}` : voterStatus.hasVoted ? "Already voted" : !votingPhaseActive ? "Voting not active" : "Select candidates"}
+                {casting ? (
+                  <span className="flex items-center justify-center gap-2.5">
+                    <span className="h-5 w-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                    <span>Confirming on-chain&hellip;</span>
+                  </span>
+                ) : canSubmit ? (
+                  <span className="flex items-center justify-center gap-2.5">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Cast {totalSelected} Vote{totalSelected > 1 ? "s" : ""}
+                  </span>
+                ) : voterStatus.hasVoted ? (
+                  "Already voted"
+                ) : !votingPhaseActive ? (
+                  "Voting not active"
+                ) : (
+                  "Select candidates above"
+                )}
               </button>
             )}
           </div>

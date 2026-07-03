@@ -19,6 +19,9 @@ npm-debug.log*
 dist/
 build/
 
+# Runtime logs
+server.log
+
 # Locally-uploaded profile photos (Pinata/IPFS is the canonical store).
 # These are referenced by `local:` CIDs and are ephemeral by design
 # unless BACKEND_PUBLIC_URL + a persistent volume are configured.

@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useToast } from "../ui/Toast";
 import { formatContractError } from "../../utils/errors";
 import SectionHeader from "../ui/SectionHeader";
+import { API_URL } from "../../config";
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
 
@@ -161,27 +162,31 @@ export default function ElectionControl() {
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
-      const contract = await getContractV3();
-      const hc = Number(await contract.historyCount());
-      if (hc === 0) { setHistory([]); return; }
-      const items = [];
-      for (let i = 0; i < hc; i++) {
-        const r = await contract.getElectionResult(i);
-        const pres = Number(r.presidentWinnerId) > 0 ? await contract.getCandidate(Number(r.presidentWinnerId)) : null;
-        const sec = Number(r.secretaryWinnerId) > 0 ? await contract.getCandidate(Number(r.secretaryWinnerId)) : null;
-        const gmIds = Array.isArray(r.generalMemberWinnerIds) ? r.generalMemberWinnerIds.map(Number) : [];
-        const gmNames = (await Promise.all(
-          gmIds.map(id => id > 0 ? contract.getCandidate(id) : null)
-        )).filter(c => c !== null).map(c => c.name);
-        items.push({
-          id: i,
-          timestamp: new Date(Number(r.timestamp) * 1000).toLocaleString(),
-          totalCandidates: Number(r.totalCandidates),
+      const res = await fetch(`${API_URL}/api/results/history`);
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) {
+        setHistory([]);
+        return;
+      }
+      data.sort((a, b) => a.election_number - b.election_number);
+      const items = data.map((election) => {
+        const candidates = election.candidates || [];
+        const pres = candidates.find(c => c.position === "President");
+        const sec = candidates.find(c => c.position === "Secretary");
+        const gms = candidates
+          .filter(c => c.position === "General Member")
+          .sort((a, b) => Number(b.vote_count) - Number(a.vote_count))
+          .slice(0, 5)
+          .map(c => c.name);
+        return {
+          id: election.election_number - 1,
+          timestamp: new Date(election.snapshot_at).toLocaleString(),
+          totalCandidates: candidates.length,
           pres: pres?.name || "—",
           sec: sec?.name || "—",
-          gmNames: gmNames.length > 0 ? gmNames : null,
-        });
-      }
+          gmNames: gms.length > 0 ? gms : null,
+        };
+      });
       setHistory(items);
     } catch (err) {
       console.error(err);

@@ -63,6 +63,7 @@ contract Election3 {
 
     bytes32 public voterMerkleRoot;
     bytes32 public identityMerkleRoot;
+    bytes32 public regCodeMerkleRoot;
 
     mapping(uint256 => Candidate) public candidates;
     mapping(address => uint256) public votedInElection;
@@ -87,6 +88,7 @@ contract Election3 {
     event PhaseChanged(Phase newPhase);
     event MerkleRootUpdated(bytes32 newRoot);
     event IdentityMerkleRootUpdated(bytes32 newRoot);
+    event RegCodeMerkleRootUpdated(bytes32 newRoot);
     event NewElectionStarted(uint256 indexed electionId);
 
     // =========================
@@ -126,6 +128,19 @@ contract Election3 {
     function setIdentityMerkleRoot(bytes32 _root) external onlyAdmin {
         identityMerkleRoot = _root;
         emit IdentityMerkleRootUpdated(_root);
+    }
+
+    function setRegCodeMerkleRoot(bytes32 _root) external onlyAdmin {
+        regCodeMerkleRoot = _root;
+        emit RegCodeMerkleRootUpdated(_root);
+    }
+
+    /// @notice Verify a registration code (student_id + code) against the on-chain Merkle root.
+    function verifyRegCode(string calldata studentId, string calldata code, bytes32[] calldata proof)
+        external view returns (bool)
+    {
+        bytes32 leaf = keccak256(abi.encodePacked(studentId, code));
+        return MerkleProof.verify(proof, regCodeMerkleRoot, leaf);
     }
 
     // =========================

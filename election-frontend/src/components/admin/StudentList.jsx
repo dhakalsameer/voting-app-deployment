@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useContext } from "react";
+import * as XLSX from "xlsx";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useToast } from "../ui/Toast";
@@ -34,7 +35,7 @@ function StatusBadge({ eligibleToVote, registered }) {
 
 export default function StudentList() {
   const { wallet } = useContext(AuthContext);
-  const { success, error: showError } = useToast();
+  const { success, error: showError, info } = useToast();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -76,6 +77,26 @@ export default function StudentList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExportExcel = () => {
+    const rows = sorted.map((s) => ({
+      student_id: s.student_id,
+      name: s.name || "",
+      year: s.registration_year || s.year || "",
+      gender: s.gender || "",
+      email: s.email || "",
+    }));
+    if (rows.length === 0) {
+      showError("No students to export");
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    const label = yearFilter === "all" ? "all-students" : `year-${yearFilter}`;
+    XLSX.writeFile(wb, `students_${label}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    info("Excel download started");
   };
 
   const handleLoadAsCSV = (e) => {
@@ -218,6 +239,12 @@ export default function StudentList() {
           className="rounded-lg border border-app bg-app-input px-4 py-2.5 text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer disabled:opacity-50"
         >
           {fetching ? "Refreshing…" : "Refresh"}
+        </button>
+        <button
+          onClick={handleExportExcel}
+          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-400 hover:bg-emerald-500/20 transition-all cursor-pointer"
+        >
+          Export Excel
         </button>
         <label className="rounded-lg bg-emerald-500 text-slate-950 px-4 py-2.5 text-sm font-bold cursor-pointer hover:bg-emerald-400 transition-all text-center">
           Upload CSV

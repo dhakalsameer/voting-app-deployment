@@ -7,6 +7,7 @@ import {
   verifyCode,
   listStudents,
   adminUpdateStudent,
+  adminBatchUpsertStudents,
 } from "../controllers/authController.js";
 import { uploadMiddleware, uploadPhoto } from "../controllers/uploadController.js";
 import { requireStudentAuth } from "../middleware/auth.js";
@@ -32,5 +33,6 @@ router.post(
 // Admin-only endpoints
 router.get("/admin/students", verifyAdmin, listStudents);
 router.patch("/admin/students/:id", verifyAdmin, adminUpdateStudent);
+router.post("/admin/students/batch-upsert", verifyAdmin, adminBatchUpsertStudents);
 
 export default router;

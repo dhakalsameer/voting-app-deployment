@@ -8,9 +8,9 @@ import BlockExplorerLink from "./ui/BlockExplorerLink";
 import { formatContractError } from "../utils/errors";
 
 const POSITIONS = [
-  { value: 0, label: "President", icon: "👤", minYear: 4, maxYear: 4 },
-  { value: 1, label: "Secretary", icon: "📝", minYear: 3, maxYear: 4 },
-  { value: 2, label: "General Member", icon: "🤝", minYear: 1, maxYear: 4 },
+  { value: 0, label: "President", icon: "👤", description: "Lead the IT Club", minYear: 4, maxYear: 4 },
+  { value: 1, label: "Secretary", icon: "📝", description: "Manage records & communication", minYear: 3, maxYear: 4 },
+  { value: 2, label: "General Member", icon: "🤝", description: "Participate in club activities", minYear: 1, maxYear: 4 },
 ];
 
 /*
@@ -186,17 +186,26 @@ export default function CandidateSelfRegister({ student, regEnd }) {
 
   if (isRegistered) {
     return (
-      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center space-y-3">
-        <div className="mx-auto h-12 w-12 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center">
-          <span className="text-emerald-400 text-lg font-bold">✓</span>
-        </div>
-        <p className="text-lg font-bold text-emerald-400">Already Registered On-Chain</p>
-        <p className="text-base text-app-body">You have already registered as a candidate for this election.</p>
-          {txHash && (
-            <div className="pt-2">
-            <BlockExplorerLink hash={txHash} />
+      <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02] shadow-lg shadow-emerald-500/5 overflow-hidden">
+        <div className="px-6 sm:px-10 py-8 sm:py-12 text-center space-y-5 sm:space-y-6">
+          <div className="mx-auto h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+            <span className="text-emerald-400 text-2xl sm:text-3xl font-bold">✓</span>
           </div>
-        )}
+          <div className="space-y-2">
+            <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-emerald-400">Already Registered On-Chain</p>
+            <p className="text-sm sm:text-base text-app-body max-w-lg mx-auto">
+              You have successfully registered as a candidate for this election. Your candidacy is recorded on the blockchain.
+            </p>
+          </div>
+          {txHash && (
+            <div className="pt-2 sm:pt-3">
+              <div className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-app-surface/80 border border-app-border/50 shadow-sm">
+                <span className="text-xs sm:text-sm text-app-muted-text font-medium">Tx:</span>
+                <BlockExplorerLink hash={txHash} className="text-sm sm:text-base font-bold" />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -232,173 +241,248 @@ export default function CandidateSelfRegister({ student, regEnd }) {
   }
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface p-6 space-y-6">
-      <div className="flex items-start gap-4 pb-4 border-b border-app/50">
-        <div className="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-          <span className="text-2xl">📝</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-app-heading">Register as Candidate</h2>
-          <p className="text-sm text-app-muted-text mt-0.5">Your identity is verified via Merkle tree proof</p>
-        </div>
-        {remaining > 0 && (
-          <div className="text-right shrink-0 pt-1">
-            <p className="text-xs uppercase tracking-wider text-app-muted-text">Closes in</p>
-            <p className="text-base font-mono font-bold text-emerald-400">
-              {remaining > 3600
-                ? `${Math.floor(remaining / 3600)}h ${String(Math.floor((remaining % 3600) / 60)).padStart(2, "0")}m`
-                : `${Math.floor(remaining / 60)}m ${String(remaining % 60).padStart(2, "0")}s`}
-            </p>
+    <div className="rounded-2xl border border-app/80 bg-app-surface shadow-card overflow-hidden">
+      <div className="p-6 pb-0">
+        <div className="flex items-start gap-4">
+          <div className="h-14 w-14 shrink-0 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/5">
+            <span className="text-2xl">📝</span>
           </div>
-        )}
-      </div>
-
-      {identity ? (
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="text-sm text-emerald-400 font-bold uppercase tracking-wider">Identity Verified</span>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-app-heading">Register as Candidate</h2>
+            <p className="text-sm text-app-muted-text mt-1">Submit your candidacy on-chain with your verified identity</p>
           </div>
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Name</p>
-              <p className="text-lg font-bold text-app-heading mt-1 truncate">{identity.name}</p>
+          {remaining > 0 && (
+            <div className="text-right shrink-0">
+              <p className="text-xs uppercase tracking-wider text-app-muted-text mb-1">Closes in</p>
+              <p className="text-lg font-mono font-bold text-emerald-400 tabular-nums">
+                {remaining > 3600
+                  ? `${Math.floor(remaining / 3600)}h ${String(Math.floor((remaining % 3600) / 60)).padStart(2, "0")}m`
+                  : `${Math.floor(remaining / 60)}m ${String(remaining % 60).padStart(2, "0")}s`}
+              </p>
             </div>
-            <div>
-              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Year</p>
-              <p className="text-lg font-bold text-app-heading mt-1">{identity.year}</p>
-            </div>
-            <div>
-              <p className="text-xs text-app-muted-text uppercase tracking-wider font-medium">Gender</p>
-              <p className="text-lg font-bold text-app-heading mt-1 capitalize">{identity.isFemale ? "Female" : "Male"}</p>
-            </div>
-          </div>
-        </div>
-      ) : loadingProof ? (
-        <div className="rounded-xl border border-app bg-app-muted/30 p-6 animate-pulse flex items-center justify-center gap-3">
-          <span className="h-5 w-5 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
-          <span className="text-base text-app-muted-text font-medium">Verifying your identity via Merkle tree…</span>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-5">
-          <p className="text-base text-rose-400 font-medium">
-            Could not load your verified identity. Make sure your wallet is connected and you're whitelisted as a voter.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text">Student ID</label>
-          <input
-            type="text"
-            value={guid}
-            disabled
-            className="input-field mt-2 text-base font-mono opacity-60 cursor-not-allowed"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text">Photo</label>
-          <div className="mt-2 flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingPhoto}
-              className="flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-lg border border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all cursor-pointer disabled:opacity-40"
-            >
-              {uploadingPhoto ? (
-                <>
-                  <span className="h-4 w-4 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
-                  Uploading…
-                </>
-              ) : (
-                <>
-                  <span className="text-lg">📷</span>
-                  <span>{photoPreview ? "Change photo" : "Upload photo"}</span>
-                </>
-              )}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={handleUploadPhoto}
-              className="hidden"
-            />
-            {photoPreview && (
-              <div className="relative shrink-0">
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="h-14 w-14 rounded-xl object-cover border-2 border-app"
-                />
-                <button
-                  type="button"
-                  onClick={() => { setPhotoPreview(null); setImageCID(""); }}
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center hover:bg-rose-400 transition-colors cursor-pointer shadow-lg"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-          </div>
-          {imageCID && !photoPreview && (
-            <p className="text-xs text-app-muted-text mt-2 truncate font-mono">{imageCID}</p>
           )}
         </div>
       </div>
 
-      <div>
-        <p className="text-base font-bold uppercase tracking-wider text-app-muted-text mb-3">Choose Position</p>
-        <div className="grid grid-cols-3 gap-3">
-          {POSITIONS.map((pos) => {
-            const year = identity?.year;
-            const allowed = year >= pos.minYear && year <= pos.maxYear;
-            return (
-              <div key={pos.value} className="relative group">
+      <div className="p-6 pb-0">
+        <div className="flex items-center gap-3 mb-5">
+          <span className="h-3 w-3 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/20" />
+          <span className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Verified Identity</span>
+        </div>
+        {identity ? (
+          <div className="bg-gradient-to-br from-emerald-500/[0.06] to-emerald-500/[0.02] rounded-xl border border-emerald-500/15 p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg">
+                {identity.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-bold text-app-heading truncate">{identity.name}</p>
+                <div className="flex items-center gap-3 mt-1.5">
+                  <span className="text-sm text-app-muted-text">Year {identity.year}</span>
+                  <span className="h-1 w-1 rounded-full bg-app-border shrink-0" />
+                  <span className="text-sm text-app-muted-text capitalize">{identity.isFemale ? "Female" : "Male"}</span>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Verified</span>
+              </div>
+            </div>
+          </div>
+        ) : loadingProof ? (
+          <div className="rounded-xl border border-app bg-app-muted/50 p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-app-muted animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-5 w-48 bg-app-muted rounded animate-pulse" />
+                <div className="h-4 w-32 bg-app-muted rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-5">
+            <div className="flex items-center gap-3">
+              <span className="text-lg shrink-0">⚠️</span>
+              <p className="text-sm text-rose-400 font-medium">
+                Could not load your verified identity. Make sure your wallet is connected and you&apos;re whitelisted as a voter.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text flex items-center gap-2">
+              <span className="text-base">🎓</span>
+              Student ID
+            </label>
+            <input
+              type="text"
+              value={guid}
+              disabled
+              className="input-field mt-2.5 text-base font-mono opacity-60 cursor-not-allowed bg-app-muted/50 px-4 py-3"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text flex items-center gap-2">
+              <span className="text-base">📸</span>
+              Photo
+            </label>
+            <div className="mt-2.5">
+              {photoPreview ? (
+                <div className="rounded-xl border-2 border-dashed border-app-border bg-app-muted/30 p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="h-16 w-16 rounded-lg object-cover border border-app shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setPhotoPreview(null); setImageCID(""); }}
+                        className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center hover:bg-rose-400 transition-colors cursor-pointer shadow-lg"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-app-heading truncate">Photo uploaded</p>
+                      <p className="text-xs text-app-muted-text mt-0.5">Click &ldquo;Change&rdquo; to replace</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="btn-secondary text-sm shrink-0"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              ) : (
                 <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="w-full rounded-xl border-2 border-dashed border-app-border bg-app-muted/30 hover:bg-app-elevated hover:border-app-accent/50 transition-all p-6 flex flex-col items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                >
+                  {uploadingPhoto ? (
+                    <>
+                      <span className="h-8 w-8 border-2 border-app-accent/30 border-t-app-accent rounded-full animate-spin" />
+                      <span className="text-sm text-app-muted-text font-medium">Uploading&hellip;</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl">📷</span>
+                      <span className="text-sm font-bold text-app-muted-text">Upload your photo</span>
+                      <span className="text-xs text-app-muted-text/60">PNG, JPEG, WEBP or GIF (max 5 MB)</span>
+                    </>
+                  )}
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleUploadPhoto}
+                className="hidden"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-bold uppercase tracking-wider text-app-muted-text flex items-center gap-2 mb-4">
+            <span className="text-base">📋</span>
+            Choose Position
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {POSITIONS.map((pos) => {
+              const year = identity?.year;
+              const allowed = year >= pos.minYear && year <= pos.maxYear;
+              return (
+                <button
+                  key={pos.value}
                   type="button"
                   onClick={() => allowed && setPosition(pos.value)}
                   disabled={!allowed}
-                   className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-5 text-base font-bold transition-all w-full ${
+                  className={`relative group text-left rounded-xl border-2 px-5 py-4 transition-all ${
                     !allowed
-                      ? "border-app-border/30 bg-app-muted/30 text-app-muted-text/40 cursor-not-allowed"
+                      ? "border-app-border/30 bg-app-muted/20 text-app-muted-text/40 cursor-not-allowed"
                       : position === pos.value
-                        ? "border-app-accent bg-app-accent-soft text-app-accent ring-2 ring-app-accent/30 cursor-pointer"
-                        : "border-app bg-app-input text-app-muted-text hover:text-app-heading hover:bg-app-elevated cursor-pointer"
+                        ? "border-app-accent bg-app-accent-soft ring-2 ring-app-accent/30 shadow-lg shadow-app-accent/5 cursor-pointer"
+                        : "border-app-border bg-app-elevated/50 hover:border-app-border-soft hover:bg-app-elevated cursor-pointer"
                   }`}
                 >
-                  <span className="text-2xl">{pos.icon}</span>
-                  <span>{pos.label}</span>
-                </button>
-                {!allowed && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
-                    <div className="bg-slate-900 text-white text-sm rounded-lg px-3 py-1.5 whitespace-nowrap shadow-lg border border-slate-700">
-                      {pos.label === "President" ? "Only 4th-year students" : "Only 3rd or 4th-year students"}
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${
+                      !allowed
+                        ? "bg-app-muted/30"
+                        : position === pos.value
+                          ? "bg-app-accent/20"
+                          : "bg-app-muted/40 group-hover:bg-app-muted/60 transition-colors"
+                    }`}>
+                      {pos.icon}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold truncate ${
+                        !allowed ? "text-app-muted-text/40" : position === pos.value ? "text-app-accent" : "text-app-heading"
+                      }`}>
+                        {pos.label}
+                      </p>
+                      <p className={`text-xs mt-0.5 truncate ${
+                        !allowed ? "text-app-muted-text/30" : "text-app-muted-text"
+                      }`}>
+                        {!allowed
+                          ? (pos.label === "President" ? "4th year only" : "3rd\u20134th year")
+                          : pos.description}
+                      </p>
+                    </div>
+                    {allowed && position === pos.value && (
+                      <div className="h-5 w-5 rounded-full bg-app-accent flex items-center justify-center shrink-0 shadow-lg shadow-app-accent/30">
+                        <span className="text-[10px] text-white font-bold">✓</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                  {!allowed && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                      <div className="bg-slate-900 text-white text-xs rounded-lg px-3 py-1.5 whitespace-nowrap shadow-lg border border-slate-700">
+                        {pos.label === "President"
+                          ? "Only 4th-year students can run for President"
+                          : "Only 3rd or 4th-year students can run for Secretary"}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="pt-2">
+          <button
+            onClick={handleRegister}
+            disabled={registering || loadingProof || !identity}
+            className="btn-primary w-full text-base py-3.5 rounded-xl shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all"
+          >
+            {registering ? (
+              <span className="flex items-center justify-center gap-2.5">
+                <span className="h-5 w-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
+                Registering on-chain&hellip;
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2.5">
+                <span className="text-lg">📜</span>
+                Register as Candidate
+              </span>
+            )}
+          </button>
         </div>
       </div>
-
-      <button
-        onClick={handleRegister}
-        disabled={registering || loadingProof || !identity}
-        className="btn-primary w-full text-base py-3"
-      >
-        {registering ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="h-5 w-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin inline-block" />
-            Registering on-chain…
-          </span>
-        ) : (
-          "Register as Candidate"
-        )}
-      </button>
     </div>
   );
 }

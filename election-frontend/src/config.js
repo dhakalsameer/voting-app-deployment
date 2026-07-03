@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS_V3 = "0x8084eDB9D79aD595933Ac81F923AA7e7bBE2d2A6";
+export const CONTRACT_ADDRESS_V3 = "0x470Bf74D617fBD433A8Fd3a8B13c70601656Ac28";
 export const API_URL = "http://localhost:5000";
 
 export const SEPOLIA_NETWORK = "sepolia: Sepolia Testnet";

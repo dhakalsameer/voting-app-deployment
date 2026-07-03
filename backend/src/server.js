@@ -16,8 +16,11 @@ import registrationCodeRoutes from "./routes/registrationCodeRoutes.js";
 import distributionRoutes from "./routes/distributionRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import contractRoutes from "./routes/contractRoutes.js";
+import codeRoutes from "./routes/codeRoutes.js";
+import reminderRoutes from "./routes/reminderRoutes.js";
 
 import { startBlockchainSync } from "./blockchain/sync.js";
+import { startReminderJob } from "./services/reminderService.js";
 import { setIO } from "./socket.js";
 
 // Startup self-checks (non-fatal warnings)
@@ -84,6 +87,8 @@ app.use("/api/admin", registrationCodeRoutes);
 app.use("/api/distribution", distributionRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/contract", contractRoutes);
+app.use("/api/codes", codeRoutes);
+app.use("/api/admin", reminderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -104,4 +109,5 @@ io.on("connection", (socket) => {
 httpServer.listen(config.port, () => {
   console.log(`Server running on port ${config.port} (Real-time enabled)`);
   startupChecks();
+  startReminderJob();
 });

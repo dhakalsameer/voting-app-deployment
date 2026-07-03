@@ -1,4 +1,4 @@
-# IT Club Election System 🗳️
+# Decentralized Voting System 🗳️
 
 A production-grade, decentralized voting application built with a **Hybrid Web3 Architecture**. This system combines the immutability of the Ethereum blockchain with the speed of a traditional PostgreSQL database and the decentralization of IPFS.
 

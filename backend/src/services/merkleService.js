@@ -72,3 +72,35 @@ export function generateIdentityMerkleProof(allIdentities, targetIdentity) {
   ));
   return tree.getHexProof(leaf);
 }
+
+/**
+ * Generates a Merkle Root from an array of registration code pairs.
+ * Leaf: keccak256(abi.encodePacked(studentId, code))
+ * @param {{student_id: string, code: string}[]} regCodes
+ * @returns {string} The Merkle Root (hex)
+ */
+export function generateRegCodeMerkleRoot(regCodes) {
+  if (!regCodes || regCodes.length === 0) return ethers.ZeroHash;
+
+  const leaves = regCodes.map(({ student_id, code }) =>
+    keccak256(ethers.solidityPacked(["string", "string"], [student_id, code]))
+  );
+  const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+  return tree.getHexRoot();
+}
+
+/**
+ * Generates a Merkle Proof for a specific registration code pair.
+ * @param {{student_id: string, code: string}[]} allRegCodes
+ * @param {string} targetStudentId
+ * @param {string} targetCode
+ * @returns {string[]} The Merkle Proof (array of hex strings)
+ */
+export function generateRegCodeMerkleProof(allRegCodes, targetStudentId, targetCode) {
+  const leaves = allRegCodes.map(({ student_id, code }) =>
+    keccak256(ethers.solidityPacked(["string", "string"], [student_id, code]))
+  );
+  const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+  const leaf = keccak256(ethers.solidityPacked(["string", "string"], [targetStudentId, targetCode]));
+  return tree.getHexProof(leaf);
+}

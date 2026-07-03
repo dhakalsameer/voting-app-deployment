@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { db } from "../db.js";
 import { rebuildMerkleTrees } from "./voterController.js";
+import { rebuildRegCodeMerkleRoot } from "./registrationCodeController.js";
 
 const VALID_YEARS = ["1st", "2nd", "3rd", "4th"];
 const VALID_GENDERS = ["male", "female", "other"];
@@ -103,6 +104,13 @@ export const deleteStudent = async (req, res) => {
 
     if (wasEligible) {
       await rebuildMerkleTrees();
+    }
+
+    // Rebuild registration code Merkle tree (code may have been orphaned)
+    try {
+      await rebuildRegCodeMerkleRoot();
+    } catch (err) {
+      console.error("Failed to rebuild reg code Merkle root after delete:", err.message);
     }
 
     res.json({ success: true, deleted: result.rows[0] });

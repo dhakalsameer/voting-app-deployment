@@ -82,7 +82,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
               alt="GU"
               className="h-16 w-16 rounded-md object-contain"
             />
-            <span className="text-xl font-bold tracking-tight text-app-heading hidden sm:block">Election</span>
+            <span className="text-xl font-bold tracking-tight text-app-heading hidden sm:block">IT Election</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 ml-5">
@@ -102,42 +102,47 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-2.5">
+          <div className="hidden md:flex items-center gap-2">
             <a
               href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-app-muted-text hover:text-app-accent transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-lg text-app-muted-text hover:text-app-accent hover:bg-app-elevated transition-all"
+              title="View contract on Etherscan"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
-              Contract
             </a>
-            <ThemeToggle />
+            <ThemeToggle className="h-9 w-9 rounded-lg" />
             {!isAdmin && wallet && student && (
-              <button onClick={onOpenPortal} className="flex items-center gap-2.5 text-lg font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-3 py-2">
+              <button onClick={onOpenPortal} className="flex items-center gap-2 rounded-lg border border-app-border bg-app-input px-3 py-1.5 hover:bg-app-elevated transition-all cursor-pointer">
                 <VoterAvatar student={student} />
-                <span className="hidden lg:inline truncate max-w-[120px]">{student.name}</span>
+                <span className="hidden xl:inline text-sm font-medium text-app-muted-text truncate max-w-[120px]">{student.name}</span>
               </button>
             )}
             {!isAdmin && (!wallet || !student) && (
-              <button onClick={onOpenPortal} className="text-lg font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-3 py-2">
+              <button onClick={onOpenPortal} className="flex items-center gap-1.5 text-sm font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-3 py-1.5 rounded-lg border border-transparent hover:border-app-border hover:bg-app-elevated">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
                 Portal
               </button>
             )}
-            <WalletButton />
           </div>
+
+          <WalletButton />
 
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="md:hidden flex h-11 w-11 items-center justify-center rounded-lg border border-app text-app-muted-text cursor-pointer"
+            className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-app text-app-muted-text hover:bg-app-elevated transition-all cursor-pointer"
             aria-label="Menu"
           >
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
