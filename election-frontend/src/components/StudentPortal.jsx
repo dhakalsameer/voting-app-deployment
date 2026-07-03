@@ -33,9 +33,11 @@ function PortalAuthProvider({ children }) {
   });
 
   const save = (t, s) => {
-    if (t) localStorage.setItem("portal_token", t);
+    if (t) {
+      localStorage.setItem("portal_token", t);
+      setToken(t);
+    }
     localStorage.setItem("portal_student", JSON.stringify(s));
-    setToken(t);
     setStudent(s);
   };
 
