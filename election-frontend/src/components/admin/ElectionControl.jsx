@@ -1,8 +1,9 @@
 import { getContractV3 } from "../../contract";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useContext } from "react";
 import { useToast } from "../ui/Toast";
 import { formatContractError } from "../../utils/errors";
 import SectionHeader from "../ui/SectionHeader";
+import { AuthContext } from "../../context/AuthContextValue";
 import { API_URL } from "../../config";
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
@@ -116,6 +117,7 @@ function ActionButton({ children, variant = "green", onClick, disabled, icon, pr
 
 export default function ElectionControl() {
   const { success, error: showError } = useToast();
+  const { wallet } = useContext(AuthContext);
   const defaults = useMemo(() => {
     const now = new Date();
     const regEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -283,6 +285,15 @@ export default function ElectionControl() {
               onClick={() => execute("Start Voting", async () => {
                 const endTime = toUnixSeconds(votingEnd);
                 if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
+                // Auto-rebuild Merkle tree so newly registered voters are included
+                const rebuildRes = await fetch(
+                  `${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`,
+                  { method: "POST" }
+                );
+                if (!rebuildRes.ok) {
+                  const err = await rebuildRes.json();
+                  throw new Error(err.error || "Merkle rebuild failed");
+                }
                 const contract = await getContractV3();
                 return contract.startVoting(endTime);
               })}
