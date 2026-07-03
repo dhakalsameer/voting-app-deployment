@@ -1,5 +1,6 @@
 import express from "express";
 import { db } from "../db.js";
+import { electionContractV3 } from "../blockchain/electionContract.js";
 
 const router = express.Router();
 
@@ -9,6 +10,31 @@ router.get("/", async (req, res) => {
       "SELECT * FROM candidates ORDER BY vote_count DESC"
     );
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/stats", async (req, res) => {
+  try {
+    const [voterResult, voteResult, candidateResult] = await Promise.all([
+      db.query("SELECT COUNT(*)::int AS total FROM students WHERE eligible_to_vote = true"),
+      db.query("SELECT COALESCE(SUM(vote_count), 0)::int AS cast FROM candidates"),
+      db.query("SELECT COUNT(*)::int AS total FROM candidates"),
+    ]);
+
+    const totalVoters = voterResult.rows[0].total;
+    const votesCast = voteResult.rows[0].cast;
+    const candidateCount = candidateResult.rows[0].total;
+    const remaining = Math.max(0, totalVoters - votesCast);
+    const turnout = totalVoters > 0 ? ((votesCast / totalVoters) * 100).toFixed(1) : "0.0";
+
+    let phase = 0;
+    try {
+      phase = Number(await electionContractV3.getPhase());
+    } catch {}
+
+    res.json({ totalVoters, votesCast, remaining, turnout: Number(turnout), candidateCount, phase });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

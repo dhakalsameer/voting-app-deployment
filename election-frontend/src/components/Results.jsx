@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { API_URL } from "../config";
 import { getContractV3 } from "../contract";
-import { socket } from "../socket";
+
 
 const POSITIONS = ["President", "Secretary", "General Member"];
 
@@ -195,62 +195,117 @@ function PositionSection({ title, candidates, maxVotes }) {
 }
 
 function LiveResults() {
-  const [data, setData] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [phase, setPhase] = useState(null);
 
   useEffect(() => {
-    const fetchResults = async () => {
+    const fetchStats = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/results`);
+        const res = await fetch(`${API_URL}/api/results/stats`);
         const d = await res.json();
-        if (Array.isArray(d)) setData(d);
+        if (d) setStats(d);
       } catch {}
     };
 
-    fetchResults();
-    socket.on("voteUpdate", setData);
-    const interval = setInterval(fetchResults, 30000);
-
-    return () => {
-      socket.off("voteUpdate");
-      clearInterval(interval);
+    const fetchPhase = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/contract/phase`);
+        const d = await res.json();
+        if (d.phase !== undefined) setPhase(d.phase);
+      } catch {}
     };
+
+    fetchStats();
+    fetchPhase();
+    const interval = setInterval(() => { fetchStats(); fetchPhase(); }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const totalVotes = data.reduce((acc, c) => acc + Number(c.vote_count ?? 0), 0);
-  const maxVotes = Math.max(...data.map((c) => Number(c.vote_count ?? 0)), 1);
+  const isOver = phase === 3 || phase === 0;
 
-  const grouped = useMemo(() => {
-    const g = {};
-    for (const c of data) {
-      const pos = c.position || "Unknown";
-      if (!g[pos]) g[pos] = [];
-      g[pos].push(c);
-    }
-    return g;
-  }, [data]);
+  if (!stats) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-base text-app-muted-text italic">Loading election stats...</p>
+      </div>
+    );
+  }
+
+  const cards = [
+    {
+      label: "Votes Cast",
+      value: stats.votesCast,
+      icon: "🗳️",
+      sub: "ballots recorded",
+    },
+    {
+      label: "Total Voters",
+      value: stats.totalVoters,
+      icon: "👥",
+      sub: "eligible voters",
+    },
+    {
+      label: "Remaining",
+      value: stats.remaining,
+      icon: "⏳",
+      sub: "yet to vote",
+    },
+    {
+      label: "Turnout",
+      value: `${stats.turnout}%`,
+      icon: "📊",
+      sub: `${stats.candidateCount} candidates`,
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      <WinnersDeclaration candidates={data} isLive={true} electionNumber={null} />
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-mono text-app-muted-text ml-auto">{totalVotes} votes</span>
+    <div className="space-y-5">
+      <div className="flex items-center gap-3">
+        {isOver ? (
+          <span className="text-sm font-bold px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            Voting has ended
+          </span>
+        ) : (
+          <>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            </span>
+            <span className="text-sm font-medium text-emerald-400">Voting in progress</span>
+          </>
+        )}
       </div>
-      {data.length > 0 ? (
-        <div className="space-y-6">
-          {POSITIONS.map((pos) =>
-            grouped[pos] ? (
-              <PositionSection key={pos} title={pos} candidates={grouped[pos]} maxVotes={maxVotes} />
-            ) : null
-          )}
-          {Object.keys(grouped)
-            .filter((pos) => !POSITIONS.includes(pos))
-            .map((pos) => (
-              <PositionSection key={pos} title={pos} candidates={grouped[pos]} maxVotes={maxVotes} />
-            ))}
-        </div>
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-base text-app-muted-text italic">Awaiting votes...</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="rounded-xl border border-app bg-app-surface p-5 space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-lg">{card.icon}</span>
+            </div>
+            <p className="text-2xl font-black text-app-heading">{card.value}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">{card.label}</p>
+            <p className="text-xs text-app-muted-text/70">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {stats.votesCast > 0 && (
+        <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Progress</h4>
+          <div className="h-3 rounded-full bg-app-border/30 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000 ease-out"
+              style={{ width: `${Math.min(stats.turnout, 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-app-muted-text">
+            <span>{stats.votesCast} voted</span>
+            <span>{stats.remaining} remaining</span>
+          </div>
         </div>
       )}
     </div>
