@@ -194,117 +194,194 @@ function PositionSection({ title, candidates, maxVotes }) {
   );
 }
 
+function Countdown({ votingEnd }) {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    if (!votingEnd || votingEnd === 0) return setTimeLeft("");
+
+    const tick = () => {
+      const diff = votingEnd * 1000 - Date.now();
+      if (diff <= 0) return setTimeLeft("Ended");
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      if (d > 0) return setTimeLeft(`${d}d ${h}h ${m}m ${s}s`);
+      if (h > 0) return setTimeLeft(`${h}h ${m}m ${s}s`);
+      if (m > 0) return setTimeLeft(`${m}m ${s}s`);
+      setTimeLeft(`${s}s`);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [votingEnd]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-app-muted-text">
+      <span>⏱️</span>
+      <span className="font-mono font-bold text-app-heading">{timeLeft}</span>
+      <span>remaining</span>
+    </div>
+  );
+}
+
 function LiveResults() {
   const [stats, setStats] = useState(null);
-  const [phase, setPhase] = useState(null);
+  const [prevVotes, setPrevVotes] = useState(0);
+  const [animateId, setAnimateId] = useState(0);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await fetch(`${API_URL}/api/results/stats`);
         const d = await res.json();
-        if (d) setStats(d);
-      } catch {}
-    };
-
-    const fetchPhase = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/contract/phase`);
-        const d = await res.json();
-        if (d.phase !== undefined) setPhase(d.phase);
+        if (d) {
+          if (d.votesCast > prevVotes) setAnimateId((id) => id + 1);
+          setPrevVotes(d.votesCast);
+          setStats(d);
+        }
       } catch {}
     };
 
     fetchStats();
-    fetchPhase();
-    const interval = setInterval(() => { fetchStats(); fetchPhase(); }, 10000);
-
+    const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  const isOver = phase === 3 || phase === 0;
+  const isOver = stats?.phase === 3 || stats?.phase === 0;
 
   if (!stats) {
     return (
       <div className="py-8 text-center">
-        <p className="text-base text-app-muted-text italic">Loading election stats...</p>
+        <p className="text-base text-app-muted-text italic animate-pulse">Loading election dashboard...</p>
       </div>
     );
   }
 
-  const cards = [
-    {
-      label: "Votes Cast",
-      value: stats.votesCast,
-      icon: "🗳️",
-      sub: "ballots recorded",
-    },
-    {
-      label: "Total Voters",
-      value: stats.totalVoters,
-      icon: "👥",
-      sub: "eligible voters",
-    },
-    {
-      label: "Remaining",
-      value: stats.remaining,
-      icon: "⏳",
-      sub: "yet to vote",
-    },
-    {
-      label: "Turnout",
-      value: `${stats.turnout}%`,
-      icon: "📊",
-      sub: `${stats.candidateCount} candidates`,
-    },
-  ];
-
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        {isOver ? (
-          <span className="text-sm font-bold px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            Voting has ended
-          </span>
-        ) : (
-          <>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {isOver ? (
+            <span className="text-sm font-bold px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
+              <span>🏁</span> Voting Concluded
             </span>
-            <span className="text-sm font-medium text-emerald-400">Voting in progress</span>
-          </>
-        )}
+          ) : (
+            <span className="text-sm font-bold px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              Voting Live
+            </span>
+          )}
+        </div>
+        <Countdown votingEnd={stats.votingEnd} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {cards.map((card) => (
+      {/* Main stat cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div key={`votes-${animateId}`} className="rounded-xl border border-app bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 p-5 space-y-2 transition-all duration-500">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl">🗳️</span>
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">{stats.turnout}%</span>
+          </div>
+          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.votesCast}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Votes Cast</p>
+          <p className="text-xs text-app-muted-text/60">ballots recorded on-chain</p>
+        </div>
+
+        <div className="rounded-xl border border-app bg-gradient-to-br from-sky-500/5 to-sky-500/10 p-5 space-y-2">
+          <span className="text-2xl">👥</span>
+          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.totalVoters}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Total Voters</p>
+          <p className="text-xs text-app-muted-text/60">eligible to vote</p>
+        </div>
+
+        <div className="rounded-xl border border-app bg-gradient-to-br from-amber-500/5 to-amber-500/10 p-5 space-y-2">
+          <span className="text-2xl">⏳</span>
+          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.remaining}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Remaining</p>
+          <p className="text-xs text-app-muted-text/60">yet to cast vote</p>
+        </div>
+
+        <div className="rounded-xl border border-app bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-5 space-y-2">
+          <span className="text-2xl">🏆</span>
+          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.candidateCount}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidates</p>
+          <p className="text-xs text-app-muted-text/60">across all positions</p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Voter Turnout</h4>
+          <span className="text-sm font-bold text-app-heading tabular-nums">{stats.turnout}%</span>
+        </div>
+        <div className="h-4 rounded-full bg-app-border/30 overflow-hidden">
           <div
-            key={card.label}
-            className="rounded-xl border border-app bg-app-surface p-5 space-y-2"
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out relative"
+            style={{ width: `${Math.min(stats.turnout, 100)}%` }}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-lg">{card.icon}</span>
-            </div>
-            <p className="text-2xl font-black text-app-heading">{card.value}</p>
-            <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">{card.label}</p>
-            <p className="text-xs text-app-muted-text/70">{card.sub}</p>
+            <div className="absolute inset-0 bg-white/10 animate-pulse rounded-full" />
           </div>
-        ))}
+        </div>
+        <div className="flex justify-between text-xs text-app-muted-text">
+          <span className="font-medium">{stats.votesCast} voted</span>
+          <span className="font-medium">{stats.remaining} remaining</span>
+        </div>
       </div>
 
-      {stats.votesCast > 0 && (
-        <div className="rounded-xl border border-app bg-app-surface p-5 space-y-3">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Progress</h4>
-          <div className="h-3 rounded-full bg-app-border/30 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min(stats.turnout, 100)}%` }}
-            />
+      {/* Position breakdown */}
+      {stats.positions?.length > 0 && (
+        <div className="rounded-xl border border-app bg-app-surface p-5 space-y-4">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">By Position</h4>
+          <div className="space-y-3">
+            {stats.positions.map((pos) => {
+              const posVoteShare = stats.votesCast > 0 ? ((pos.votes / stats.votesCast) * 100).toFixed(1) : 0;
+              return (
+                <div key={pos.position} className="flex items-center gap-4">
+                  <div className="w-28 shrink-0">
+                    <p className="text-sm font-semibold text-app-heading truncate">{pos.position}</p>
+                    <p className="text-[10px] text-app-muted-text">{pos.candidates} candidate{pos.candidates !== 1 ? "s" : ""}</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-mono font-bold text-app-heading">{pos.votes} votes</span>
+                      <span className="text-app-muted-text">{posVoteShare}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-app-border/30 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-app-accent to-app-accent/70 transition-all duration-700"
+                        style={{ width: `${Math.min(posVoteShare, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex justify-between text-xs text-app-muted-text">
-            <span>{stats.votesCast} voted</span>
-            <span>{stats.remaining} remaining</span>
+        </div>
+      )}
+
+      {/* Live indicator */}
+      {!isOver && (
+        <div className="rounded-xl border border-emerald-500/10 bg-emerald-500/5 p-4">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+            </span>
+            <p className="text-sm text-app-muted-text">
+              Results are being tallied in real-time.{" "}
+              <span className="text-emerald-400 font-medium">Every vote is verified on-chain.</span>
+            </p>
           </div>
         </div>
       )}

@@ -17,10 +17,11 @@ router.get("/", async (req, res) => {
 
 router.get("/stats", async (req, res) => {
   try {
-    const [voterResult, voteResult, candidateResult] = await Promise.all([
+    const [voterResult, voteResult, candidateResult, posResult] = await Promise.all([
       db.query("SELECT COUNT(*)::int AS total FROM students WHERE eligible_to_vote = true"),
       db.query("SELECT COALESCE(SUM(vote_count), 0)::int AS cast FROM candidates"),
       db.query("SELECT COUNT(*)::int AS total FROM candidates"),
+      db.query("SELECT position, COUNT(*)::int AS candidates, SUM(vote_count)::int AS votes FROM candidates GROUP BY position ORDER BY position"),
     ]);
 
     const totalVoters = voterResult.rows[0].total;
@@ -30,11 +31,17 @@ router.get("/stats", async (req, res) => {
     const turnout = totalVoters > 0 ? ((votesCast / totalVoters) * 100).toFixed(1) : "0.0";
 
     let phase = 0;
+    let votingEnd = 0;
     try {
       phase = Number(await electionContractV3.getPhase());
+      votingEnd = Number(await electionContractV3.votingEnd());
     } catch {}
 
-    res.json({ totalVoters, votesCast, remaining, turnout: Number(turnout), candidateCount, phase });
+    res.json({
+      totalVoters, votesCast, remaining,
+      turnout: Number(turnout), candidateCount, phase, votingEnd,
+      positions: posResult.rows,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
