@@ -260,7 +260,7 @@ function RegisterView({ onLogin }) {
           const provider = new ethers.BrowserProvider(window.ethereum);
           const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, provider);
           const sid = id.trim().toUpperCase();
-          const raw = code.trim().toUpperCase();
+          const raw = code.replace(/-/g, "").trim().toUpperCase();
           const valid = await contract.verifyRegCode(sid, raw, merkleProof);
           setOnChainVerified(valid);
           if (!valid) {
