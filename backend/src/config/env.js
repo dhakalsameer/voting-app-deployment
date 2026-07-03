@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 import jwt from "jsonwebtoken";
-dotenv.config();
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: resolve(__dirname, "../../.env") });
 
 const FALLBACK_JWT_SECRET = "it-club-election-dev-secret-change-me";
 const jwtSecret = process.env.JWT_SECRET || FALLBACK_JWT_SECRET;
