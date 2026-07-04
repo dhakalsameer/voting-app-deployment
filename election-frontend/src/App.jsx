@@ -285,11 +285,15 @@ const EVENT_LABELS = {
   NewElectionStarted:  { icon: "🗳️", label: "New Election" },
 };
 
+const INITIAL_SCAN_DEPTH = 50000;
+
 function LandingPage({ onOpenPortal }) {
   const [events, setEvents] = useState([]);
+  const [initialBlock, setInitialBlock] = useState(null);
   const providerRef = useRef(null);
   const contractRef = useRef(null);
   const lastBlockRef = useRef(0);
+  const initialScanDone = useRef(false);
 
   if (!providerRef.current) {
     providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
@@ -304,11 +308,38 @@ function LandingPage({ onOpenPortal }) {
     const poll = async () => {
       try {
         const currentBlock = await provider.getBlockNumber();
-        const fromBlock = lastBlockRef.current > 0 ? lastBlockRef.current : currentBlock - 100;
+        if (!mounted) return;
+
+        if (!initialScanDone.current) {
+          initialScanDone.current = true;
+          const fromBlock = Math.max(0, currentBlock - INITIAL_SCAN_DEPTH);
+          const logs = await contract.queryFilter("*", fromBlock, currentBlock);
+          if (!mounted) return;
+          const parsed = logs
+            .filter(log => EVENT_LABELS[log.fragment?.name])
+            .reverse()
+            .slice(0, 5)
+            .map(log => ({
+              eventName: log.fragment.name,
+              blockNumber: log.blockNumber,
+              txHash: log.transactionHash,
+              ts: Date.now(),
+            }));
+          if (parsed.length > 0) {
+            setEvents(parsed);
+          } else {
+            const block = await provider.getBlock(currentBlock);
+            if (block && mounted) {
+              setInitialBlock({ num: block.number, hash: block.hash, txs: block.transactions.length });
+            }
+          }
+          return;
+        }
+
         if (currentBlock <= lastBlockRef.current) return;
         lastBlockRef.current = currentBlock;
 
-        const logs = await contract.queryFilter("*", fromBlock, currentBlock);
+        const logs = await contract.queryFilter("*", lastBlockRef.current + 1, currentBlock);
         if (!mounted) return;
 
         const parsed = logs
@@ -396,11 +427,30 @@ function LandingPage({ onOpenPortal }) {
         </div>
 
         <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
-          {events.length === 0 && (
+          {events.length === 0 && !initialBlock && (
             <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-surface-solid/40 px-4 py-3">
               <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
-              <span className="text-sm text-app-muted-text">Listening for on-chain activity...</span>
+              <span className="text-sm text-app-muted-text">Scanning for on-chain activity...</span>
             </div>
+          )}
+          {events.length === 0 && initialBlock && (
+            <a
+              href={`${SEPOLIA_EXPLORER}/block/${initialBlock.num}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center rounded-xl border border-app-border bg-app-surface-solid/40 px-4 py-3 text-center transition-all duration-500 hover:scale-105 hover:shadow-lg"
+            >
+              <div className="flex items-center gap-1.5 text-xs text-app-heading font-mono font-medium mb-1">
+                <span>🔗</span> Latest Block
+              </div>
+              <div className="text-xs text-app-muted-text font-mono">
+                #{initialBlock.num.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-app-muted-text">{initialBlock.txs} txns</div>
+              <div className="text-[10px] text-app-accent mt-0.5 underline underline-offset-2">
+                View on Etherscan ↗
+              </div>
+            </a>
           )}
           {events.map((ev, i) => {
             const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
