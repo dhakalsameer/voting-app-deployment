@@ -1,10 +1,11 @@
 import { useContext, useState, useEffect, useRef, lazy, Suspense } from "react";
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, Contract } from "ethers";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
 import { ToastProvider } from "./components/ui/Toast";
-import { CONTRACT_ADDRESS_V3 } from "./config";
+import { CONTRACT_ADDRESS_V3, SEPOLIA_EXPLORER } from "./config";
+import Election3ABI from "./abi/Election3.json";
 import AppHeader from "./components/ui/AppHeader";
 import WalletButton from "./components/WalletButton";
 import VoterStatusCard from "./components/VoterStatusCard";
@@ -276,35 +277,57 @@ function App() {
   );
 }
 
+const EVENT_LABELS = {
+  VoteCast:            { icon: "🗳️", label: "Vote Cast" },
+  BallotCast:          { icon: "📜", label: "Ballot Cast" },
+  CandidateRegistered: { icon: "👤", label: "Candidate Registered" },
+  PhaseChanged:        { icon: "🔄", label: "Phase Changed" },
+  NewElectionStarted:  { icon: "🗳️", label: "New Election" },
+};
+
 function LandingPage({ onOpenPortal }) {
-  const [liveBlocks, setLiveBlocks] = useState([]);
+  const [events, setEvents] = useState([]);
   const providerRef = useRef(null);
+  const contractRef = useRef(null);
+  const lastBlockRef = useRef(0);
+
   if (!providerRef.current) {
     providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
+    contractRef.current = new Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, providerRef.current);
   }
 
   useEffect(() => {
+    const contract = contractRef.current;
     const provider = providerRef.current;
     let mounted = true;
-    let lastChecked = 0;
 
     const poll = async () => {
       try {
-        const num = await provider.getBlockNumber();
-        if (num === lastChecked || !mounted) return;
-        lastChecked = num;
-        const block = await provider.getBlock(num);
-        if (!block || !mounted) return;
+        const currentBlock = await provider.getBlockNumber();
+        const fromBlock = lastBlockRef.current > 0 ? lastBlockRef.current : currentBlock - 100;
+        if (currentBlock <= lastBlockRef.current) return;
+        lastBlockRef.current = currentBlock;
 
-        setLiveBlocks(prev => {
-          const next = [{
-            num: block.number,
-            hash: block.hash,
-            txs: block.transactions.length,
-            ts: Date.now()
-          }, ...prev.filter(b => b.num !== block.number)];
-          return next.slice(0, 4);
-        });
+        const logs = await contract.queryFilter("*", fromBlock, currentBlock);
+        if (!mounted) return;
+
+        const parsed = logs
+          .filter(log => EVENT_LABELS[log.fragment?.name])
+          .reverse()
+          .slice(0, 5)
+          .map(log => ({
+            eventName: log.fragment.name,
+            blockNumber: log.blockNumber,
+            txHash: log.transactionHash,
+            ts: Date.now(),
+          }));
+
+        if (parsed.length > 0) {
+          setEvents(prev => {
+            const merged = [...parsed, ...prev.filter(a => !parsed.some(b => b.txHash === a.txHash))];
+            return merged.slice(0, 5);
+          });
+        }
       } catch { /* ignore */ }
     };
 
@@ -373,36 +396,44 @@ function LandingPage({ onOpenPortal }) {
         </div>
 
         <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
-          {liveBlocks.length === 0 && (
+          {events.length === 0 && (
             <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-surface-solid/40 px-4 py-3">
               <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
-              <span className="text-sm text-app-muted-text">Waiting for next block...</span>
+              <span className="text-sm text-app-muted-text">Listening for on-chain activity...</span>
             </div>
           )}
-          {liveBlocks.map((block, i) => (
-            <div
-              key={block.hash}
-              className={`flex flex-col items-center rounded-xl border px-4 py-3 text-center transition-all duration-500 ${
-                i === 0
-                  ? 'border-app-accent/40 bg-app-accent-soft'
-                  : 'border-app-border bg-app-surface-solid/40'
-              }`}
-            >
-              <div className="flex items-center gap-1.5 text-xs text-app-heading font-mono font-medium mb-1">
-                {i === 0 && (
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-app-trust opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-app-trust" />
-                  </span>
-                )}
-                #{(block.num).toLocaleString()}
-              </div>
-              <div className="text-xs text-app-muted-text font-mono mb-1">
-                0x{block.hash.slice(2, 6)}...{block.hash.slice(-4)}
-              </div>
-              <div className="text-sm text-app-muted-text">{block.txs} txns</div>
-            </div>
-          ))}
+          {events.map((ev, i) => {
+            const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
+            return (
+              <a
+                key={ev.txHash}
+                href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex flex-col items-center rounded-xl border px-4 py-3 text-center transition-all duration-500 hover:scale-105 hover:shadow-lg ${
+                  i === 0
+                    ? 'border-app-accent/40 bg-app-accent-soft'
+                    : 'border-app-border bg-app-surface-solid/40'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-xs text-app-heading font-mono font-medium mb-1">
+                  {i === 0 && (
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-app-trust opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-app-trust" />
+                    </span>
+                  )}
+                  <span>{meta.icon}</span> {meta.label}
+                </div>
+                <div className="text-xs text-app-muted-text font-mono">
+                  Block #{ev.blockNumber.toLocaleString()}
+                </div>
+                <div className="text-[10px] text-app-accent mt-0.5 underline underline-offset-2">
+                  View on Etherscan ↗
+                </div>
+              </a>
+            );
+          })}
         </div>
 
       </div>
