@@ -16,6 +16,7 @@ export function startBlockchainSync(io) {
   let prevCandidateCount = 0;
   let snapshotInProgress = false;
   let lastPolledPhase = null;
+  let lastSnapshotElectionNum = null;
 
   async function emitEvent(event) {
     try {
@@ -66,17 +67,18 @@ export function startBlockchainSync(io) {
         if (cand.exists) {
           const id = Number(cand.id);
           const position = positionToString(cand.position);
-          await db.query(
-            `INSERT INTO candidates (blockchain_id, name, position, vote_count, year, gender, image_cid, status, wallet_address)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, 'approved', $8)
-             ON CONFLICT (blockchain_id) WHERE blockchain_id IS NOT NULL
-             DO UPDATE SET name = $2, position = $3, vote_count = $4, wallet_address = $8`,
-            [
-              id, cand.name, position, Number(cand.voteCount),
-              String(cand.year), cand.isFemale ? "female" : "male",
-              cand.imageCID || null, log.args.candidate,
-            ]
-          );
+            await db.query(
+              `INSERT INTO candidates (blockchain_id, name, position, vote_count, year, gender, image_cid, status, wallet_address)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, 'approved', $8)
+               ON CONFLICT (blockchain_id) WHERE blockchain_id IS NOT NULL
+               DO UPDATE SET name = $2, position = $3, vote_count = $4, wallet_address = $8,
+                             year = $5, gender = $6, image_cid = $7, status = 'approved'`,
+              [
+                id, cand.name, position, Number(cand.voteCount),
+                String(cand.year), cand.isFemale ? "female" : "male",
+                cand.imageCID || null, log.args.candidate,
+              ]
+            );
           prevVotes[id] = Number(cand.voteCount);
         }
       }
@@ -160,19 +162,25 @@ export function startBlockchainSync(io) {
 
         const eid = Number(log.args.electionId);
         const prevElectionNum = eid > 1 ? eid - 1 : eid;
-        snapshotInProgress = true;
-        await snapshotResults(prevElectionNum);
-        await db.query("DELETE FROM candidates");
-        snapshotInProgress = false;
-
-        await emitEvent({
-          eventName: "NewElectionStarted",
-          txHash: log.transactionHash,
-          blockNumber: log.blockNumber,
-          logIndex: log.index,
-          fromAddress: fromAddr,
-          args: { electionId: eid },
-        });
+        if (lastSnapshotElectionNum !== prevElectionNum) {
+          lastSnapshotElectionNum = prevElectionNum;
+          snapshotInProgress = true;
+          await snapshotResults(prevElectionNum);
+          await db.query("DELETE FROM candidates");
+          snapshotInProgress = false;
+          prevElectionId = eid;
+          await emitEvent({
+            eventName: "NewElectionStarted",
+            txHash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            logIndex: log.index,
+            fromAddress: fromAddr,
+            args: { electionId: eid },
+          });
+        } else {
+          // checkPhase already handled the snapshot; just sync election_id
+          prevElectionId = eid;
+        }
       }
 
       // MerkleRootUpdated — no address arg
@@ -260,7 +268,8 @@ export function startBlockchainSync(io) {
       `INSERT INTO candidates (blockchain_id, name, position, vote_count, year, gender, image_cid, status, wallet_address)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'approved', NULL)
        ON CONFLICT (blockchain_id) WHERE blockchain_id IS NOT NULL
-       DO UPDATE SET vote_count = $4, name = $2, position = $3`,
+       DO UPDATE SET vote_count = $4, name = $2, position = $3,
+                     year = $5, gender = $6, image_cid = $7, status = 'approved'`,
       [
         id,
         cand.name,
@@ -279,7 +288,7 @@ export function startBlockchainSync(io) {
       await db.query("DELETE FROM election_history WHERE election_number = $1", [electionNum]);
       const snapRes = await db.query(
         `SELECT name, position, vote_count, year, gender, image_cid
-         FROM candidates WHERE status = 'approved' ORDER BY position, vote_count DESC`
+         FROM candidates WHERE status IS NULL OR status = 'approved' ORDER BY position, vote_count DESC`
       );
       if (snapRes.rows.length > 0) {
         for (const row of snapRes.rows) {
@@ -301,11 +310,16 @@ export function startBlockchainSync(io) {
       const contractCount = Number(await electionContractV3.historyCount());
       if (contractCount === 0) return;
 
-      const dbRes = await db.query("SELECT COALESCE(MAX(election_number), 0) AS max_eid FROM election_history");
-      const dbCount = dbRes.rows[0].max_eid;
-
-      for (let i = dbCount; i < contractCount; i++) {
+      for (let i = 0; i < contractCount; i++) {
         const electionNum = i + 1;
+
+        // Skip if this election already has data in the DB (check each individually to handle gaps)
+        const existing = await db.query(
+          "SELECT COUNT(*)::int AS cnt FROM election_history WHERE election_number = $1",
+          [electionNum]
+        );
+        if (existing.rows[0].cnt > 0) continue;
+
         const r = await electionContractV3.getElectionResult(i);
         const timestamp = Number(r.timestamp);
         let inserted = 0;
@@ -350,19 +364,32 @@ export function startBlockchainSync(io) {
 
       if (newElectionDetected) {
         const prevElectionNum = eid - 1;
-        console.log(`🏁 New election detected (ID: ${eid}), snapshotting election #${prevElectionNum}`);
-        snapshotInProgress = true;
-        await snapshotResults(prevElectionNum);
-        await db.query("DELETE FROM candidates");
-        prevVotes = {};
-        prevCandidateCount = 0;
-        snapshotInProgress = false;
-        // queryFilter will emit the real event with fromAddress
+        if (lastSnapshotElectionNum !== prevElectionNum) {
+          lastSnapshotElectionNum = prevElectionNum;
+          console.log(`🏁 New election detected (ID: ${eid}), snapshotting election #${prevElectionNum}`);
+          snapshotInProgress = true;
+          await snapshotResults(prevElectionNum);
+          await db.query("DELETE FROM candidates");
+          prevVotes = {};
+          prevCandidateCount = 0;
+          snapshotInProgress = false;
+          // Emit NewElectionStarted since queryFilter may have failed or blocks were already past
+          prevElectionId = eid;
+          await emitEvent({
+            eventName: "NewElectionStarted",
+            txHash: null,
+            blockNumber: null,
+            fromAddress: null,
+            args: { electionId: eid },
+          });
+        }
       }
       if (lastPolledPhase !== phase) {
         // Snapshot from candidates table when election ends (phase 3)
-        if (phase === 3 && prevElectionId > 0) {
+        if (phase === 3 && prevElectionId > 0 && !snapshotInProgress) {
+          snapshotInProgress = true;
           await snapshotResults(prevElectionId);
+          snapshotInProgress = false;
         }
         await emitEvent({
           eventName: "PhaseChanged",
@@ -459,9 +486,10 @@ export function startBlockchainSync(io) {
         if (prevPhase === 0 && prevCandidateCount === 0) {
           const existing = await db.query("SELECT COUNT(*)::int AS cnt FROM candidates");
           if (existing.rows[0].cnt > 0) {
-            const prevElectionNum = prevElectionId > 0 ? prevElectionId - 1 : 0;
+            const prevElectionNum = Math.max(1, prevElectionId > 0 ? prevElectionId - 1 : 1);
             console.log(`📦 Startup: snapshotted ${existing.rows[0].cnt} leftover candidates to election #${prevElectionNum}`);
             await snapshotResults(prevElectionNum);
+            lastSnapshotElectionNum = prevElectionNum;
           }
           await db.query("DELETE FROM candidates");
         }

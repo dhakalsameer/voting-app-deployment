@@ -12,6 +12,7 @@ import MainRegistrationBanner from "./components/MainRegistrationBanner";
 import ScrollToTop from "./components/ui/ScrollToTop";
 
 const VotingPanelV3 = lazy(() => import("./components/VotingPanelV3"));
+const LiveStatsSidebar = lazy(() => import("./components/LiveStatsSidebar"));
 const Results = lazy(() => import("./components/Results"));
 const LiveBlockchainDashboard = lazy(() => import("./components/LiveBlockchainDashboard"));
 const ArchitectureOverview = lazy(() => import("./components/ArchitectureOverview"));
@@ -219,7 +220,7 @@ function App() {
         </div>
 
         <main className="relative z-10 page-container py-8">
-          <div className={`mx-auto ${currentTab === "vote" || currentTab === "home" ? "max-w-3xl" : "max-w-6xl"}`}>
+          <div className={`mx-auto ${currentTab === "home" ? "max-w-3xl" : "max-w-6xl"}`}>
             <AnimatePresence mode="wait">
               {currentTab === "home" && (
                 <AnimatedPage key="home">
@@ -229,12 +230,19 @@ function App() {
 
               {currentTab === "vote" && !isAdmin && wallet && (
                 <AnimatedPage key="vote">
-                  <div className="space-y-4">
-                    <VoterStatusCard voterStatus={voterStatus} balance={balance} />
-                    <MainRegistrationBanner />
-                    <Suspense fallback={<LoadingSection />}>
-                      <VotingPanelV3 />
-                    </Suspense>
+                  <div className="lg:grid lg:grid-cols-[280px_1fr] gap-6 items-start">
+                    <div className="hidden lg:block space-y-3">
+                      <Suspense fallback={null}>
+                        <LiveStatsSidebar />
+                      </Suspense>
+                    </div>
+                    <div className="space-y-4 min-w-0">
+                      <VoterStatusCard voterStatus={voterStatus} balance={balance} />
+                      <MainRegistrationBanner />
+                      <Suspense fallback={<LoadingSection />}>
+                        <VotingPanelV3 />
+                      </Suspense>
+                    </div>
                   </div>
                 </AnimatedPage>
               )}

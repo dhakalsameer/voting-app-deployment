@@ -91,6 +91,12 @@ export const approveCandidate = async (req, res) => {
       return res.status(404).json({ error: "Pending candidate not found" });
     }
 
+    const candidate = result.rows[0];
+    await db.query(
+      `UPDATE students SET eligible_to_vote = true WHERE student_id = $1`,
+      [candidate.applied_by]
+    );
+
     await rebuildMerkleTrees();
 
     res.json(result.rows[0]);
