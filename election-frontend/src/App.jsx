@@ -57,7 +57,6 @@ function App() {
   const [portalOpen, setPortalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
-  const [blockHeight, setBlockHeight] = useState(null);
 
   const currentTab = activeTab || (!wallet ? "home" : isAdmin ? "admin" : "vote");
 
@@ -101,20 +100,6 @@ function App() {
       </g>
     );
   };
-
-  useEffect(() => {
-    const provider = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
-    let mounted = true;
-    const fetchBlock = async () => {
-      try {
-        const num = await provider.getBlockNumber();
-        if (mounted) setBlockHeight(num);
-      } catch { /* fallback silently */ }
-    };
-    fetchBlock();
-    const interval = setInterval(fetchBlock, 12000);
-    return () => { mounted = false; clearInterval(interval); };
-  }, []);
 
   return (
     <ToastProvider>
@@ -224,7 +209,7 @@ function App() {
             <AnimatePresence mode="wait">
               {currentTab === "home" && (
                 <AnimatedPage key="home">
-                  <LandingPage onOpenPortal={() => setPortalOpen(true)} blockHeight={blockHeight} />
+                  <LandingPage onOpenPortal={() => setPortalOpen(true)} />
                 </AnimatedPage>
               )}
 
@@ -291,7 +276,7 @@ function App() {
   );
 }
 
-function LandingPage({ onOpenPortal, blockHeight }) {
+function LandingPage({ onOpenPortal }) {
   const [liveBlocks, setLiveBlocks] = useState([]);
   const providerRef = useRef(null);
   if (!providerRef.current) {

@@ -241,7 +241,8 @@ export default function VotingPanelV3() {
   );
 
   const disableFemale = selectedGMIds.length >= GM_MAX;
-  const disableMale = selectedGMIds.length >= GM_MAX;
+  const disableMale = selectedGMIds.length >= GM_MAX ||
+    (selectedGMIds.length > 0 && gmFemaleSelected < GM_MIN_FEMALE && gmFemaleRemaining === 0);
 
   const totalSelected = (selectedPresidentId ? 1 : 0) +
     (selectedSecretaryId ? 1 : 0) +
