@@ -310,7 +310,9 @@ function LandingPage({ onOpenPortal }) {
         const currentBlock = await provider.getBlockNumber();
         if (!mounted) return;
 
-        if (!initialScanDone.current) {
+        const isInitialScan = !initialScanDone.current;
+
+        if (isInitialScan) {
           initialScanDone.current = true;
           const fromBlock = Math.max(0, currentBlock - INITIAL_SCAN_DEPTH);
           const logs = await contract.queryFilter("*", fromBlock, currentBlock);
@@ -333,19 +335,21 @@ function LandingPage({ onOpenPortal }) {
               setInitialBlock({ num: block.number, hash: block.hash, txs: block.transactions.length });
             }
           }
+          lastBlockRef.current = currentBlock;
           return;
         }
 
         if (currentBlock <= lastBlockRef.current) return;
+        const fromBlock = lastBlockRef.current + 1;
         lastBlockRef.current = currentBlock;
 
-        const logs = await contract.queryFilter("*", lastBlockRef.current + 1, currentBlock);
+        const logs = await contract.queryFilter("*", fromBlock, currentBlock);
         if (!mounted) return;
 
         const parsed = logs
           .filter(log => EVENT_LABELS[log.fragment?.name])
           .reverse()
-          .slice(0, 5)
+          .slice(0, 3)
           .map(log => ({
             eventName: log.fragment.name,
             blockNumber: log.blockNumber,
@@ -355,7 +359,8 @@ function LandingPage({ onOpenPortal }) {
 
         if (parsed.length > 0) {
           setEvents(prev => {
-            const merged = [...parsed, ...prev.filter(a => !parsed.some(b => b.txHash === a.txHash))];
+            const seen = new Set(prev.map(e => e.txHash));
+            const merged = [...parsed.filter(e => !seen.has(e.txHash)), ...prev];
             return merged.slice(0, 5);
           });
         }
