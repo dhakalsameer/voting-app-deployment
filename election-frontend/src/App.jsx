@@ -297,12 +297,18 @@ const INITIAL_SCAN_DEPTH = 500;
 
 function TxModal({ block, txs, loading, onClose }) {
   if (!block) return null;
-  const trunc = (s, n) => s ? `${s.slice(0, n)}...${s.slice(-4)}` : '—';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-app-border bg-app-surface-solid p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-app-border bg-app-surface-solid p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-app-heading font-mono">Block #{block.toLocaleString()}</h3>
+          <div>
+            <h3 className="text-lg font-bold text-app-heading font-mono">Block #{typeof block === 'object' ? block.number.toLocaleString() : block.toLocaleString()}</h3>
+            {typeof block === 'object' && (
+              <p className="text-xs text-app-muted-text/70 mt-0.5">
+                {block.txCount} {block.txCount === 1 ? 'txn' : 'txns'} · {block.events} contract events · {TIME_AGO(block.timestamp)}
+              </p>
+            )}
+          </div>
           <button onClick={onClose} className="text-app-muted-text hover:text-app-heading transition-colors">
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
@@ -312,30 +318,42 @@ function TxModal({ block, txs, loading, onClose }) {
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-app-accent border-t-transparent" />
           </div>
         ) : txs.length === 0 ? (
-          <p className="text-app-muted-text text-sm text-center py-6">No transactions in this block</p>
+          <div className="text-center py-6">
+            <p className="text-app-muted-text text-sm">No contract events in this block</p>
+            <a href={`${SEPOLIA_EXPLORER}/block/${typeof block === 'object' ? block.number : block}`} target="_blank" rel="noopener noreferrer" className="text-app-accent text-xs hover:underline mt-1 inline-block">
+              View on Etherscan ↗
+            </a>
+          </div>
         ) : (
           <div className="space-y-2">
-            {txs.map((tx, i) => (
-              <div key={tx.hash || i} className="rounded-xl border border-app-border bg-app-surface/60 p-3 text-xs font-mono">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-app-muted-text/60">#{i + 1}</span>
-                  {tx.hash ? (
-                    <a href={`${SEPOLIA_EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-app-accent hover:underline truncate max-w-[240px]">
-                      {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)} ↗
-                    </a>
-                  ) : (
-                    <span className="text-app-muted-text">—</span>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-app-muted-text">
-                  <span className="truncate">From: <span className="text-app-heading">{trunc(tx.from, 8)}</span></span>
-                  <span className="truncate">To: <span className="text-app-heading">{tx.to ? trunc(tx.to, 8) : 'Contract Creation'}</span></span>
-                  {tx.value !== "0" && <span className="col-span-2">Value: <span className="text-app-trust">{Number(tx.value) / 1e18} ETH</span></span>}
-                </div>
-              </div>
-            ))}
+            {txs.map((ev, i) => {
+              const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
+              return (
+                <a
+                  key={ev.txHash + (ev.logIndex || i)}
+                  href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-xl border border-app-border bg-app-surface/60 p-3 transition-all duration-200 hover:bg-app-surface-solid/60"
+                >
+                  <span className="text-base shrink-0">{meta.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-app-heading">{meta.label}</p>
+                    <p className="text-[10px] text-app-muted-text font-mono truncate mt-0.5">
+                      {ev.txHash.slice(0, 8)}...{ev.txHash.slice(-6)}
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-app-accent shrink-0">↗</span>
+                </a>
+              );
+            })}
           </div>
         )}
+        <div className="mt-4 text-center">
+          <a href={`${SEPOLIA_EXPLORER}/block/${typeof block === 'object' ? block.number : block}`} target="_blank" rel="noopener noreferrer" className="text-xs text-app-accent hover:underline">
+            View full block on Etherscan ↗
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -425,13 +443,21 @@ function LandingPage({ onOpenPortal }) {
     setTxLoading(true);
     setModalTxs([]);
     try {
-      const block = await providerRef.current.getBlock(num, true);
-      setModalTxs(block.transactions.slice(0, 25).map(tx => ({
-        hash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        value: tx.value?.toString() || "0",
-      })));
+      const contract = contractRef.current;
+      const provider = providerRef.current;
+      const logs = await contract.queryFilter("*", num, num);
+      const block = await provider.getBlock(num);
+      const mapped = logs
+        .filter(log => EVENT_LABELS[log.fragment?.name])
+        .map(log => ({
+          eventName: log.fragment.name,
+          blockNumber: log.blockNumber,
+          txHash: log.transactionHash,
+          logIndex: log.index,
+          args: log.args,
+        }));
+      setModalTxs(mapped);
+      setModalBlock({ number: num, timestamp: Number(block?.timestamp) || 0, txCount: block?.transactions.length || 0, events: mapped.length });
     } catch { /* ignore */ }
     setTxLoading(false);
   };
