@@ -1,5 +1,4 @@
-import { useContext, useState, useEffect, useRef, lazy, Suspense } from "react";
-import { JsonRpcProvider } from "ethers";
+import { useContext, useState, useEffect, lazy, Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
@@ -292,116 +291,24 @@ const EVENT_LABELS = {
   NewElectionStarted:  { icon: "🗳️", label: "New Election" },
 };
 
-function TxModal({ block, txs, loading, onClose }) {
-  if (!block) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl border border-app-border bg-app-surface-solid p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-app-heading font-mono">Block #{typeof block === 'object' ? block.number.toLocaleString() : block.toLocaleString()}</h3>
-            {typeof block === 'object' && (
-              <p className="text-xs text-app-muted-text/70 mt-0.5">
-                {block.txCount} {block.txCount === 1 ? 'txn' : 'txns'} · {block.events} contract events · {TIME_AGO(block.timestamp)}
-              </p>
-            )}
-          </div>
-          <button onClick={onClose} className="text-app-muted-text hover:text-app-heading transition-colors">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
-          </button>
-        </div>
-        {loading ? (
-          <div className="flex items-center justify-center py-10">
-            <span className="h-6 w-6 animate-spin rounded-full border-2 border-app-accent border-t-transparent" />
-          </div>
-        ) : txs.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-app-muted-text text-sm">No contract events in this block</p>
-            <a href={`${SEPOLIA_EXPLORER}/block/${typeof block === 'object' ? block.number : block}`} target="_blank" rel="noopener noreferrer" className="text-app-accent text-xs hover:underline mt-1 inline-block">
-              View on Etherscan ↗
-            </a>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {txs.map((ev, i) => {
-              const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
-              return (
-                <a
-                  key={ev.txHash + (ev.logIndex || i)}
-                  href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl border border-app-border bg-app-surface/60 p-3 transition-all duration-200 hover:bg-app-surface-solid/60"
-                >
-                  <span className="text-base shrink-0">{meta.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-app-heading">{meta.label}</p>
-                    <p className="text-[10px] text-app-muted-text font-mono truncate mt-0.5">
-                      {ev.txHash.slice(0, 8)}...{ev.txHash.slice(-6)}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-app-accent shrink-0">↗</span>
-                </a>
-              );
-            })}
-          </div>
-        )}
-        <div className="mt-4 text-center">
-          <a href={`${SEPOLIA_EXPLORER}/block/${typeof block === 'object' ? block.number : block}`} target="_blank" rel="noopener noreferrer" className="text-xs text-app-accent hover:underline">
-            View full block on Etherscan ↗
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function LandingPage({ onOpenPortal }) {
-  const [blocks, setBlocks] = useState([]);
   const [events, setEvents] = useState([]);
-  const [blockEvents, setBlockEvents] = useState({});
-  const [modalBlock, setModalBlock] = useState(null);
-  const [modalTxs, setModalTxs] = useState([]);
-  const [txLoading, setTxLoading] = useState(false);
-  const providerRef = useRef(null);
-  const lastBlockRef = useRef(0);
-  const lastEventBlockRef = useRef(0);
-
-  if (!providerRef.current) {
-    providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
-  }
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
-    const provider = providerRef.current;
     let mounted = true;
     let pollCount = 0;
 
     const poll = async () => {
       try {
         pollCount++;
-        const currentBlock = await provider.getBlockNumber();
-        if (!mounted) return;
-
-        // --- Blocks (latest 8, only when new block appears) ---
-        if (currentBlock !== lastBlockRef.current) {
-          lastBlockRef.current = currentBlock;
-          const startBlock = Math.max(0, currentBlock - 7);
-          const promises = [];
-          for (let i = startBlock; i <= currentBlock; i++) promises.push(provider.getBlock(i));
-          const fetched = await Promise.all(promises);
-          if (!mounted) return;
-          setBlocks(fetched.filter(Boolean).reverse().map(b => ({
-            number: b.number, hash: b.hash,
-            timestamp: Number(b.timestamp), txCount: b.transactions.length, miner: b.miner,
-          })));
-        }
-
-        // --- Events from backend API (every 4th poll ~60s, always on first) ---
+        // Events from backend API (every ~60s, always on first)
         if (pollCount === 1 || pollCount % 4 === 0) {
           const res = await fetch(`${API_URL}/api/events?limit=20`);
           if (!mounted) return;
           if (res.ok) {
             const data = await res.json();
+            if (!mounted) return;
             const mapped = (data || []).map(e => ({
               eventName: e.eventName,
               blockNumber: e.blockNumber,
@@ -411,18 +318,8 @@ function LandingPage({ onOpenPortal }) {
               label: (EVENT_LABELS[e.eventName] || {}).label || e.eventName,
               args: e.args || {},
             }));
-            if (mounted) {
-              setEvents(mapped.slice(0, 8));
-
-              // Group by block for block card icons
-              const byBlock = {};
-              for (const ev of mapped) {
-                const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
-                if (!byBlock[ev.blockNumber]) byBlock[ev.blockNumber] = [];
-                if (byBlock[ev.blockNumber].length < 3) byBlock[ev.blockNumber].push(meta);
-              }
-              setBlockEvents(byBlock);
-            }
+            setEvents(mapped.slice(0, 8));
+            setEventsLoading(false);
           }
         }
       } catch (err) {
@@ -434,30 +331,6 @@ function LandingPage({ onOpenPortal }) {
     const interval = setInterval(poll, 15000);
     return () => { mounted = false; clearInterval(interval); };
   }, []);
-
-  const openBlock = async (num) => {
-    setModalBlock(num);
-    setTxLoading(true);
-    setModalTxs([]);
-    try {
-      const contract = contractRef.current;
-      const provider = providerRef.current;
-      const logs = await contract.queryFilter("*", num, num);
-      const block = await provider.getBlock(num);
-      const mapped = logs
-        .filter(log => EVENT_LABELS[log.fragment?.name])
-        .map(log => ({
-          eventName: log.fragment.name,
-          blockNumber: log.blockNumber,
-          txHash: log.transactionHash,
-          logIndex: log.index,
-          args: log.args,
-        }));
-      setModalTxs(mapped);
-      setModalBlock({ number: num, timestamp: Number(block?.timestamp) || 0, txCount: block?.transactions.length || 0, events: mapped.length });
-    } catch { /* ignore */ }
-    setTxLoading(false);
-  };
 
   return (
     <motion.div
@@ -517,57 +390,6 @@ function LandingPage({ onOpenPortal }) {
             </svg>
             <span className="text-xl text-app-muted-text">Secure</span>
           </div>
-        </div>
-
-        <div className="mt-10 text-center">
-          <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4">Latest Blocks</h3>
-          {blocks.length === 0 ? (
-            <div className="flex items-center justify-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
-              <span className="text-sm text-app-muted-text">Fetching latest blocks...</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {blocks.map((b, i) => {
-                const isFirst = i === 0;
-                return (
-                  <button
-                    key={b.hash}
-                    onClick={() => openBlock(b.number)}
-                    className={`group relative flex flex-col items-center rounded-xl border px-3 py-3 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer w-full ${
-                      isFirst
-                        ? 'border-app-accent/40 bg-app-accent-soft'
-                        : 'border-app-border bg-app-surface-solid/40'
-                    }`}
-                  >
-                    {isFirst && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-app-trust opacity-75" />
-                        <span className="relative inline-flex h-3 w-3 rounded-full bg-app-trust" />
-                      </span>
-                    )}
-                    <span className="text-xs text-app-heading font-mono font-medium mb-0.5">
-                      #{b.number.toLocaleString()}
-                    </span>
-                    <span className="text-[11px] text-app-muted-text/70 font-mono">{TIME_AGO(b.timestamp)}</span>
-                    <span className="text-[10px] text-app-muted-text mt-0.5">
-                      {b.txCount} {b.txCount === 1 ? 'txn' : 'txns'}
-                    </span>
-                    {blockEvents[b.number] && blockEvents[b.number].length > 0 && (
-                      <div className="flex items-center gap-1 mt-0.5">
-                        {blockEvents[b.number].map((m, j) => (
-                          <span key={j} className="text-[10px]" title={m.label}>{m.icon}</span>
-                        ))}
-                      </div>
-                    )}
-                    <span className="text-[10px] text-app-accent/70 group-hover:text-app-accent mt-0.5 transition-colors">
-                      View details →
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-10">
@@ -631,7 +453,6 @@ function LandingPage({ onOpenPortal }) {
 
       </div>
 
-      <TxModal block={modalBlock} txs={modalTxs} loading={txLoading} onClose={() => setModalBlock(null)} />
     </motion.div>
   );
 }
