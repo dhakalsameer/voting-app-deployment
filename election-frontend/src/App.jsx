@@ -1,10 +1,11 @@
 import { useContext, useState, useEffect, useRef, lazy, Suspense } from "react";
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, Contract } from "ethers";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
 import { ToastProvider } from "./components/ui/Toast";
-import { SEPOLIA_EXPLORER } from "./config";
+import { CONTRACT_ADDRESS_V3, SEPOLIA_EXPLORER } from "./config";
+import Election3ABI from "./abi/Election3.json";
 import AppHeader from "./components/ui/AppHeader";
 import WalletButton from "./components/WalletButton";
 import VoterStatusCard from "./components/VoterStatusCard";
@@ -277,12 +278,22 @@ function App() {
 }
 
 const TIME_AGO = (ts) => {
-  const sec = Math.floor(Date.now() / 1000 - ts);
+  const sec = Math.floor(Date.now() / 1000 - (ts || 0));
   if (sec < 60) return `${sec}s ago`;
   if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
   if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
   return `${Math.floor(sec / 86400)}d ago`;
 };
+
+const EVENT_LABELS = {
+  VoteCast:            { icon: "🗳️", label: "Vote Cast" },
+  BallotCast:          { icon: "📜", label: "Ballot Cast" },
+  CandidateRegistered: { icon: "👤", label: "Candidate Registered" },
+  PhaseChanged:        { icon: "🔄", label: "Phase Changed" },
+  NewElectionStarted:  { icon: "🗳️", label: "New Election" },
+};
+
+const INITIAL_SCAN_DEPTH = 500;
 
 function TxModal({ block, txs, loading, onClose }) {
   if (!block) return null;
@@ -332,43 +343,75 @@ function TxModal({ block, txs, loading, onClose }) {
 
 function LandingPage({ onOpenPortal }) {
   const [blocks, setBlocks] = useState([]);
+  const [events, setEvents] = useState([]);
   const [modalBlock, setModalBlock] = useState(null);
   const [modalTxs, setModalTxs] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
   const providerRef = useRef(null);
+  const contractRef = useRef(null);
   const lastBlockRef = useRef(0);
   const hasBlocksRef = useRef(false);
+  const initialEventsDone = useRef(false);
 
   if (!providerRef.current) {
     providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
+    contractRef.current = new Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, providerRef.current);
   }
 
   useEffect(() => {
     const provider = providerRef.current;
+    const contract = contractRef.current;
     let mounted = true;
 
     const poll = async () => {
       try {
         const currentBlock = await provider.getBlockNumber();
         if (!mounted) return;
-        if (currentBlock <= lastBlockRef.current && hasBlocksRef.current) return;
 
-        lastBlockRef.current = currentBlock;
+        // --- Blocks ---
+        if (currentBlock > lastBlockRef.current || !hasBlocksRef.current) {
+          lastBlockRef.current = currentBlock;
           const startBlock = Math.max(0, currentBlock - 7);
-        const promises = [];
-        for (let i = startBlock; i <= currentBlock; i++) promises.push(provider.getBlock(i));
-        const fetched = await Promise.all(promises);
+          const promises = [];
+          for (let i = startBlock; i <= currentBlock; i++) promises.push(provider.getBlock(i));
+          const fetched = await Promise.all(promises);
+          if (!mounted) return;
+          const mapped = fetched.filter(Boolean).reverse().map(b => ({
+            number: b.number, hash: b.hash,
+            timestamp: Number(b.timestamp), txCount: b.transactions.length, miner: b.miner,
+          }));
+          hasBlocksRef.current = true;
+          setBlocks(mapped);
+        }
+
+        // --- Contract Events ---
+        const fromBlock = !initialEventsDone.current
+          ? Math.max(0, currentBlock - INITIAL_SCAN_DEPTH)
+          : lastBlockRef.current;
+        if (fromBlock >= currentBlock) return;
+
+        const logs = await contract.queryFilter("*", fromBlock, currentBlock);
         if (!mounted) return;
 
-        const mapped = fetched.filter(Boolean).reverse().map(b => ({
-          number: b.number,
-          hash: b.hash,
-          timestamp: Number(b.timestamp),
-          txCount: b.transactions.length,
-          miner: b.miner,
-        }));
-        hasBlocksRef.current = true;
-        setBlocks(mapped);
+        const parsed = logs
+          .filter(log => EVENT_LABELS[log.fragment?.name])
+          .reverse()
+          .slice(0, 8)
+          .map(log => ({
+            eventName: log.fragment.name,
+            blockNumber: log.blockNumber,
+            txHash: log.transactionHash,
+            ts: Date.now(),
+          }));
+
+        if (parsed.length > 0) {
+          setEvents(prev => {
+            const seen = new Set(prev.map(e => e.txHash));
+            const merged = [...parsed.filter(e => !seen.has(e.txHash)), ...prev];
+            return merged.slice(0, 8);
+          });
+        }
+        if (!initialEventsDone.current) initialEventsDone.current = true;
       } catch { /* ignore */ }
     };
 
@@ -400,7 +443,7 @@ function LandingPage({ onOpenPortal }) {
       transition={{ duration: 0.4 }}
       className="relative flex min-h-[70vh] items-center justify-center overflow-hidden"
     >
-      <div className="relative max-w-3xl px-4">
+      <div className="relative max-w-4xl px-4">
         <div className="mb-6">
           <div className="flex items-baseline justify-center gap-x-6 gap-y-2 flex-wrap">
             <h1 className="sm:text-6xl text-2xl font-bold tracking-wide text-app-accent-dark whitespace-nowrap">
@@ -496,6 +539,35 @@ function LandingPage({ onOpenPortal }) {
             </div>
           )}
         </div>
+
+        {events.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">On-Chain Activity</h3>
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              {events.map((ev, i) => {
+                const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
+                return (
+                  <a
+                    key={ev.txHash}
+                    href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                      i === 0
+                        ? 'border-app-accent/40 bg-app-accent-soft'
+                        : 'border-app-border bg-app-surface-solid/40'
+                    }`}
+                  >
+                    <span className="text-xs">{meta.icon}</span>
+                    <span className="text-xs font-medium text-app-heading font-mono whitespace-nowrap">{meta.label}</span>
+                    <span className="text-[10px] text-app-muted-text font-mono">#{ev.blockNumber}</span>
+                    <span className="text-[10px] text-app-accent underline underline-offset-2">View ↗</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
       </div>
 
