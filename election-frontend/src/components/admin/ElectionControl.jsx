@@ -138,6 +138,7 @@ export default function ElectionControl() {
   const [phaseEnd, setPhaseEnd] = useState(null);
   const [candidateCount, setCandidateCount] = useState(0);
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
+  const [syncingWhitelist, setSyncingWhitelist] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -222,7 +223,7 @@ export default function ElectionControl() {
     }
   };
 
-  const canStartRegistration = phase === 0 || phase === 3;
+  const canStartRegistration = phase === 0;
   const canStartVoting = phase === 1;
   const canEndElection = phase === 2;
   const canStartNewElection = phase === 3 && candidateCount > 0;
@@ -243,7 +244,7 @@ export default function ElectionControl() {
         </p>
       )}
 
-      {/* Created or Ended: Start Registration */}
+      {/* Created: Start Registration */}
       {canStartRegistration && (
         <ActionCard title="Open Registration" description="Allow candidates to register on-chain using their identity Merkle proof." icon="🔓">
           <div className="space-y-3">
@@ -365,6 +366,49 @@ export default function ElectionControl() {
           </div>
         </ActionCard>
       )}
+
+      {/* Sync Whitelist — always visible, needed after redeploy */}
+      <ActionCard
+        title="Sync Voter Whitelist"
+        description="Rebuild voter and identity Merkle roots on-chain from the latest student data. Required after contract redeploy or when students report 'Identity not verified'."
+        icon="📡"
+      >
+        <div className="space-y-3">
+          <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-sky-400">
+            <p className="font-bold">What this does:</p>
+            <ul className="list-disc list-inside mt-1 space-y-0.5 text-app-muted-text">
+              <li>Recomputes the voter whitelist and identity Merkle trees from the database</li>
+              <li>Submits the new roots on-chain (costs gas)</li>
+              <li>Restores candidate registration and voting eligibility</li>
+            </ul>
+          </div>
+          <ActionButton
+            variant="sky" icon="📡"
+            onClick={async () => {
+              if (!wallet) return;
+              const ok = window.confirm(
+                "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?"
+              );
+              if (!ok) return;
+              setSyncingWhitelist(true);
+              try {
+                const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Rebuild failed");
+                success(`Merkle roots updated on-chain`, { txHash: data.txHash, duration: 8000 });
+              } catch (err) {
+                showError(err.message || "Rebuild failed");
+              } finally {
+                setSyncingWhitelist(false);
+              }
+            }}
+            disabled={syncingWhitelist}
+            processing={syncingWhitelist}
+          >
+            Sync Voter Whitelist
+          </ActionButton>
+        </div>
+      </ActionCard>
 
       {/* Election History */}
       <div className="border-t border-app/80 pt-5">

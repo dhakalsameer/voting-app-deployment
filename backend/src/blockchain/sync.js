@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import { electionContractV3 } from "./electionContract.js";
+import { electionContractV3, getContractAt } from "./electionContract.js";
+import { config } from "../config/env.js";
 import { db } from "../db.js";
 import { addEvent, seedHistoricalEvents } from "../services/eventStore.js";
 
@@ -407,6 +408,48 @@ export function startBlockchainSync(io) {
     }
   }
 
+  async function recoverOldHistory() {
+    if (!config.oldContractV3) return;
+    try {
+      const oldContract = getContractAt(config.oldContractV3);
+      const oldCount = Number(await oldContract.historyCount());
+      if (oldCount === 0) return;
+
+      const existingMax = await db.query("SELECT COALESCE(MAX(election_number), 0) AS max FROM election_history");
+      for (let i = 0; i < oldCount; i++) {
+        const electionNum = i + 1;
+        const dup = await db.query("SELECT COUNT(*)::int AS cnt FROM election_history WHERE election_number = $1", [electionNum]);
+        if (dup.rows[0].cnt > 0) {
+          console.log(`   → Election #${electionNum} already in DB, skipping`);
+          continue;
+        }
+        const r = await oldContract.getElectionResult(i);
+        const timestamp = Number(r.timestamp);
+        let inserted = 0;
+        const tryInsert = async (id, position) => {
+          if (id === 0) return;
+          const c = await oldContract.getCandidate(id);
+          if (!c.exists) return;
+          await db.query(
+            `INSERT INTO election_history (election_number, candidate_name, candidate_position, vote_count, candidate_year, candidate_gender, candidate_photo, snapshot_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, to_timestamp($8))`,
+            [electionNum, c.name, position, Number(c.voteCount), String(c.year), c.isFemale ? "female" : "male", c.imageCID || null, timestamp]
+          );
+          inserted++;
+        };
+        await tryInsert(Number(r.presidentWinnerId), "President");
+        await tryInsert(Number(r.secretaryWinnerId), "Secretary");
+        for (const gid of r.generalMemberWinnerIds.map(Number)) {
+          if (gid === 0) continue;
+          await tryInsert(gid, "General Member");
+        }
+        console.log(`   → Recovered election #${electionNum} from old contract (${inserted} winners)`);
+      }
+    } catch (err) {
+      console.error("Old contract recovery error:", err.message);
+    }
+  }
+
   async function syncAll() {
     try {
       if (snapshotInProgress) return;
@@ -486,12 +529,26 @@ export function startBlockchainSync(io) {
         if (prevPhase === 0 && prevCandidateCount === 0) {
           const existing = await db.query("SELECT COUNT(*)::int AS cnt FROM candidates");
           if (existing.rows[0].cnt > 0) {
-            const prevElectionNum = Math.max(1, prevElectionId > 0 ? prevElectionId - 1 : 1);
+            const maxNum = await db.query("SELECT COALESCE(MAX(election_number), 0) AS max FROM election_history");
+            const prevElectionNum = maxNum.rows[0].max + 1;
             console.log(`📦 Startup: snapshotted ${existing.rows[0].cnt} leftover candidates to election #${prevElectionNum}`);
             await snapshotResults(prevElectionNum);
             lastSnapshotElectionNum = prevElectionNum;
           }
           await db.query("DELETE FROM candidates");
+        } else {
+          // Stale event cleanup: delete VoteCast events from old contracts
+          const hc = Number(await electionContractV3.historyCount());
+          const validIds = [0, prevElectionId];
+          for (let i = 1; i <= hc; i++) validIds.push(i);
+          const placeholders = validIds.map((_, j) => `$${j + 1}`).join(", ");
+          const result = await db.query(
+            `DELETE FROM events WHERE event_name = 'VoteCast' AND election_id > 0 AND election_id NOT IN (${placeholders})`,
+            validIds
+          );
+          if (result.rowCount > 0) {
+            console.log(`🧹 Cleaned ${result.rowCount} stale VoteCast events from old contracts`);
+          }
         }
 
         for (let i = 1; i <= prevCandidateCount; i++) {
@@ -508,6 +565,7 @@ export function startBlockchainSync(io) {
         broadcastResults();
         await seedHistoricalEvents();
         await backfillElectionHistory();
+        await recoverOldHistory();
       } catch (err) {
         console.error("Initial sync error:", err.message);
       }

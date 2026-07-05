@@ -121,16 +121,19 @@ contract Election3 {
     // =========================
 
     function setMerkleRoot(bytes32 _merkleRoot) external onlyAdmin {
+        require(phase <= Phase.Registration, "Root frozen during voting");
         voterMerkleRoot = _merkleRoot;
         emit MerkleRootUpdated(_merkleRoot);
     }
 
     function setIdentityMerkleRoot(bytes32 _root) external onlyAdmin {
+        require(phase <= Phase.Registration, "Root frozen during voting");
         identityMerkleRoot = _root;
         emit IdentityMerkleRootUpdated(_root);
     }
 
     function setRegCodeMerkleRoot(bytes32 _root) external onlyAdmin {
+        require(phase <= Phase.Registration, "Root frozen during voting");
         regCodeMerkleRoot = _root;
         emit RegCodeMerkleRootUpdated(_root);
     }
@@ -148,11 +151,9 @@ contract Election3 {
     // =========================
 
     function startRegistration(uint256 _end) external onlyAdmin {
-        require(phase == Phase.Created || phase == Phase.Ended, "Invalid phase");
+        require(phase == Phase.Created, "Must start new election first");
         require(_end > block.timestamp, "End must be in future");
-        if (phase == Phase.Created) {
-            emit NewElectionStarted(currentElectionId);
-        }
+        emit NewElectionStarted(currentElectionId);
         phase = Phase.Registration;
         registrationEnd = _end;
         emit PhaseChanged(Phase.Registration);

@@ -1,6 +1,8 @@
 import express from "express";
 import { db } from "../db.js";
-import { electionContractV3 } from "../blockchain/electionContract.js";
+import { electionContractV3, getContractAt } from "../blockchain/electionContract.js";
+import { config } from "../config/env.js";
+import { verifyAdmin } from "../middleware/admin.js";
 
 const router = express.Router();
 
@@ -36,17 +38,18 @@ router.get("/stats", async (req, res) => {
     } catch {}
 
     let votesCast = 0;
-    if (currentElectionId > 0) {
-      const voteResult = await db.query(
-        `SELECT COUNT(DISTINCT from_address)::int AS cast FROM events WHERE event_name = 'VoteCast' AND election_id = $1`,
-        [currentElectionId]
+    try {
+      const voterAddrs = await db.query(
+        "SELECT wallet_address FROM students WHERE eligible_to_vote = true AND wallet_address IS NOT NULL"
       );
-      votesCast = voteResult.rows[0].cast;
-    }
-
-    if (votesCast === 0) {
-      const fallback = await db.query("SELECT COALESCE(SUM(vote_count), 0)::int AS cast FROM candidates");
-      votesCast = fallback.rows[0].cast;
+      if (voterAddrs.rows.length > 0) {
+        const results = await Promise.all(
+          voterAddrs.rows.map(r => electionContractV3.hasVoted(r.wallet_address))
+        );
+        votesCast = results.filter(Boolean).length;
+      }
+    } catch {
+      votesCast = 0;
     }
 
     const remaining = Math.max(0, totalVoters - votesCast);
@@ -87,6 +90,49 @@ router.get("/history", async (req, res) => {
     }
 
     res.json(Object.values(grouped).sort((a, b) => b.election_number - a.election_number));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/import-old-history", verifyAdmin, async (_req, res) => {
+  if (!config.oldContractV3) {
+    return res.status(400).json({ error: "OLD_CONTRACT_ADDRESS_V3 not configured" });
+  }
+  try {
+    const oldContract = getContractAt(config.oldContractV3);
+    const oldCount = Number(await oldContract.historyCount());
+    if (oldCount === 0) {
+      return res.json({ message: "Old contract has no history", imported: 0 });
+    }
+    let imported = 0;
+    for (let i = 0; i < oldCount; i++) {
+      const electionNum = i + 1;
+      const dup = await db.query(
+        "SELECT COUNT(*)::int AS cnt FROM election_history WHERE election_number = $1", [electionNum]
+      );
+      if (dup.rows[0].cnt > 0) continue;
+      const r = await oldContract.getElectionResult(i);
+      const timestamp = Number(r.timestamp);
+      const tryInsert = async (id, position) => {
+        if (id === 0) return;
+        const c = await oldContract.getCandidate(id);
+        if (!c.exists) return;
+        await db.query(
+          `INSERT INTO election_history (election_number, candidate_name, candidate_position, vote_count, candidate_year, candidate_gender, candidate_photo, snapshot_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, to_timestamp($8))`,
+          [electionNum, c.name, position, Number(c.voteCount), String(c.year), c.isFemale ? "female" : "male", c.imageCID || null, timestamp]
+        );
+        imported++;
+      };
+      await tryInsert(Number(r.presidentWinnerId), "President");
+      await tryInsert(Number(r.secretaryWinnerId), "Secretary");
+      for (const gid of r.generalMemberWinnerIds.map(Number)) {
+        if (gid === 0) continue;
+        await tryInsert(gid, "General Member");
+      }
+    }
+    res.json({ message: `Imported ${imported} winners from old contract`, imported });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

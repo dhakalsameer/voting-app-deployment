@@ -125,21 +125,8 @@ export async function seedHistoricalEvents() {
     });
   }
 
-  // Aggregated VoteCast events per candidate
-  const voteRes = await db.query(
-    "SELECT name, blockchain_id, vote_count FROM candidates WHERE vote_count > 0 AND blockchain_id IS NOT NULL ORDER BY blockchain_id"
-  );
-  for (const c of voteRes.rows) {
-    for (let v = 0; v < Number(c.vote_count); v++) {
-      entries.push({
-        eventName: "VoteCast",
-        txHash: null,
-        blockNumber: null,
-        args: { candidateId: c.blockchain_id, voter: null },
-        timestamp: Math.floor(Date.now() / 1000) - 3600 + v,
-      });
-    }
-  }
+  // VoteCast events are now backfilled from on-chain contract (with real from_address).
+  // Synthetic ones are omitted to avoid polluting voter counts.
 
   // NewElectionStarted from election_history
   const histRes = await db.query(

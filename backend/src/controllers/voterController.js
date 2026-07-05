@@ -29,22 +29,22 @@ export async function rebuildMerkleTrees() {
   }));
   const identityRoot = generateIdentityMerkleRoot(identities);
 
-  console.log("Updating Voter Merkle Root to:", root);
+  const phase = Number(await electionContractV3.getPhase());
+  const rootsLocked = phase >= 2;
 
+  if (rootsLocked) {
+    console.log("Merkle roots locked — skipping on-chain update (phase >= 2)");
+    emitEvent("dataChanged", { type: "voters" });
+    return null;
+  }
+
+  console.log("Updating Voter Merkle Root to:", root);
   const tx1 = await electionContractV3.setMerkleRoot(root);
   await tx1.wait();
 
-  const phase = Number(await electionContractV3.getPhase());
-  const identityLocked = phase >= 2;
-  let receipt;
-  if (!identityLocked) {
-    console.log("Updating Identity Merkle Root to:", identityRoot);
-    const tx2 = await electionContractV3.setIdentityMerkleRoot(identityRoot);
-    receipt = await tx2.wait();
-  } else {
-    console.log("Identity root locked — skipping identity Merkle root update");
-    receipt = await tx1.wait();
-  }
+  console.log("Updating Identity Merkle Root to:", identityRoot);
+  const tx2 = await electionContractV3.setIdentityMerkleRoot(identityRoot);
+  const receipt = await tx2.wait();
 
   emitEvent("dataChanged", { type: "voters" });
 
@@ -160,44 +160,13 @@ export const bulkVerifyVoters = async (req, res) => {
       [result.rows.map((row) => row.student_id)]
     );
 
-    const allEligibleResult = await db.query(
-      `SELECT wallet_address, name, year, gender FROM students WHERE eligible_to_vote = true AND wallet_address IS NOT NULL`
-    );
-    const allWallets = allEligibleResult.rows.map(r => r.wallet_address);
-    const root = generateMerkleRoot(allWallets);
-
-    const identities = allEligibleResult.rows.map(r => ({
-      address: r.wallet_address,
-      name: r.name,
-      year: parseYear(r.year),
-      isFemale: r.gender?.toLowerCase() === "female",
-    }));
-    const identityRoot = generateIdentityMerkleRoot(identities);
-
-    console.log("Updating Voter Merkle Root to:", root);
-
-    const tx1 = await electionContractV3.setMerkleRoot(root);
-    await tx1.wait();
-
-    const phase = Number(await electionContractV3.getPhase());
-    const identityLocked = phase >= 2;
-    let receipt;
-    if (!identityLocked) {
-      console.log("Updating Identity Merkle Root to:", identityRoot);
-      const tx2 = await electionContractV3.setIdentityMerkleRoot(identityRoot);
-      receipt = await tx2.wait();
-    } else {
-      console.log("Identity root locked — skipping identity Merkle root update");
-      receipt = await tx1.wait();
-    }
-
-    emitEvent("dataChanged", { type: "voters" });
+    const txHash = await rebuildMerkleTrees();
 
     return res.json({
       success: true,
       verifiedCount: result.rows.length,
       students: result.rows,
-      txHash: receipt.hash,
+      txHash,
     });
   } catch (error) {
     console.error("bulkVerifyVoters error:", error);

@@ -33,6 +33,7 @@ export const config = {
   db: process.env.DATABASE_URL,
   rpc: process.env.RPC_URL,
   contractV3: process.env.CONTRACT_ADDRESS_V3,
+  oldContractV3: process.env.OLD_CONTRACT_ADDRESS_V3,
   privateKey: process.env.PRIVATE_KEY,
   pinataKey: process.env.PINATA_KEY,
   pinataSecret: process.env.PINATA_SECRET,

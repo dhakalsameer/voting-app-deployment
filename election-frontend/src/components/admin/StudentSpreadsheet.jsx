@@ -545,7 +545,7 @@ export default function StudentSpreadsheet() {
         <details className="text-sm text-app-muted-text">
           <summary className="cursor-pointer hover:text-app-heading select-none font-semibold">Advanced: On-Chain Sync</summary>
           <div className="mt-2 flex items-center gap-3">
-            <p className="text-xs text-app-muted-text">Sync student identity data (name/year/gender) to the blockchain for candidate registration verification. Only needed if auto-sync failed or skipped.</p>
+            <p className="text-xs text-app-muted-text">Secondary fallback — the main Sync button is in the <strong>Controls</strong> panel. Only use this if auto-sync failed.</p>
             <button
               onClick={handleRebuildMerkle}
               disabled={rebuildingMerkle || !wallet}

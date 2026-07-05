@@ -63,6 +63,21 @@ contract Election3Test is Test {
         election.setMerkleRoot(bytes32(0));
     }
 
+    function testCannotSetRootDuringVoting() public {
+        election.startRegistration(block.timestamp + 1 hours);
+        vm.warp(block.timestamp + 1 hours + 1);
+        election.startVoting(block.timestamp + 2 hours);
+
+        vm.expectRevert("Root frozen during voting");
+        election.setMerkleRoot(bytes32(uint256(1)));
+
+        vm.expectRevert("Root frozen during voting");
+        election.setIdentityMerkleRoot(bytes32(uint256(2)));
+
+        vm.expectRevert("Root frozen during voting");
+        election.setRegCodeMerkleRoot(bytes32(uint256(3)));
+    }
+
     // =========================
     // PHASE CONTROL
     // =========================
@@ -94,6 +109,7 @@ contract Election3Test is Test {
         election.startRegistration(regEnd);
         vm.warp(regEnd + 1);
         election.startVoting(voteEnd);
+        vm.warp(voteEnd + 1);
         election.endElection();
 
         assertEq(uint256(election.getPhase()), uint256(Election3.Phase.Ended));
@@ -353,7 +369,6 @@ contract Election3Test is Test {
 
         vm.warp(regEnd + 1);
         election.startVoting(voteEnd);
-        vm.warp(regEnd + 2);
 
         bytes32[] memory vproof1 = new bytes32[](1);
         vproof1[0] = vLeaf2;
@@ -367,6 +382,7 @@ contract Election3Test is Test {
         vm.prank(student2);
         election.vote(1, vproof2);
 
+        vm.warp(voteEnd + 1);
         election.endElection();
     }
 
@@ -600,9 +616,10 @@ contract Election3Test is Test {
         election.registerCandidate("ST-002", "Bob", 4, false, "ipfs://b",
             Election3.Position.President, proof2);
 
+        uint256 voteEnd = block.timestamp + 2 hours;
         vm.warp(regEnd + 1);
-        election.startVoting(block.timestamp + 2 hours);
-        vm.warp(block.timestamp + 1);
+        election.startVoting(voteEnd);
+        vm.warp(voteEnd + 1);
 
         // No votes cast — both have 0 votes. Lowest ID should win.
         election.endElection();

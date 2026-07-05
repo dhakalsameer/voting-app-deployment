@@ -14,3 +14,7 @@ export const electionContractV3 = new ethers.Contract(
   Election3ABI.abi,
   adminSigner
 );
+
+export function getContractAt(address) {
+  return new ethers.Contract(address, Election3ABI.abi, provider);
+}
