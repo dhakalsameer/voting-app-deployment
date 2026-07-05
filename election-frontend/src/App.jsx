@@ -411,19 +411,20 @@ function LandingPage({ onOpenPortal }) {
           const parsed = logs
             .filter(log => EVENT_LABELS[log.fragment?.name]);
 
-          // Update events feed (latest 8)
           if (parsed.length > 0) {
-            const feed = parsed.map(log => ({
-              eventName: log.fragment.name,
-              blockNumber: log.blockNumber,
-              txHash: log.transactionHash,
-              ts: Date.now(),
-              icon: (EVENT_LABELS[log.fragment.name] || {}).icon || "🔗",
-              label: (EVENT_LABELS[log.fragment.name] || {}).label || log.fragment.name,
-              args: log.args ? Object.fromEntries(
-                Object.entries(log.args).filter(([k]) => isNaN(Number(k)))
-              ) : {},
-            })).reverse();
+            const feed = parsed.map(log => {
+              const a = {};
+              try { for (const key of Object.keys(log.args || {})) { if (isNaN(Number(key))) a[key] = log.args[key]; } } catch {}
+              return {
+                eventName: log.fragment.name,
+                blockNumber: log.blockNumber,
+                txHash: log.transactionHash,
+                ts: Date.now(),
+                icon: (EVENT_LABELS[log.fragment.name] || {}).icon || "🔗",
+                label: (EVENT_LABELS[log.fragment.name] || {}).label || log.fragment.name,
+                args: a,
+              };
+            }).reverse();
             setEvents(prev => {
               const seen = new Set(prev.map(e => e.txHash));
               const merged = [...feed.filter(e => !seen.has(e.txHash)), ...prev];
@@ -442,7 +443,9 @@ function LandingPage({ onOpenPortal }) {
           }
           lastEventBlockRef.current = currentBlock;
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        console.error("LandingPage poll error:", err);
+      }
     };
 
     poll();
@@ -585,9 +588,14 @@ function LandingPage({ onOpenPortal }) {
           )}
         </div>
 
-        {events.length > 0 && (
-          <div className="mt-10">
-            <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
+        <div className="mt-10">
+          <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
+          {events.length === 0 ? (
+            <div className="flex items-center justify-center gap-2 text-sm text-app-muted-text">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
+              <span>Listening for contract events...</span>
+            </div>
+          ) : (<>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
               {events.slice(0, 8).map((ev) => (
                 <a
@@ -636,8 +644,8 @@ function LandingPage({ onOpenPortal }) {
                 View all on Etherscan ↗
               </a>
             </div>
-          </div>
-        )}
+          </>)}
+        </div>
 
       </div>
 
