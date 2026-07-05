@@ -413,14 +413,17 @@ function LandingPage({ onOpenPortal }) {
 
           // Update events feed (latest 8)
           if (parsed.length > 0) {
-            const feed = parsed
-              .map(log => ({
-                eventName: log.fragment.name,
-                blockNumber: log.blockNumber,
-                txHash: log.transactionHash,
-                ts: Date.now(),
-              }))
-              .reverse();
+            const feed = parsed.map(log => ({
+              eventName: log.fragment.name,
+              blockNumber: log.blockNumber,
+              txHash: log.transactionHash,
+              ts: Date.now(),
+              icon: (EVENT_LABELS[log.fragment.name] || {}).icon || "🔗",
+              label: (EVENT_LABELS[log.fragment.name] || {}).label || log.fragment.name,
+              args: log.args ? Object.fromEntries(
+                Object.entries(log.args).filter(([k]) => isNaN(Number(k)))
+              ) : {},
+            })).reverse();
             setEvents(prev => {
               const seen = new Set(prev.map(e => e.txHash));
               const merged = [...feed.filter(e => !seen.has(e.txHash)), ...prev];
@@ -584,29 +587,54 @@ function LandingPage({ onOpenPortal }) {
 
         {events.length > 0 && (
           <div className="mt-10">
-            <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">On-Chain Activity</h3>
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              {events.map((ev, i) => {
-                const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
-                return (
-                  <a
-                    key={ev.txHash}
-                    href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                      i === 0
-                        ? 'border-app-accent/40 bg-app-accent-soft'
-                        : 'border-app-border bg-app-surface-solid/40'
-                    }`}
-                  >
-                    <span className="text-xs">{meta.icon}</span>
-                    <span className="text-xs font-medium text-app-heading font-mono whitespace-nowrap">{meta.label}</span>
-                    <span className="text-[10px] text-app-muted-text font-mono">#{ev.blockNumber}</span>
-                    <span className="text-[10px] text-app-accent underline underline-offset-2">View ↗</span>
-                  </a>
-                );
-              })}
+            <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+              {events.slice(0, 8).map((ev) => (
+                <a
+                  key={ev.txHash}
+                  href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 rounded-xl border border-app-border bg-app-surface-solid/30 p-3 transition-all duration-200 hover:bg-app-surface-solid/60 hover:shadow-md"
+                >
+                  <span className="mt-0.5 text-lg shrink-0">{ev.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-app-heading">{ev.label}</span>
+                      <span className="text-[10px] text-app-muted-text font-mono">#{ev.blockNumber.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-app-muted-text font-mono">
+                      <span className="truncate max-w-[160px]">{ev.txHash.slice(0, 14)}...{ev.txHash.slice(-6)}</span>
+                      <span className="shrink-0">· {TIME_AGO(ev.ts / 1000)}</span>
+                    </div>
+                    {ev.args && Object.keys(ev.args).length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {Object.entries(ev.args).slice(0, 3).map(([k, v]) => {
+                          const val = typeof v === 'string' && v.startsWith('0x')
+                            ? `${v.slice(0, 6)}...${v.slice(-4)}`
+                            : String(v);
+                          return (
+                            <span key={k} className="text-[9px] px-1.5 py-0.5 rounded-full bg-app-surface border border-app-border/50 text-app-muted-text">
+                              {k}: {val}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <span className="mt-1 text-[10px] text-app-accent/50 group-hover:text-app-accent shrink-0 transition-colors">↗</span>
+                </a>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <a
+                href={SEPOLIA_EXPLORER}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-app-accent hover:underline"
+              >
+                View all on Etherscan ↗
+              </a>
             </div>
           </div>
         )}
