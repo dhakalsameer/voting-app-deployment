@@ -362,14 +362,14 @@ function TxModal({ block, txs, loading, onClose }) {
 function LandingPage({ onOpenPortal }) {
   const [blocks, setBlocks] = useState([]);
   const [events, setEvents] = useState([]);
+  const [blockEvents, setBlockEvents] = useState({});
   const [modalBlock, setModalBlock] = useState(null);
   const [modalTxs, setModalTxs] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
   const providerRef = useRef(null);
   const contractRef = useRef(null);
   const lastBlockRef = useRef(0);
-  const hasBlocksRef = useRef(false);
-  const initialEventsDone = useRef(false);
+  const lastEventBlockRef = useRef(0);
 
   if (!providerRef.current) {
     providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
@@ -386,50 +386,59 @@ function LandingPage({ onOpenPortal }) {
         const currentBlock = await provider.getBlockNumber();
         if (!mounted) return;
 
-        // --- Blocks ---
-        if (currentBlock > lastBlockRef.current || !hasBlocksRef.current) {
+        // --- Blocks (latest 8) ---
+        if (currentBlock !== lastBlockRef.current) {
           lastBlockRef.current = currentBlock;
           const startBlock = Math.max(0, currentBlock - 7);
           const promises = [];
           for (let i = startBlock; i <= currentBlock; i++) promises.push(provider.getBlock(i));
           const fetched = await Promise.all(promises);
           if (!mounted) return;
-          const mapped = fetched.filter(Boolean).reverse().map(b => ({
+          setBlocks(fetched.filter(Boolean).reverse().map(b => ({
             number: b.number, hash: b.hash,
             timestamp: Number(b.timestamp), txCount: b.transactions.length, miner: b.miner,
-          }));
-          hasBlocksRef.current = true;
-          setBlocks(mapped);
+          })));
         }
 
         // --- Contract Events ---
-        const fromBlock = !initialEventsDone.current
+        const eventFrom = lastEventBlockRef.current === 0
           ? Math.max(0, currentBlock - INITIAL_SCAN_DEPTH)
-          : lastBlockRef.current;
-        if (fromBlock >= currentBlock) return;
+          : lastEventBlockRef.current + 1;
+        if (eventFrom <= currentBlock) {
+          const logs = await contract.queryFilter("*", eventFrom, currentBlock);
+          if (!mounted) return;
 
-        const logs = await contract.queryFilter("*", fromBlock, currentBlock);
-        if (!mounted) return;
+          const parsed = logs
+            .filter(log => EVENT_LABELS[log.fragment?.name]);
 
-        const parsed = logs
-          .filter(log => EVENT_LABELS[log.fragment?.name])
-          .reverse()
-          .slice(0, 8)
-          .map(log => ({
-            eventName: log.fragment.name,
-            blockNumber: log.blockNumber,
-            txHash: log.transactionHash,
-            ts: Date.now(),
-          }));
+          // Update events feed (latest 8)
+          if (parsed.length > 0) {
+            const feed = parsed
+              .map(log => ({
+                eventName: log.fragment.name,
+                blockNumber: log.blockNumber,
+                txHash: log.transactionHash,
+                ts: Date.now(),
+              }))
+              .reverse();
+            setEvents(prev => {
+              const seen = new Set(prev.map(e => e.txHash));
+              const merged = [...feed.filter(e => !seen.has(e.txHash)), ...prev];
+              return merged.slice(0, 8);
+            });
 
-        if (parsed.length > 0) {
-          setEvents(prev => {
-            const seen = new Set(prev.map(e => e.txHash));
-            const merged = [...parsed.filter(e => !seen.has(e.txHash)), ...prev];
-            return merged.slice(0, 8);
-          });
+            // Group by block number for block cards
+            const byBlock = {};
+            for (const log of parsed) {
+              const bn = log.blockNumber;
+              const meta = EVENT_LABELS[log.fragment.name] || { icon: "🔗", label: log.fragment.name };
+              if (!byBlock[bn]) byBlock[bn] = [];
+              if (byBlock[bn].length < 3) byBlock[bn].push(meta);
+            }
+            setBlockEvents(prev => ({ ...prev, ...byBlock }));
+          }
+          lastEventBlockRef.current = currentBlock;
         }
-        if (!initialEventsDone.current) initialEventsDone.current = true;
       } catch { /* ignore */ }
     };
 
@@ -556,6 +565,13 @@ function LandingPage({ onOpenPortal }) {
                     <span className="text-[10px] text-app-muted-text mt-0.5">
                       {b.txCount} {b.txCount === 1 ? 'txn' : 'txns'}
                     </span>
+                    {blockEvents[b.number] && blockEvents[b.number].length > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {blockEvents[b.number].map((m, j) => (
+                          <span key={j} className="text-[10px]" title={m.label}>{m.icon}</span>
+                        ))}
+                      </div>
+                    )}
                     <span className="text-[10px] text-app-accent/70 group-hover:text-app-accent mt-0.5 transition-colors">
                       View details →
                     </span>
