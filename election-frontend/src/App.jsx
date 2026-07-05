@@ -292,6 +292,7 @@ const EVENT_LABELS = {
 };
 
 function LandingPage({ onOpenPortal }) {
+  const { wallet } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
 
@@ -313,7 +314,7 @@ function LandingPage({ onOpenPortal }) {
               eventName: e.eventName,
               blockNumber: e.blockNumber,
               txHash: e.txHash,
-              ts: Date.now(),
+              ts: e.timestamp,
               icon: (EVENT_LABELS[e.eventName] || {}).icon || "🔗",
               label: (EVENT_LABELS[e.eventName] || {}).label || e.eventName,
               args: e.args || {},
@@ -339,7 +340,7 @@ function LandingPage({ onOpenPortal }) {
       transition={{ duration: 0.4 }}
       className="relative flex min-h-[70vh] items-center justify-center overflow-hidden"
     >
-      <div className="relative max-w-4xl px-4">
+      <div className="relative max-w-full px-4 lg:px-8">
         <div className="mb-6">
           <div className="flex items-baseline justify-center gap-x-6 gap-y-2 flex-wrap">
             <h1 className="sm:text-6xl text-2xl font-bold tracking-wide text-app-accent-dark whitespace-nowrap">
@@ -356,13 +357,15 @@ function LandingPage({ onOpenPortal }) {
 
         <div className="flex items-center justify-center gap-4 mb-10">
           <WalletButton />
-          <button onClick={onOpenPortal} className="btn-secondary text-base px-5 py-2.5 gap-2">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Student Portal
-          </button>
+          {!wallet && (
+            <button onClick={onOpenPortal} className="btn-secondary text-base px-5 py-2.5 gap-2">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Student Portal
+            </button>
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-10 mt-12">
@@ -393,48 +396,47 @@ function LandingPage({ onOpenPortal }) {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-sm font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
+          <h3 className="text-base font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
           {events.length === 0 ? (
             <div className="flex items-center justify-center gap-2 text-sm text-app-muted-text">
               <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
               <span>Listening for contract events...</span>
             </div>
           ) : (<>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
-              {events.slice(0, 8).map((ev) => (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 w-full">
+              {events.slice(0, 4).map((ev) => (
                 <a
                   key={ev.txHash}
                   href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-start gap-3 rounded-xl border border-app-border bg-app-surface-solid/30 p-3 transition-all duration-200 hover:bg-app-surface-solid/60 hover:shadow-md"
+                  className="group flex flex-col rounded-xl border border-app-border bg-app-surface-solid/30 px-7 py-6 transition-all duration-200 hover:bg-app-surface-solid/60 hover:shadow-md"
                 >
-                  <span className="mt-0.5 text-lg shrink-0">{ev.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold text-app-heading">{ev.label}</span>
-                      <span className="text-[10px] text-app-muted-text font-mono">#{ev.blockNumber.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] text-app-muted-text font-mono">
-                      <span className="truncate max-w-[160px]">{ev.txHash.slice(0, 14)}...{ev.txHash.slice(-6)}</span>
-                      <span className="shrink-0">· {TIME_AGO(ev.ts / 1000)}</span>
-                    </div>
-                    {ev.args && Object.keys(ev.args).length > 0 && (
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {Object.entries(ev.args).slice(0, 3).map(([k, v]) => {
-                          const val = typeof v === 'string' && v.startsWith('0x')
-                            ? `${v.slice(0, 6)}...${v.slice(-4)}`
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-3xl">{ev.icon}</span>
+                    <span className="text-lg font-bold text-app-heading flex-1 min-w-0">{ev.label}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-base text-app-muted-text font-mono mb-3">
+                    <span>#{ev.blockNumber.toLocaleString()}</span>
+                    <span className="text-base text-app-accent/50 group-hover:text-app-accent ml-auto shrink-0 transition-colors">↗</span>
+                  </div>
+                  <div className="text-sm text-app-muted-text/60 font-mono truncate mb-4">
+                    {ev.txHash.slice(0, 14)}...{ev.txHash.slice(-8)}
+                  </div>
+                  {ev.args && Object.keys(ev.args).length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(ev.args).slice(0, 2).map(([k, v]) => {
+                        const val = typeof v === 'string' && v.startsWith('0x')
+                          ? `${v.slice(0, 6)}...${v.slice(-4)}`
                             : String(v);
                           return (
-                            <span key={k} className="text-[9px] px-1.5 py-0.5 rounded-full bg-app-surface border border-app-border/50 text-app-muted-text">
+                            <span key={k} className="text-sm px-3 py-1 rounded-full bg-app-surface border border-app-border/50 text-app-muted-text">
                               {k}: {val}
                             </span>
                           );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <span className="mt-1 text-[10px] text-app-accent/50 group-hover:text-app-accent shrink-0 transition-colors">↗</span>
+                      })}
+                    </div>
+                  )}
                 </a>
               ))}
             </div>
@@ -443,7 +445,7 @@ function LandingPage({ onOpenPortal }) {
                 href={SEPOLIA_EXPLORER}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-app-accent hover:underline"
+                className="text-sm text-app-accent hover:underline"
               >
                 View all on Etherscan ↗
               </a>
