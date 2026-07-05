@@ -286,6 +286,7 @@ const TIME_AGO = (ts) => {
 
 function TxModal({ block, txs, loading, onClose }) {
   if (!block) return null;
+  const trunc = (s, n) => s ? `${s.slice(0, n)}...${s.slice(-4)}` : '—';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-app-border bg-app-surface-solid p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -304,16 +305,20 @@ function TxModal({ block, txs, loading, onClose }) {
         ) : (
           <div className="space-y-2">
             {txs.map((tx, i) => (
-              <div key={tx.hash} className="rounded-xl border border-app-border bg-app-surface/60 p-3 text-xs font-mono">
+              <div key={tx.hash || i} className="rounded-xl border border-app-border bg-app-surface/60 p-3 text-xs font-mono">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-app-muted-text/60">#{i + 1}</span>
-                  <a href={`${SEPOLIA_EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-app-accent hover:underline truncate max-w-[240px]">
-                    {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)} ↗
-                  </a>
+                  {tx.hash ? (
+                    <a href={`${SEPOLIA_EXPLORER}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-app-accent hover:underline truncate max-w-[240px]">
+                      {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)} ↗
+                    </a>
+                  ) : (
+                    <span className="text-app-muted-text">—</span>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-app-muted-text">
-                  <span className="truncate">From: <span className="text-app-heading">{tx.from.slice(0, 8)}...{tx.from.slice(-4)}</span></span>
-                  <span className="truncate">To: <span className="text-app-heading">{tx.to ? `${tx.to.slice(0, 8)}...${tx.to.slice(-4)}` : 'Contract Creation'}</span></span>
+                  <span className="truncate">From: <span className="text-app-heading">{trunc(tx.from, 8)}</span></span>
+                  <span className="truncate">To: <span className="text-app-heading">{tx.to ? trunc(tx.to, 8) : 'Contract Creation'}</span></span>
                   {tx.value !== "0" && <span className="col-span-2">Value: <span className="text-app-trust">{Number(tx.value) / 1e18} ETH</span></span>}
                 </div>
               </div>
@@ -349,7 +354,7 @@ function LandingPage({ onOpenPortal }) {
         if (currentBlock <= lastBlockRef.current && hasBlocksRef.current) return;
 
         lastBlockRef.current = currentBlock;
-        const startBlock = Math.max(0, currentBlock - 3);
+          const startBlock = Math.max(0, currentBlock - 7);
         const promises = [];
         for (let i = startBlock; i <= currentBlock; i++) promises.push(provider.getBlock(i));
         const fetched = await Promise.all(promises);
@@ -456,7 +461,7 @@ function LandingPage({ onOpenPortal }) {
               <span className="text-sm text-app-muted-text">Fetching latest blocks...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {blocks.map((b, i) => {
                 const isFirst = i === 0;
                 return (
