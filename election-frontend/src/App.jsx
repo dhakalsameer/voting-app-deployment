@@ -1,11 +1,10 @@
 import { useContext, useState, useEffect, useRef, lazy, Suspense } from "react";
-import { JsonRpcProvider, Contract } from "ethers";
+import { JsonRpcProvider } from "ethers";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
 import { ToastProvider } from "./components/ui/Toast";
-import { CONTRACT_ADDRESS_V3, SEPOLIA_EXPLORER } from "./config";
-import Election3ABI from "./abi/Election3.json";
+import { SEPOLIA_EXPLORER, API_URL } from "./config";
 import AppHeader from "./components/ui/AppHeader";
 import WalletButton from "./components/WalletButton";
 import VoterStatusCard from "./components/VoterStatusCard";
@@ -293,8 +292,6 @@ const EVENT_LABELS = {
   NewElectionStarted:  { icon: "🗳️", label: "New Election" },
 };
 
-const INITIAL_SCAN_DEPTH = 500;
-
 function TxModal({ block, txs, loading, onClose }) {
   if (!block) return null;
   return (
@@ -367,26 +364,25 @@ function LandingPage({ onOpenPortal }) {
   const [modalTxs, setModalTxs] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
   const providerRef = useRef(null);
-  const contractRef = useRef(null);
   const lastBlockRef = useRef(0);
   const lastEventBlockRef = useRef(0);
 
   if (!providerRef.current) {
     providerRef.current = new JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
-    contractRef.current = new Contract(CONTRACT_ADDRESS_V3, Election3ABI.abi, providerRef.current);
   }
 
   useEffect(() => {
     const provider = providerRef.current;
-    const contract = contractRef.current;
     let mounted = true;
+    let pollCount = 0;
 
     const poll = async () => {
       try {
+        pollCount++;
         const currentBlock = await provider.getBlockNumber();
         if (!mounted) return;
 
-        // --- Blocks (latest 8) ---
+        // --- Blocks (latest 8, only when new block appears) ---
         if (currentBlock !== lastBlockRef.current) {
           lastBlockRef.current = currentBlock;
           const startBlock = Math.max(0, currentBlock - 7);
@@ -400,48 +396,34 @@ function LandingPage({ onOpenPortal }) {
           })));
         }
 
-        // --- Contract Events ---
-        const eventFrom = lastEventBlockRef.current === 0
-          ? Math.max(0, currentBlock - INITIAL_SCAN_DEPTH)
-          : lastEventBlockRef.current + 1;
-        if (eventFrom <= currentBlock) {
-          const logs = await contract.queryFilter("*", eventFrom, currentBlock);
+        // --- Events from backend API (every 4th poll ~60s, always on first) ---
+        if (pollCount === 1 || pollCount % 4 === 0) {
+          const res = await fetch(`${API_URL}/api/events?limit=20`);
           if (!mounted) return;
+          if (res.ok) {
+            const data = await res.json();
+            const mapped = (data || []).map(e => ({
+              eventName: e.eventName,
+              blockNumber: e.blockNumber,
+              txHash: e.txHash,
+              ts: Date.now(),
+              icon: (EVENT_LABELS[e.eventName] || {}).icon || "🔗",
+              label: (EVENT_LABELS[e.eventName] || {}).label || e.eventName,
+              args: e.args || {},
+            }));
+            if (mounted) {
+              setEvents(mapped.slice(0, 8));
 
-          const parsed = logs
-            .filter(log => EVENT_LABELS[log.fragment?.name]);
-
-          if (parsed.length > 0) {
-            const feed = parsed.map(log => {
-              const a = {};
-              try { for (const key of Object.keys(log.args || {})) { if (isNaN(Number(key))) a[key] = log.args[key]; } } catch {}
-              return {
-                eventName: log.fragment.name,
-                blockNumber: log.blockNumber,
-                txHash: log.transactionHash,
-                ts: Date.now(),
-                icon: (EVENT_LABELS[log.fragment.name] || {}).icon || "🔗",
-                label: (EVENT_LABELS[log.fragment.name] || {}).label || log.fragment.name,
-                args: a,
-              };
-            }).reverse();
-            setEvents(prev => {
-              const seen = new Set(prev.map(e => e.txHash));
-              const merged = [...feed.filter(e => !seen.has(e.txHash)), ...prev];
-              return merged.slice(0, 8);
-            });
-
-            // Group by block number for block cards
-            const byBlock = {};
-            for (const log of parsed) {
-              const bn = log.blockNumber;
-              const meta = EVENT_LABELS[log.fragment.name] || { icon: "🔗", label: log.fragment.name };
-              if (!byBlock[bn]) byBlock[bn] = [];
-              if (byBlock[bn].length < 3) byBlock[bn].push(meta);
+              // Group by block for block card icons
+              const byBlock = {};
+              for (const ev of mapped) {
+                const meta = EVENT_LABELS[ev.eventName] || { icon: "🔗", label: ev.eventName };
+                if (!byBlock[ev.blockNumber]) byBlock[ev.blockNumber] = [];
+                if (byBlock[ev.blockNumber].length < 3) byBlock[ev.blockNumber].push(meta);
+              }
+              setBlockEvents(byBlock);
             }
-            setBlockEvents(prev => ({ ...prev, ...byBlock }));
           }
-          lastEventBlockRef.current = currentBlock;
         }
       } catch (err) {
         console.error("LandingPage poll error:", err);
