@@ -386,7 +386,6 @@ export default function GenerateCodes() {
       if (!res.ok) throw new Error(data.error || "Send failed");
       if (data.devMode) {
         info(data.message || "Emails logged to console (SMTP not configured)");
-        data.sent.forEach(s => console.log(`  → ${s}`));
       } else {
         success(data.message || `Emails sent to ${data.sent.length} student(s)`);
       }
