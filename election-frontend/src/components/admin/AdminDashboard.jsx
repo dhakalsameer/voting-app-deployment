@@ -3,7 +3,6 @@ import ElectionControl from "./ElectionControl";
 import VerifyVoter from "./VerifyVoter";
 import GenerateCodes from "./GenerateCodes";
 import StudentList from "./StudentList";
-import PendingCandidates from "./PendingCandidates";
 import GasDistribution from "./GasDistribution";
 
 import { AuthContext } from "../../context/AuthContextValue";
@@ -111,7 +110,6 @@ function VoterSection() {
   const subTabs = [
     { id: "verify", label: "Verify Voters", icon: "✓" },
     { id: "codes", label: "Registration Codes", icon: "🔑" },
-    { id: "candidates", label: "Candidates", icon: "🏆" },
     { id: "students", label: "Student Registry", icon: "🎓" },
   ];
 
@@ -137,7 +135,6 @@ function VoterSection() {
 
       {subTab === "verify" && <VerifyVoter onWhitelisted={() => setSubTab("students")} />}
       {subTab === "codes" && <GenerateCodes />}
-      {subTab === "candidates" && <PendingCandidates />}
       {subTab === "students" && <StudentList />}
     </div>
   );
