@@ -291,6 +291,20 @@ const EVENT_LABELS = {
   NewElectionStarted:  { icon: "🗳️", label: "New Election" },
 };
 
+const EVENT_CARD_COLORS = {
+  VoteCast:            { border: "border-emerald-500/20", bar: "bg-emerald-500",    text: "text-emerald-400", glow: "shadow-emerald-500/20", from: "from-emerald-500/10", to: "to-emerald-600/5" },
+  BallotCast:          { border: "border-emerald-500/20", bar: "bg-emerald-500",    text: "text-emerald-400", glow: "shadow-emerald-500/20", from: "from-emerald-500/10", to: "to-emerald-600/5" },
+  CandidateRegistered: { border: "border-sky-500/20",     bar: "bg-sky-500",        text: "text-sky-400",    glow: "shadow-sky-500/20",    from: "from-sky-500/10",    to: "to-sky-600/5" },
+  PhaseChanged:        { border: "border-amber-500/20",   bar: "bg-amber-500",      text: "text-amber-400",  glow: "shadow-amber-500/20",  from: "from-amber-500/10",  to: "to-amber-600/5" },
+  NewElectionStarted:  { border: "border-rose-500/20",    bar: "bg-rose-500",       text: "text-rose-400",   glow: "shadow-rose-500/20",   from: "from-rose-500/10",   to: "to-rose-600/5" },
+};
+const DEFAULT_CARD_COLORS = { border: "border-app-border", bar: "bg-app-accent", text: "text-app-accent", glow: "shadow-app-accent/20", from: "from-app-accent/10", to: "to-app-accent/5" };
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 32, scale: 0.95 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
+};
+
 function LandingPage({ onOpenPortal }) {
   const { wallet } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
@@ -314,6 +328,7 @@ function LandingPage({ onOpenPortal }) {
               eventName: e.eventName,
               blockNumber: e.blockNumber,
               txHash: e.txHash,
+              fromAddress: e.fromAddress,
               ts: e.timestamp,
               icon: (EVENT_LABELS[e.eventName] || {}).icon || "🔗",
               label: (EVENT_LABELS[e.eventName] || {}).label || e.eventName,
@@ -395,62 +410,97 @@ function LandingPage({ onOpenPortal }) {
           </div>
         </div>
 
-        <div className="mt-10">
-          <h3 className="text-base font-semibold text-app-muted-text uppercase tracking-wider mb-4 text-center">Recent On-Chain Activity</h3>
+        <div className="mt-16">
+          <div className="flex items-center gap-4 mb-7 justify-center">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-app-border/30" />
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              <h3 className="text-[11px] font-bold text-app-muted-text uppercase tracking-[0.2em]">Recent On-Chain Activity</h3>
+            </div>
+            <div className="h-px w-16 bg-gradient-to-r from-app-border/30 to-transparent" />
+          </div>
+
           {events.length === 0 ? (
-            <div className="flex items-center justify-center gap-2 text-sm text-app-muted-text">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-app-muted-text" />
-              <span>Listening for contract events...</span>
+            <div className="flex flex-col items-center gap-4 py-10">
+              <div className="relative flex items-center justify-center">
+                <span className="absolute h-10 w-10 animate-ping rounded-full bg-emerald-400/20" />
+                <span className="absolute h-6 w-6 animate-pulse rounded-full bg-emerald-400/30" />
+                <span className="relative block h-3 w-3 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm font-semibold text-app-heading tracking-wide">Listening for On-Chain Events</span>
+                <span className="text-xs text-app-muted-text/50 font-mono">polling every 15s · Sepolia</span>
+              </div>
             </div>
-          ) : (<>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 w-full">
-              {events.slice(0, 4).map((ev) => (
-                <a
-                  key={ev.txHash}
-                  href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col rounded-xl border border-app-border bg-app-surface-solid/30 px-7 py-6 transition-all duration-200 hover:bg-app-surface-solid/60 hover:shadow-md"
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-3xl">{ev.icon}</span>
-                    <span className="text-lg font-bold text-app-heading flex-1 min-w-0">{ev.label}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-base text-app-muted-text font-mono mb-3">
-                    <span>#{ev.blockNumber.toLocaleString()}</span>
-                    <span className="text-base text-app-accent/50 group-hover:text-app-accent ml-auto shrink-0 transition-colors">↗</span>
-                  </div>
-                  <div className="text-sm text-app-muted-text/60 font-mono truncate mb-4">
-                    {ev.txHash.slice(0, 14)}...{ev.txHash.slice(-8)}
-                  </div>
-                  {ev.args && Object.keys(ev.args).length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(ev.args).slice(0, 2).map(([k, v]) => {
-                        const val = typeof v === 'string' && v.startsWith('0x')
-                          ? `${v.slice(0, 6)}...${v.slice(-4)}`
-                            : String(v);
-                          return (
-                            <span key={k} className="text-sm px-3 py-1 rounded-full bg-app-surface border border-app-border/50 text-app-muted-text">
-                              {k}: {val}
-                            </span>
-                          );
-                      })}
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.15 } } }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full"
+            >
+              {events.slice(0, 4).map((ev) => {
+                const cc = EVENT_CARD_COLORS[ev.eventName] || DEFAULT_CARD_COLORS;
+                return (
+                  <motion.a
+                    key={ev.txHash}
+                    href={`${SEPOLIA_EXPLORER}/tx/${ev.txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variants={cardVariants}
+                    className={`group relative flex flex-col rounded-2xl border ${cc.border} overflow-hidden transition-all duration-500 hover:scale-[1.04] hover:shadow-xl ${cc.glow} bg-app-surface/30 backdrop-blur-sm w-full`}
+                  >
+                    <div className={`h-1.5 w-full shrink-0 bg-gradient-to-r ${cc.from} ${cc.to} ${cc.bar}`} />
+                    <div className="flex flex-col items-center justify-center gap-3 p-5 flex-1 min-h-0 relative">
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="flex flex-col items-center gap-2.5 relative z-10">
+                        <span className="text-3xl drop-shadow-sm">{ev.icon}</span>
+                        <span className={`text-sm font-bold ${cc.text} text-center leading-snug tracking-wide`}>{ev.label}</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1.5 relative z-10">
+                        {ev.blockNumber && (
+                          <span className="text-[10px] font-mono text-app-muted-text/40 font-medium">
+                            #{ev.blockNumber.toLocaleString()}
+                          </span>
+                        )}
+                        {ev.txHash && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-app-muted-text/50 font-mono bg-app-surface/50 rounded-full px-2.5 py-1 border border-app-border/30 group-hover:border-app-accent/20 transition-colors duration-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60" />
+                            {ev.txHash.slice(0, 8)}...{ev.txHash.slice(-6)}
+                          </div>
+                        )}
+                        {ev.ts && (
+                          <span className="text-[10px] text-app-muted-text/30 font-medium">{TIME_AGO(ev.ts)}</span>
+                        )}
+                      </div>
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">
+                        <div className="flex items-center justify-center h-6 w-6 rounded-full bg-app-accent/10 backdrop-blur-sm">
+                          <span className="text-[10px] text-app-accent font-bold">↗</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </a>
-              ))}
-            </div>
-            <div className="mt-4 text-center">
+                  </motion.a>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {events.length > 0 && (
+            <div className="mt-6 text-center">
               <a
                 href={SEPOLIA_EXPLORER}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-app-accent hover:underline"
+                className="group inline-flex items-center gap-2 text-[11px] font-bold text-app-muted-text uppercase tracking-[0.15em] border border-app-border/40 rounded-xl px-5 py-2.5 transition-all duration-300 hover:border-app-accent/30 hover:text-app-accent hover:bg-app-accent/[0.04] hover:shadow-lg hover:shadow-app-accent/5"
               >
-                View all on Etherscan ↗
+                View All on Etherscan
+                <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-xs">↗</span>
               </a>
             </div>
-          </>)}
+          )}
         </div>
 
       </div>
