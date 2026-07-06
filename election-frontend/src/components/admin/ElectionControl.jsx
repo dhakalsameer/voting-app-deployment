@@ -286,15 +286,6 @@ export default function ElectionControl() {
               onClick={() => execute("Start Voting", async () => {
                 const endTime = toUnixSeconds(votingEnd);
                 if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
-                // Auto-rebuild Merkle tree so newly registered voters are included
-                const rebuildRes = await fetch(
-                  `${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`,
-                  { method: "POST" }
-                );
-                if (!rebuildRes.ok) {
-                  const err = await rebuildRes.json();
-                  throw new Error(err.error || "Merkle rebuild failed");
-                }
                 const contract = await getContractV3();
                 return contract.startVoting(endTime);
               })}
