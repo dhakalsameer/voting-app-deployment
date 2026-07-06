@@ -286,7 +286,14 @@ export function startBlockchainSync(io) {
 
   async function snapshotResults(electionNum) {
     try {
-      await db.query("DELETE FROM election_history WHERE election_number = $1", [electionNum]);
+      const existing = await db.query(
+        "SELECT COUNT(*)::int AS cnt FROM election_history WHERE election_number = $1",
+        [electionNum]
+      );
+      if (existing.rows[0].cnt > 0) {
+        console.log(`   → Election #${electionNum} already has history (${existing.rows[0].cnt} rows), skipping snapshot`);
+        return;
+      }
       const snapRes = await db.query(
         `SELECT name, position, vote_count, year, gender, image_cid
          FROM candidates WHERE status IS NULL OR status = 'approved' ORDER BY position, vote_count DESC`
