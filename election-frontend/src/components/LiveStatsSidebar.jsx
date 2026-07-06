@@ -171,16 +171,6 @@ export default function LiveStatsSidebar() {
             </div>
           )}
 
-          {/* Footer */}
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-500/15 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-emerald-500/10 p-4 text-center">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
-            <div className="relative flex items-center justify-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-              </span>
-            </div>
-          </div>
         </>
       )}
 
