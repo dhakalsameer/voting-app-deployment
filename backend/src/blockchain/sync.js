@@ -3,6 +3,7 @@ import { electionContractV3, getContractAt } from "./electionContract.js";
 import { config } from "../config/env.js";
 import { db } from "../db.js";
 import { addEvent, seedHistoricalEvents } from "../services/eventStore.js";
+import { rebuildMerkleTrees } from "../controllers/voterController.js";
 
 const POLL_MS = 10000;
 const processedKeys = new Set();
@@ -398,6 +399,15 @@ export function startBlockchainSync(io) {
           snapshotInProgress = true;
           await snapshotResults(prevElectionId);
           snapshotInProgress = false;
+        }
+        // Auto-rebuild Merkle tree when entering Voting phase
+        if (phase === 2) {
+          try {
+            console.log("🌳 Auto-rebuilding Merkle trees for voting phase");
+            await rebuildMerkleTrees();
+          } catch (err) {
+            console.error("Auto-rebuild Merkle trees failed:", err.message);
+          }
         }
         await emitEvent({
           eventName: "PhaseChanged",
