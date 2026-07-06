@@ -179,9 +179,6 @@ export default function LiveStatsSidebar() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
               </span>
-              <p className="text-xs font-semibold text-emerald-400/70 tracking-wide">
-                Live &mdash; refreshes every 10s
-              </p>
             </div>
           </div>
         </>
