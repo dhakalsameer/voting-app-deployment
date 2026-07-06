@@ -1,4 +1,4 @@
--- Run once against your PostgreSQL database before using Election1 verification flow.
+-- Run once against your PostgreSQL database to add wallet verification columns.
 
 ALTER TABLE students
   ADD COLUMN IF NOT EXISTS wallet_verified BOOLEAN NOT NULL DEFAULT false;
