@@ -76,13 +76,13 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
     <header className="sticky top-0 z-30 border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
       <div className="page-container flex items-center justify-between h-20">
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("home")}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab("home")}>
             <img
               src="/images/gu-icon.png"
               alt="GU"
-              className="h-16 w-16 rounded-md object-contain"
+              className="h-12 w-12 md:h-14 md:w-14 rounded-md object-contain shrink-0"
             />
-            <span className="text-xl font-bold tracking-tight text-app-heading hidden sm:block">IT Election</span>
+            <span className="text-lg md:text-xl font-bold tracking-tight text-app-heading hidden sm:block">IT Election</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 ml-5">

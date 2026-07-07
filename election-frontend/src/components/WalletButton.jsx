@@ -10,18 +10,19 @@ export default function WalletButton() {
 
   if (wallet) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-app-border bg-app-accent-soft px-5 py-3">
+      <div className="flex items-center gap-2 md:gap-3 rounded-lg border border-app-border bg-app-accent-soft px-3 md:px-5 py-3">
         <span className="flex items-center gap-2 text-lg font-mono text-app-muted-text whitespace-nowrap">
-          <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="h-5 w-5 md:h-6 md:w-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
             <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
           </svg>
-          {balance ? `${Number(balance).toFixed(4)} ETH` : "--"}
+          <span className="hidden sm:inline">{balance ? `${Number(balance).toFixed(4)} ETH` : "--"}</span>
+          <span className="sm:hidden">{balance ? `${Number(balance).toFixed(2)} ETH` : "--"}</span>
         </span>
         {student?.student_id && (
           <>
             <span className="w-px h-6 bg-app-border/50 shrink-0" />
-            <span className="text-lg font-mono text-app-accent whitespace-nowrap">{student.student_id}</span>
+            <span className="text-lg font-mono text-app-accent whitespace-nowrap hidden lg:inline">{student.student_id}</span>
           </>
         )}
         <span className="w-px h-6 bg-app-border/50 shrink-0" />
