@@ -20,7 +20,7 @@ const router = express.Router();
 
 router.post("/generate-codes", verifyAdmin, generateCodes);
 router.get("/codes", verifyAdmin, listCodes);
-router.post("/upload-codes", verifyAdmin, upload.single("file"), uploadCodes);
+router.post("/upload-codes", upload.single("file"), verifyAdmin, uploadCodes);
 router.get("/regcode-merkle-root", verifyAdmin, getRegCodeMerkleRoot);
 router.post("/rebuild-regcode-merkle-root", verifyAdmin, adminRebuildRegCodeMerkleRoot);
 router.post("/send-codes", verifyAdmin, sendCodesEmail);
