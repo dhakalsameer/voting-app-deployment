@@ -102,31 +102,31 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-2.5">
-          <div className="hidden md:flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
+          <div className="hidden md:flex items-center gap-1">
             <a
               href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:flex h-10 w-10 items-center justify-center rounded-lg text-app-muted-text hover:text-app-accent hover:bg-app-elevated transition-all"
+              className="hidden lg:flex h-9 w-9 items-center justify-center rounded-lg text-app-muted-text hover:text-app-accent hover:bg-app-elevated transition-all"
               title="View contract on Etherscan"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
             </a>
-            <ThemeToggle className="h-9 w-9 rounded-lg" />
+            <ThemeToggle className="h-8 w-8 rounded-lg" />
             {!isAdmin && wallet && student && (
-              <button onClick={onOpenPortal} className="flex items-center gap-2 rounded-lg border border-app-border bg-app-input px-3 py-1.5 hover:bg-app-elevated transition-all cursor-pointer">
+              <button onClick={onOpenPortal} className="flex items-center gap-1.5 rounded-lg border border-app-border bg-app-input px-2 py-1.5 hover:bg-app-elevated transition-all cursor-pointer">
                 <VoterAvatar student={student} />
-                <span className="hidden xl:inline text-sm font-medium text-app-muted-text truncate max-w-[120px]">{student.name}</span>
+                <span className="hidden lg:inline text-sm font-medium text-app-muted-text truncate max-w-[100px]">{student.name}</span>
               </button>
             )}
             {!isAdmin && (!wallet || !student) && (
-              <button onClick={onOpenPortal} className="flex items-center gap-1.5 text-sm font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-3 py-1.5 rounded-lg border border-transparent hover:border-app-border hover:bg-app-elevated">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button onClick={onOpenPortal} className="flex items-center gap-1 text-sm font-medium text-app-muted-text hover:text-app-heading transition-colors cursor-pointer px-2 py-1.5 rounded-lg border border-transparent hover:border-app-border hover:bg-app-elevated">
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>

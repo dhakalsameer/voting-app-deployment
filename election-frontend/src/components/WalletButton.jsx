@@ -10,9 +10,9 @@ export default function WalletButton() {
 
   if (wallet) {
     return (
-      <div className="flex items-center gap-2 md:gap-3 rounded-lg border border-app-border bg-app-accent-soft px-3 md:px-5 py-3">
-        <span className="flex items-center gap-2 text-lg font-mono text-app-muted-text whitespace-nowrap">
-          <svg className="h-5 w-5 md:h-6 md:w-6 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+      <div className="flex items-center gap-1 md:gap-2 rounded-lg border border-app-border bg-app-accent-soft px-2 md:px-3 py-2.5">
+        <span className="flex items-center gap-1 md:gap-1.5 text-sm md:text-base font-mono text-app-muted-text whitespace-nowrap">
+          <svg className="h-4 w-4 md:h-5 md:w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
             <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
           </svg>
@@ -21,12 +21,12 @@ export default function WalletButton() {
         </span>
         {student?.student_id && (
           <>
-            <span className="w-px h-6 bg-app-border/50 shrink-0" />
-            <span className="text-lg font-mono text-app-accent whitespace-nowrap hidden lg:inline">{student.student_id}</span>
+            <span className="w-px h-5 bg-app-border/50 shrink-0" />
+            <span className="text-sm md:text-base font-mono text-app-accent whitespace-nowrap hidden lg:inline">{student.student_id}</span>
           </>
         )}
-        <span className="w-px h-6 bg-app-border/50 shrink-0" />
-        <span className="text-base md:text-lg font-mono text-app-accent whitespace-nowrap">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+        <span className="w-px h-5 bg-app-border/50 shrink-0" />
+        <span className="text-sm lg:text-base font-mono text-app-accent whitespace-nowrap hidden lg:inline">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
       </div>
     );
   }
