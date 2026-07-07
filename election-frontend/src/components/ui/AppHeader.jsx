@@ -75,17 +75,17 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
   return (
     <header className="sticky top-0 z-30 border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
       <div className="page-container flex items-center justify-between h-20">
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab("home")}>
+        <div className="flex items-center gap-3 lg:gap-5 min-w-0">
+          <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("home")}>
             <img
               src="/images/gu-icon.png"
               alt="GU"
-              className="h-12 w-12 md:h-14 md:w-14 rounded-md object-contain shrink-0"
+              className="h-10 w-10 md:h-12 md:w-12 rounded-md object-contain shrink-0"
             />
-            <span className="text-lg md:text-xl font-bold tracking-tight text-app-heading hidden sm:block">IT Election</span>
+            <span className="text-base md:text-lg lg:text-xl font-bold tracking-tight text-app-heading hidden sm:block whitespace-nowrap">IT Election</span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1 ml-5">
+          <nav className="hidden md:flex items-center gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

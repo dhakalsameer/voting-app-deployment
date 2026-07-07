@@ -26,7 +26,7 @@ export default function WalletButton() {
           </>
         )}
         <span className="w-px h-6 bg-app-border/50 shrink-0" />
-        <span className="text-lg font-mono text-app-accent whitespace-nowrap">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+        <span className="text-base md:text-lg font-mono text-app-accent whitespace-nowrap">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
       </div>
     );
   }
