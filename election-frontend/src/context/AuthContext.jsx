@@ -68,7 +68,10 @@ export function AuthProvider({ children }) {
   }, [provider]);
 
   const connectWallet = async () => {
-    if (!window.ethereum) return alert("MetaMask not found!");
+    if (!window.ethereum) {
+      alert("MetaMask not found!");
+      return null;
+    }
 
     setLoading(true);
     try {
@@ -77,8 +80,10 @@ export function AuthProvider({ children }) {
       setWallet(accounts[0]);
       if (!provider) setProvider(p);
       await checkVoterStatus(accounts[0]);
+      return accounts[0];
     } catch (err) {
       console.error(err);
+      return null;
     } finally {
       setLoading(false);
     }
