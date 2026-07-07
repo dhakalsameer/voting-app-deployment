@@ -61,14 +61,17 @@ export default function MainRegistrationBanner() {
   if (!isOpen) {
     const expired = phase === 1 && remaining <= 0;
     return (
-      <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-5">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-            <span className="text-amber-400 text-base">⏸</span>
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-5">
+        <div className="flex items-start gap-4">
+          <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+            <svg className="h-5 w-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 12h8" />
+            </svg>
           </div>
-          <div>
-            <p className="text-sm font-bold text-amber-400">Candidate Registration {expired ? "Ended" : "Closed"}</p>
-            <p className="text-sm text-app-muted-text mt-0.5">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-slate-800">Candidate Registration {expired ? "Ended" : "Closed"}</p>
+            <p className="text-sm text-slate-500 mt-1 leading-relaxed">
               {expired
                 ? "The registration window has expired. Contact the admin if you need an extension."
                 : "Registration is not open yet. Wait for the admin to open it."}
