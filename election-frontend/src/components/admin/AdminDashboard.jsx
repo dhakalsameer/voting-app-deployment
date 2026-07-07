@@ -8,10 +8,17 @@ import GasDistribution from "./GasDistribution";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useBalance } from "../../hooks/useBalance";
 
+const ETH_ICON = (
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
+    <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
+  </svg>
+);
+
 const ADMIN_TABS = [
   { id: "controls", label: "Controls", icon: "⚙️" },
   { id: "voters", label: "Voters", icon: "👥" },
-  { id: "gas", label: "Funds", icon: "💰" },
+  { id: "gas", label: "Funds", icon: ETH_ICON },
 ];
 
 export default function AdminDashboard() {
@@ -73,7 +80,7 @@ export default function AdminDashboard() {
                   : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
               }`}
             >
-              <span className="text-xl">{t.icon}</span>
+              {typeof t.icon === "string" ? <span className="text-xl">{t.icon}</span> : <span className="flex items-center justify-center w-6 h-6 text-app-accent">{t.icon}</span>}
               {t.label}
             </button>
           ))}
