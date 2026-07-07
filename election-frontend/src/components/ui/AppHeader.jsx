@@ -90,7 +90,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2.5 rounded-lg text-lg font-medium transition-all cursor-pointer ${
+                className={`px-3 lg:px-5 py-2.5 rounded-lg text-base lg:text-lg font-medium transition-all cursor-pointer ${
                   activeTab === tab.id
                     ? "text-app-accent bg-app-accent-soft"
                     : "text-app-muted-text hover:text-app-heading"
@@ -108,10 +108,10 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
               href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-11 w-11 flex items-center justify-center rounded-lg text-app-muted-text hover:text-app-accent hover:bg-app-elevated transition-all"
+              className="hidden lg:flex h-10 w-10 items-center justify-center rounded-lg text-app-muted-text hover:text-app-accent hover:bg-app-elevated transition-all"
               title="View contract on Etherscan"
             >
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
