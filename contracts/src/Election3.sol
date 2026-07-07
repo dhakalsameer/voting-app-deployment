@@ -58,14 +58,14 @@ contract Election3 {
     uint256 public registrationEnd;
     uint256 public votingEnd;
 
-    uint256 public candidateCount;
     uint256 public currentElectionId;
 
     bytes32 public voterMerkleRoot;
     bytes32 public identityMerkleRoot;
     bytes32 public regCodeMerkleRoot;
 
-    mapping(uint256 => Candidate) public candidates;
+    mapping(uint256 => uint256) public electionCandidateCount;
+    mapping(uint256 => mapping(uint256 => Candidate)) public candidates;
     mapping(address => uint256) public votedInElection;
     mapping(address => uint256) public candidateRegisteredInElection;
 
@@ -212,10 +212,12 @@ contract Election3 {
             require(_year >= 3 && _year <= 4, "Secretary must be 3rd or 4th year");
         }
 
-        candidateCount++;
+        electionCandidateCount[currentElectionId]++;
 
-        candidates[candidateCount] = Candidate({
-            id: candidateCount,
+        uint256 id = electionCandidateCount[currentElectionId];
+
+        candidates[currentElectionId][id] = Candidate({
+            id: id,
             name: _name,
             studentId: _guid,
             year: _year,
@@ -229,7 +231,7 @@ contract Election3 {
         candidateRegisteredInElection[msg.sender] = currentElectionId;
 
         emit CandidateRegistered(
-            candidateCount,
+            id,
             msg.sender,
             _name,
             _position,
@@ -250,7 +252,7 @@ contract Election3 {
             votedInElection[msg.sender] != currentElectionId,
             "Already voted"
         );
-        require(candidates[_candidateId].exists, "Invalid candidate");
+        require(candidates[currentElectionId][_candidateId].exists, "Invalid candidate");
 
         // 🔐 Verify voter using Merkle Proof (address only)
         bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
@@ -260,7 +262,7 @@ contract Election3 {
         );
 
         votedInElection[msg.sender] = currentElectionId;
-        candidates[_candidateId].voteCount++;
+        candidates[currentElectionId][_candidateId].voteCount++;
 
         emit VoteCast(msg.sender, _candidateId);
     }
@@ -295,7 +297,7 @@ contract Election3 {
 
         // President (optional)
         if (_presidentId > 0) {
-            Candidate storage pres = candidates[_presidentId];
+            Candidate storage pres = candidates[currentElectionId][_presidentId];
             require(pres.exists && pres.position == Position.President, "Invalid president");
             pres.voteCount++;
             emit VoteCast(msg.sender, _presidentId);
@@ -304,7 +306,7 @@ contract Election3 {
 
         // Secretary (optional)
         if (_secretaryId > 0) {
-            Candidate storage sec = candidates[_secretaryId];
+            Candidate storage sec = candidates[currentElectionId][_secretaryId];
             require(sec.exists && sec.position == Position.Secretary, "Invalid secretary");
             sec.voteCount++;
             emit VoteCast(msg.sender, _secretaryId);
@@ -317,7 +319,7 @@ contract Election3 {
         for (uint256 i = 0; i < _gmIds.length; i++) {
             uint256 gid = _gmIds[i];
             require(gid > 0, "Invalid GM ID");
-            Candidate storage gm = candidates[gid];
+            Candidate storage gm = candidates[currentElectionId][gid];
             require(gm.exists && gm.position == Position.GeneralMember, "Invalid GM");
             if (gm.isFemale) femaleCount++;
             gm.voteCount++;
@@ -339,7 +341,7 @@ contract Election3 {
     // =========================
 
     function startNewElection() external onlyAdmin inPhase(Phase.Ended) {
-        require(candidateCount > 0, "No candidates");
+        require(electionCandidateCount[currentElectionId] > 0, "No candidates");
 
         uint256 presWinner = _findWinner(Position.President);
         uint256 secWinner = _findWinner(Position.Secretary);
@@ -347,10 +349,11 @@ contract Election3 {
         // Count GM candidates — enforce 5-minimum and 2-female if any GMs exist
         uint256 gmCount;
         uint256 femaleGMCount;
-        for (uint256 i = 1; i <= candidateCount; i++) {
-            if (candidates[i].exists && candidates[i].position == Position.GeneralMember) {
+        uint256 ec = electionCandidateCount[currentElectionId];
+        for (uint256 i = 1; i <= ec; i++) {
+            if (candidates[currentElectionId][i].exists && candidates[currentElectionId][i].position == Position.GeneralMember) {
                 gmCount++;
-                if (candidates[i].isFemale) femaleGMCount++;
+                if (candidates[currentElectionId][i].isFemale) femaleGMCount++;
             }
         }
         if (gmCount > 0) {
@@ -364,13 +367,12 @@ contract Election3 {
             presidentWinnerId: presWinner,
             secretaryWinnerId: secWinner,
             generalMemberWinnerIds: gmWinners,
-            totalCandidates: candidateCount,
+            totalCandidates: ec,
             timestamp: block.timestamp
         });
         historyCount++;
 
         currentElectionId++;
-        candidateCount = 0;
 
         phase = Phase.Created;
         registrationEnd = 0;
@@ -389,9 +391,10 @@ contract Election3 {
         returns (uint256 winnerId)
     {
         uint256 maxVotes;
+        uint256 ec = electionCandidateCount[currentElectionId];
 
-        for (uint256 i = 1; i <= candidateCount; i++) {
-            Candidate storage c = candidates[i];
+        for (uint256 i = 1; i <= ec; i++) {
+            Candidate storage c = candidates[currentElectionId][i];
 
             if (!c.exists || c.position != _position) continue;
 
@@ -416,13 +419,14 @@ contract Election3 {
         returns (uint256[GENERAL_MEMBERS_ELECTED] memory winners)
     {
         uint256 count;
+        uint256 ec = electionCandidateCount[currentElectionId];
 
         // Pass 1: select top 2 female GM candidates
         for (uint256 f = 0; f < 2; f++) {
             uint256 bestId;
             uint256 bestVotes;
-            for (uint256 i = 1; i <= candidateCount; i++) {
-                Candidate storage c = candidates[i];
+            for (uint256 i = 1; i <= ec; i++) {
+                Candidate storage c = candidates[currentElectionId][i];
                 if (!c.exists || c.position != Position.GeneralMember || !c.isFemale) continue;
 
                 bool already;
@@ -443,8 +447,9 @@ contract Election3 {
         for (uint256 r = 0; r < 3; r++) {
             uint256 bestId;
             uint256 bestVotes;
-            for (uint256 i = 1; i <= candidateCount; i++) {
-                Candidate storage c = candidates[i];
+            uint256 ec2 = electionCandidateCount[currentElectionId];
+            for (uint256 i = 1; i <= ec2; i++) {
+                Candidate storage c = candidates[currentElectionId][i];
                 if (!c.exists || c.position != Position.GeneralMember) continue;
 
                 bool already;
@@ -466,12 +471,27 @@ contract Election3 {
     // 📌 VIEW
     // =========================
 
+    /// @notice Backward-compat: returns candidate for the current election
     function getCandidate(uint256 _id)
         external
         view
         returns (Candidate memory)
     {
-        return candidates[_id];
+        return candidates[currentElectionId][_id];
+    }
+
+    /// @notice Returns candidate from any election (preserves historical data)
+    function getHistoricalCandidate(uint256 _electionId, uint256 _candidateId)
+        external
+        view
+        returns (Candidate memory)
+    {
+        return candidates[_electionId][_candidateId];
+    }
+
+    /// @notice Returns candidate count for the current election
+    function candidateCount() external view returns (uint256) {
+        return electionCandidateCount[currentElectionId];
     }
 
     function getPhase() external view returns (Phase) {

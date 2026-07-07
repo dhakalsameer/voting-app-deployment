@@ -37,15 +37,26 @@ function Avatar({ src, name, size }) {
   );
 }
 
+const POSITION_LABELS = {
+  0: "President",
+  1: "Secretary",
+  2: "General Member",
+};
+
 function getWinners(candidates) {
+  const hasWinnerFlag = candidates.some(c => c.is_winner === true);
+  if (hasWinnerFlag) {
+    const winners = candidates.filter(c => c.is_winner === true);
+    const pres = winners.filter(c => c.position === "President").sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
+    const sec = winners.filter(c => c.position === "Secretary").sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
+    const gms = winners.filter(c => c.position === "General Member").sort((a, b) => Number(b.vote_count) - Number(a.vote_count)).slice(0, 5);
+    return { president: pres[0] || null, secretary: sec[0] || null, gmWinners: gms };
+  }
+  // Fallback: determine winners by vote count
   const pres = candidates.filter(c => c.position === "President").sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
   const sec = candidates.filter(c => c.position === "Secretary").sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
   const gms = candidates.filter(c => c.position === "General Member").sort((a, b) => Number(b.vote_count) - Number(a.vote_count)).slice(0, 5);
-  return {
-    president: pres.length > 0 ? pres[0] : null,
-    secretary: sec.length > 0 ? sec[0] : null,
-    gmWinners: gms,
-  };
+  return { president: pres[0] || null, secretary: sec[0] || null, gmWinners: gms };
 }
 
 function WinnersDeclaration({ candidates, isLive, electionNumber }) {
@@ -233,6 +244,7 @@ function LiveResults() {
   const [stats, setStats] = useState(null);
   const [prevVotes, setPrevVotes] = useState(0);
   const [animateId, setAnimateId] = useState(0);
+  const [latestFinished, setLatestFinished] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -252,7 +264,19 @@ function LiveResults() {
     return () => clearInterval(interval);
   }, []);
 
-  const isOver = stats?.phase === 3 || stats?.phase === 0;
+  useEffect(() => {
+    if (stats?.phase !== 3) { setLatestFinished(null); return; }
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/results/history`);
+        const d = await res.json();
+        if (Array.isArray(d) && d.length > 0) setLatestFinished(d[0]);
+      } catch {}
+    };
+    load();
+  }, [stats?.phase]);
+
+  const isOver = stats?.phase === 3;
 
   if (!stats) {
     return (
@@ -267,7 +291,11 @@ function LiveResults() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {isOver ? (
+          {stats.phase === 0 ? (
+            <span className="text-sm font-bold px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
+              <span>📋</span> Registration Open
+            </span>
+          ) : stats.phase === 3 ? (
             <span className="text-sm font-bold px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
               <span>🏁</span> Voting Concluded
             </span>
@@ -283,6 +311,11 @@ function LiveResults() {
         </div>
         <Countdown votingEnd={stats.votingEnd} />
       </div>
+
+      {/* Show latest election winners when over */}
+      {isOver && latestFinished && (
+        <WinnersDeclaration candidates={latestFinished.candidates} isLive={false} electionNumber={latestFinished.election_number} />
+      )}
 
       {/* Main stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -345,6 +378,10 @@ function LiveResults() {
           <div className="space-y-3">
             {stats.positions.map((pos) => {
               const posVoteShare = stats.votesCast > 0 ? ((pos.votes / stats.votesCast) * 100).toFixed(1) : 0;
+              let barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-app-accent to-app-accent/70";
+              if (pos.position === "President") barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-amber-500 to-amber-400";
+              if (pos.position === "Secretary") barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-sky-500 to-sky-400";
+              if (pos.position === "General Member") barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-emerald-500 to-emerald-400";
               return (
                 <div key={pos.position} className="flex items-center gap-4">
                   <div className="w-28 shrink-0">
@@ -358,7 +395,7 @@ function LiveResults() {
                     </div>
                     <div className="h-2 rounded-full bg-app-border/30 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-app-accent to-app-accent/70 transition-all duration-700"
+                        className={barClass}
                         style={{ width: `${Math.min(posVoteShare, 100)}%` }}
                       />
                     </div>
@@ -449,42 +486,35 @@ export default function Results() {
         for (let i = 0; i < hc; i++) {
           const r = await contract.getElectionResult(i);
           const candidates = [];
-          const presId = Number(r.presidentWinnerId);
-          if (presId > 0) {
-            const c = await contract.getCandidate(presId);
-            if (c.exists) {
-              candidates.push({
-                name: c.name, position: "President",
-                vote_count: Number(c.voteCount), year: String(c.year),
-                gender: c.isFemale ? "female" : "male",
-                photo: getImageUrl(c.imageCID),
-              });
-            }
+
+          // Map each ID to its known position from the contract result structure.
+          // Do NOT use getCandidate().position — the candidates mapping is
+          // overwritten by later elections, so positions for reused IDs are wrong.
+          const knownPositions = new Map();
+          const pid = Number(r.presidentWinnerId);
+          if (pid > 0) knownPositions.set(pid, "President");
+          const sid = Number(r.secretaryWinnerId);
+          if (sid > 0) knownPositions.set(sid, "Secretary");
+          for (const gid of r.generalMemberWinnerIds.map(Number)) {
+            if (gid > 0 && !knownPositions.has(gid)) knownPositions.set(gid, "General Member");
           }
-          const secId = Number(r.secretaryWinnerId);
-          if (secId > 0) {
-            const c = await contract.getCandidate(secId);
-            if (c.exists) {
-              candidates.push({
-                name: c.name, position: "Secretary",
-                vote_count: Number(c.voteCount), year: String(c.year),
-                gender: c.isFemale ? "female" : "male",
-                photo: getImageUrl(c.imageCID),
-              });
-            }
-          }
-          const gmIds = r.generalMemberWinnerIds.map(Number);
-          for (const gid of gmIds) {
-            if (gid === 0) continue;
-            const c = await contract.getCandidate(gid);
-            if (c.exists) {
-              candidates.push({
-                name: c.name, position: "General Member",
-                vote_count: Number(c.voteCount), year: String(c.year),
-                gender: c.isFemale ? "female" : "male",
-                photo: getImageUrl(c.imageCID),
-              });
-            }
+
+          const seen = new Set();
+          for (const [id, knownPos] of knownPositions) {
+            if (seen.has(id)) continue;
+            seen.add(id);
+            try {
+              const c = await contract.getHistoricalCandidate(i + 1, id);
+              if (c.exists) {
+                candidates.push({
+                  name: c.name, position: knownPos,
+                  vote_count: Number(c.voteCount), year: String(c.year),
+                  gender: c.isFemale ? "female" : "male",
+                  photo: getImageUrl(c.imageCID),
+                  is_winner: true,
+                });
+              }
+            } catch {}
           }
           items.push({
             election_number: i + 1,

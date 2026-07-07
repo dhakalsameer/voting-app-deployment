@@ -19,14 +19,22 @@ router.get("/", async (req, res) => {
 
 router.get("/stats", async (req, res) => {
   try {
-    const [voterResult, candidateResult, posResult] = await Promise.all([
+    const [voterResult, candidateResult] = await Promise.all([
       db.query("SELECT COUNT(*)::int AS total FROM students WHERE eligible_to_vote = true"),
       db.query("SELECT COUNT(*)::int AS total FROM candidates"),
-      db.query("SELECT position, COUNT(*)::int AS candidates, SUM(vote_count)::int AS votes FROM candidates GROUP BY position ORDER BY position"),
     ]);
 
     const totalVoters = voterResult.rows[0].total;
     const candidateCount = candidateResult.rows[0].total;
+
+    let posResult;
+    if (candidateCount > 0) {
+      posResult = await db.query(
+        "SELECT position, COUNT(*)::int AS candidates, SUM(vote_count)::int AS votes FROM candidates GROUP BY position ORDER BY position"
+      );
+    } else {
+      posResult = { rows: [] };
+    }
 
     let phase = 0;
     let votingEnd = 0;
@@ -64,7 +72,7 @@ router.get("/stats", async (req, res) => {
 router.get("/history", async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT election_number, candidate_name, candidate_position, candidate_year, candidate_gender, candidate_photo, vote_count, snapshot_at
+      `SELECT election_number, candidate_name, candidate_position, candidate_year, candidate_gender, candidate_photo, vote_count, is_winner, snapshot_at
        FROM election_history
        ORDER BY election_number DESC, candidate_position, vote_count DESC`
     );
@@ -86,6 +94,7 @@ router.get("/history", async (req, res) => {
         year: row.candidate_year,
         gender: row.candidate_gender,
         photo: row.candidate_photo,
+        is_winner: row.is_winner,
       });
     }
 
@@ -107,7 +116,7 @@ router.post("/import-old-history", verifyAdmin, async (_req, res) => {
     }
     let imported = 0;
     for (let i = 0; i < oldCount; i++) {
-      const electionNum = i + 1;
+      const electionNum = 1 + i;
       const dup = await db.query(
         "SELECT COUNT(*)::int AS cnt FROM election_history WHERE election_number = $1", [electionNum]
       );

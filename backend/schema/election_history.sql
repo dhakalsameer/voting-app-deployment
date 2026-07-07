@@ -19,3 +19,13 @@ CREATE INDEX IF NOT EXISTS idx_election_history_number ON election_history(elect
 ALTER TABLE election_history ADD COLUMN IF NOT EXISTS candidate_year   TEXT;
 ALTER TABLE election_history ADD COLUMN IF NOT EXISTS candidate_gender TEXT;
 ALTER TABLE election_history ADD COLUMN IF NOT EXISTS candidate_photo  TEXT;
+ALTER TABLE election_history ADD COLUMN IF NOT EXISTS blockchain_id    INTEGER;
+ALTER TABLE election_history ADD COLUMN IF NOT EXISTS is_winner        BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE election_history ADD COLUMN IF NOT EXISTS wallet_address   TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_election_history_winner ON election_history(election_number, is_winner);
+
+-- Prevent duplicate blockchain_ids within the same election (backfill uses ON CONFLICT against this)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_election_history_number_bc
+  ON election_history(election_number, blockchain_id)
+  WHERE blockchain_id IS NOT NULL;

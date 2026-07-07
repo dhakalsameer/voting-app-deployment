@@ -134,13 +134,38 @@ export const getCandidateByWallet = async (req, res) => {
     if (!wallet) {
       return res.status(400).json({ error: "Wallet address is required" });
     }
-    const result = await db.query(
+    let result = await db.query(
       `SELECT blockchain_id, name, position, wallet_address
        FROM candidates
        WHERE LOWER(wallet_address) = LOWER($1)
        LIMIT 1`,
       [wallet]
     );
+    if (result.rows.length === 0) {
+      // Fall back to election_history (candidates table gets deleted after election ends)
+      result = await db.query(
+        `SELECT blockchain_id, candidate_name AS name, candidate_position AS position, wallet_address
+         FROM election_history
+         WHERE LOWER(wallet_address) = LOWER($1)
+           AND is_winner = true
+         ORDER BY election_number DESC
+         LIMIT 1`,
+        [wallet]
+      );
+    }
+    if (result.rows.length === 0) {
+      // 3rd fallback: match via students table (backfill rows have no wallet_address)
+      result = await db.query(
+        `SELECT eh.blockchain_id, eh.candidate_name AS name, eh.candidate_position AS position, s.wallet_address
+         FROM election_history eh
+         JOIN students s ON LOWER(s.name) = LOWER(eh.candidate_name) AND s.wallet_address IS NOT NULL
+         WHERE LOWER(s.wallet_address) = LOWER($1)
+           AND eh.is_winner = true
+         ORDER BY eh.election_number DESC
+         LIMIT 1`,
+        [wallet]
+      );
+    }
     if (result.rows.length === 0) {
       return res.json(null);
     }
