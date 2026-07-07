@@ -57,7 +57,9 @@ export default function GasHistory({ wallet }) {
         const data = await res.json();
         if (data.totalDistributions > 0) setSummary(data);
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error("Failed to load distribution summary:", err.message);
+    }
   };
 
   const loadYears = async () => {
@@ -72,7 +74,9 @@ export default function GasHistory({ wallet }) {
           .sort();
         setYears(y);
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      console.error("Failed to load distribution years:", err.message);
+    }
   };
 
   const loadHistory = async (p = 1) => {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { API_URL, CONTRACT_ADDRESS_V3, SEPOLIA_NETWORK, SEPOLIA_CHAIN_ID } from "../config";
+import { useState, useEffect, useCallback } from "react";
+import { API_URL, CONTRACT_ADDRESS_V3, SEPOLIA_NETWORK, SEPOLIA_CHAIN_ID, SEPOLIA_CHAIN_HEX } from "../config";
 
 function StatusItem({ label, status, ok, detail, href }) {
   return (
@@ -124,8 +124,37 @@ export default function SystemStatus() {
                 {networkLabel} — Connect MetaMask to verify
               </span>
             ) : (
-              <span className="text-rose-400">
+              <span className="text-rose-400 flex items-center gap-2">
                 {networkLabel} — {chainStatus.toUpperCase()}
+                {chainStatus === "wrong-network" && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await window.ethereum.request({
+                          method: "wallet_switchEthereumChain",
+                          params: [{ chainId: SEPOLIA_CHAIN_HEX }],
+                        });
+                      } catch (e) {
+                        if (e.code === 4902) {
+                          try {
+                            await window.ethereum.request({
+                              method: "wallet_addEthereumChain",
+                              params: [{
+                                chainId: SEPOLIA_CHAIN_HEX,
+                                chainName: SEPOLIA_NETWORK,
+                                rpcUrls: ["https://rpc.sepolia.org"],
+                                nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+                              }],
+                            });
+                          } catch {}
+                        }
+                      }
+                    }}
+                    className="ml-1 text-xs underline hover:text-sky-300 transition-colors cursor-pointer"
+                  >
+                    Switch
+                  </button>
+                )}
               </span>
             )}
           </div>

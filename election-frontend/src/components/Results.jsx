@@ -245,18 +245,23 @@ function LiveResults() {
   const [prevVotes, setPrevVotes] = useState(0);
   const [animateId, setAnimateId] = useState(0);
   const [latestFinished, setLatestFinished] = useState(null);
+  const [statsError, setStatsError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await fetch(`${API_URL}/api/results/stats`);
+        if (!res.ok) throw new Error(`Stats API returned ${res.status}`);
         const d = await res.json();
         if (d) {
           if (d.votesCast > prevVotes) setAnimateId((id) => id + 1);
           setPrevVotes(d.votesCast);
           setStats(d);
+          setStatsError(null);
         }
-      } catch {}
+      } catch (err) {
+        setStatsError(err.message);
+      }
     };
 
     fetchStats();
@@ -269,9 +274,12 @@ function LiveResults() {
     const load = async () => {
       try {
         const res = await fetch(`${API_URL}/api/results/history`);
+        if (!res.ok) throw new Error(`History API returned ${res.status}`);
         const d = await res.json();
         if (Array.isArray(d) && d.length > 0) setLatestFinished(d[0]);
-      } catch {}
+      } catch (err) {
+        console.error("Failed to load latest finished election:", err.message);
+      }
     };
     load();
   }, [stats?.phase]);
@@ -279,6 +287,20 @@ function LiveResults() {
   const isOver = stats?.phase === 3;
 
   if (!stats) {
+    if (statsError) {
+      return (
+        <div className="py-8 text-center">
+          <p className="text-sm text-rose-400">Could not load election data</p>
+          <p className="text-xs text-app-muted-text mt-1">{statsError}</p>
+          <button
+            onClick={() => { setStatsError(null); setStats(null); }}
+            className="mt-3 text-xs text-sky-400 underline hover:text-sky-300 cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="py-8 text-center">
         <p className="text-base text-app-muted-text italic animate-pulse">Loading election dashboard...</p>
@@ -531,9 +553,12 @@ export default function Results() {
     const fetchHistory = async () => {
       try {
         const res = await fetch(`${API_URL}/api/results/history`);
+        if (!res.ok) throw new Error(`History API returned ${res.status}`);
         const d = await res.json();
         if (Array.isArray(d) && d.length > 0) { setHistory(d); return; }
-      } catch {}
+      } catch (err) {
+        console.error("Failed to fetch history from API, trying contract fallback:", err.message);
+      }
       await loadHistoryFromContract();
     };
     fetchHistory();

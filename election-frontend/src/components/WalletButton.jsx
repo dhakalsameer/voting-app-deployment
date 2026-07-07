@@ -1,16 +1,17 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContextValue";
 import { useBalance } from "../hooks/useBalance";
 import { useToast } from "./ui/Toast";
 
 export default function WalletButton() {
-  const { wallet, student, connectWallet, loading } = useContext(AuthContext);
+  const { wallet, student, connectWallet, disconnectWallet, loading } = useContext(AuthContext);
   const { balance } = useBalance(wallet);
   const { error: showError } = useToast();
+  const [showMenu, setShowMenu] = useState(false);
 
   if (wallet) {
     return (
-      <div className="flex items-center gap-1 md:gap-2 rounded-lg border border-app-border bg-app-accent-soft px-2 md:px-3 py-2.5">
+      <div className="relative flex items-center gap-1 md:gap-2 rounded-lg border border-app-border bg-app-accent-soft px-2 md:px-3 py-2.5">
         <span className="flex items-center gap-1 md:gap-1.5 text-sm md:text-base font-mono text-app-muted-text whitespace-nowrap">
           <svg className="h-4 w-4 md:h-5 md:w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
@@ -27,6 +28,39 @@ export default function WalletButton() {
         )}
         <span className="w-px h-5 bg-app-border/50 shrink-0" />
         <span className="text-sm lg:text-base font-mono text-app-accent whitespace-nowrap hidden lg:inline">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="ml-1 p-1 rounded-md hover:bg-app-border/30 transition-colors cursor-pointer"
+          title="Wallet options"
+        >
+          <svg className="h-4 w-4 text-app-muted-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="5" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+            <circle cx="12" cy="19" r="1.5" />
+          </svg>
+        </button>
+        {showMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+            <div className="absolute right-0 top-full mt-1 z-50 min-w-[160px] rounded-lg border border-app-border bg-app-bg shadow-xl py-1">
+              <button
+                onClick={async () => {
+                  setShowMenu(false);
+                  await disconnectWallet();
+                  showError("Wallet disconnected");
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-rose-400 hover:bg-app-accent-soft transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Disconnect
+              </button>
+            </div>
+          </>
+        )}
       </div>
     );
   }

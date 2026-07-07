@@ -67,6 +67,31 @@ export function AuthProvider({ children }) {
     }
   }, [provider]);
 
+  const disconnectWallet = async () => {
+    setWallet(null);
+    setStudent(null);
+    setIsAdmin(false);
+    setVoterStatus({
+      registered: false,
+      walletLinked: false,
+      verified: false,
+      canVote: false,
+      hasVoted: false,
+      image_cid: null,
+      name: null,
+    });
+    try {
+      if (window.ethereum) {
+        await window.ethereum.request({
+          method: "wallet_revokePermissions",
+          params: [{ eth_accounts: {} }],
+        });
+      }
+    } catch {
+      // wallet_revokePermissions not supported (MetaMask), fallback to clearing state
+    }
+  };
+
   const connectWallet = async () => {
     if (!window.ethereum) {
       alert("MetaMask not found!");
@@ -137,6 +162,7 @@ export function AuthProvider({ children }) {
         isAdmin,
         voterStatus,
         connectWallet,
+        disconnectWallet,
         checkVoterStatus,
         loading,
         authError,

@@ -13,22 +13,32 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState(null);
+  const [historyError, setHistoryError] = useState(null);
   const [selectedElection, setSelectedElection] = useState("live");
 
   const fetchData = async () => {
     try {
       const res = await fetch(`${API_URL}/api/results`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const results = await res.json();
       setData(Array.isArray(results) ? results : []);
-    } catch { /* ignore */ }
+      setDataError(null);
+    } catch (err) {
+      setDataError(err.message);
+    }
   };
 
   const fetchHistory = async () => {
     try {
       const res = await fetch(`${API_URL}/api/results/history`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
       const d = await res.json();
       if (Array.isArray(d)) setHistory(d);
-    } catch { /* ignore */ }
+      setHistoryError(null);
+    } catch (err) {
+      setHistoryError(err.message);
+    }
   };
 
   useEffect(() => {
@@ -218,10 +228,25 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  if (loading) {
+  if (loading && !dataError) {
     return (
       <div className="glass-panel rounded-2xl border border-app p-8 text-center text-app-muted font-mono italic animate-pulse">
         Processing analytics engine...
+      </div>
+    );
+  }
+
+  if (dataError && data.length === 0) {
+    return (
+      <div className="glass-panel rounded-2xl border border-app/40 p-8 text-center">
+        <p className="text-sm text-rose-400 mb-1">Could not load candidate data</p>
+        <p className="text-xs text-app-muted-text mb-3">{dataError}</p>
+        <button
+          onClick={() => { setDataError(null); fetchData(); }}
+          className="text-xs text-sky-400 underline hover:text-sky-300 cursor-pointer"
+        >
+          Retry
+        </button>
       </div>
     );
   }
