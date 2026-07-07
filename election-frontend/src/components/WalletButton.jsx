@@ -4,7 +4,7 @@ import { useBalance } from "../hooks/useBalance";
 import { useToast } from "./ui/Toast";
 
 export default function WalletButton() {
-  const { wallet, connectWallet, loading } = useContext(AuthContext);
+  const { wallet, student, connectWallet, loading } = useContext(AuthContext);
   const { balance } = useBalance(wallet);
   const { error: showError } = useToast();
 
@@ -18,6 +18,12 @@ export default function WalletButton() {
           </svg>
           {balance ? `${Number(balance).toFixed(4)} ETH` : "--"}
         </span>
+        {student?.student_id && (
+          <>
+            <span className="w-px h-6 bg-app-border/50 shrink-0" />
+            <span className="text-lg font-mono text-app-accent whitespace-nowrap">{student.student_id}</span>
+          </>
+        )}
         <span className="w-px h-6 bg-app-border/50 shrink-0" />
         <span className="text-lg font-mono text-app-accent whitespace-nowrap">{wallet.slice(0, 6)}...{wallet.slice(-4)}</span>
       </div>
