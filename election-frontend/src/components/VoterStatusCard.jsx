@@ -111,20 +111,35 @@ export default function VoterStatusCard({ voterStatus, balance }) {
       </div>
 
       <div
-        className={`flex items-center gap-2.5 rounded-xl border px-4 py-3 ${
+        className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 ${
           allDone
-            ? "border-emerald-500/20 bg-emerald-500/[0.04]"
-            : "border-amber-500/20 bg-amber-500/[0.04]"
+            ? "border-emerald-200 bg-emerald-50"
+            : "border-slate-200 bg-white shadow-sm"
         }`}
       >
-        <span className="text-lg shrink-0">{statusIcon}</span>
-        <p
-          className={`text-sm font-bold ${
-            allDone ? "text-emerald-400" : "text-amber-400"
-          }`}
-        >
-          {statusText}
-        </p>
+        <span className={`shrink-0 flex items-center justify-center h-8 w-8 rounded-lg ${
+          allDone ? "bg-emerald-100" : "bg-slate-100"
+        }`}>
+          <span className={`text-sm ${allDone ? "" : "text-slate-600"}`}>{statusIcon}</span>
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-semibold ${
+            allDone ? "text-emerald-700" : "text-slate-800"
+          }`}>
+            {statusText}
+          </p>
+          {!allDone && (
+            <p className="text-xs text-slate-500 mt-0.5">
+              {!voterStatus.registered
+                ? "Create your account to get started"
+                : !voterStatus.walletLinked
+                  ? "Connect MetaMask to link your wallet"
+                  : !voterStatus.verified
+                    ? "Admin will verify your registration"
+                    : "Complete the remaining steps"}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
