@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (window.ethereum && window.ethereum.setMaxListeners) {
-      window.ethereum.setMaxListeners(20);
+      window.ethereum.setMaxListeners(50);
     }
   }, []);
 

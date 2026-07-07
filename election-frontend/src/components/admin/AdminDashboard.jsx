@@ -11,7 +11,7 @@ import { useBalance } from "../../hooks/useBalance";
 const ADMIN_TABS = [
   { id: "controls", label: "Controls", icon: "⚙️" },
   { id: "voters", label: "Voters", icon: "👥" },
-  { id: "gas", label: "Funds", icon: "⛽" },
+  { id: "gas", label: "Funds", icon: "💰" },
 ];
 
 export default function AdminDashboard() {
