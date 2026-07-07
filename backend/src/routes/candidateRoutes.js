@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
-import { getCandidates, getPendingCandidates, applyAsCandidate, approveCandidate, rejectCandidate, getMyCandidateStatus } from "../controllers/candidateController.js";
+import { getCandidates, getPendingCandidates, applyAsCandidate, approveCandidate, rejectCandidate, getCandidateByWallet, getMyCandidateStatus } from "../controllers/candidateController.js";
 import { uploadToIPFS } from "../services/ipfsService.js";
 import { requireStudentAuth } from "../middleware/auth.js";
 import { verifyAdmin } from "../middleware/admin.js";
@@ -44,6 +44,7 @@ const router = express.Router();
 
 router.get("/", getCandidates);
 router.get("/pending", verifyAdmin, getPendingCandidates);
+router.get("/by-wallet/:wallet", getCandidateByWallet);
 router.post("/apply", requireStudentAuth, applyAsCandidate);
 router.get("/me", requireStudentAuth, getMyCandidateStatus);
 router.post("/:id/approve", verifyAdmin, approveCandidate);

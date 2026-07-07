@@ -128,6 +128,29 @@ export const rejectCandidate = async (req, res) => {
   }
 };
 
+export const getCandidateByWallet = async (req, res) => {
+  try {
+    const { wallet } = req.params;
+    if (!wallet) {
+      return res.status(400).json({ error: "Wallet address is required" });
+    }
+    const result = await db.query(
+      `SELECT blockchain_id, name, position, wallet_address
+       FROM candidates
+       WHERE LOWER(wallet_address) = LOWER($1)
+       LIMIT 1`,
+      [wallet]
+    );
+    if (result.rows.length === 0) {
+      return res.json(null);
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("getCandidateByWallet error:", error);
+    res.status(500).json({ error: "Failed to fetch candidate" });
+  }
+};
+
 export const getMyCandidateStatus = async (req, res) => {
   try {
     const studentId = req.user?.student_id;

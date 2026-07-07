@@ -9,6 +9,7 @@ import MainRegistrationBanner from "./components/MainRegistrationBanner";
 import ScrollToTop from "./components/ui/ScrollToTop";
 import Cube3D from "./components/ui/Cube3D";
 import LandingPage from "./components/LandingPage";
+import WinnerBanner from "./components/WinnerBanner";
 
 const VotingPanelV3 = lazy(() => import("./components/VotingPanelV3"));
 const LiveStatsSidebar = lazy(() => import("./components/LiveStatsSidebar"));
@@ -206,6 +207,7 @@ function App() {
                       </Suspense>
                     </div>
                     <div className="space-y-4 min-w-0">
+                      <WinnerBanner />
                       <VoterStatusCard voterStatus={voterStatus} balance={balance} />
                       <MainRegistrationBanner />
                       <Suspense fallback={<LoadingSection />}>
@@ -224,10 +226,20 @@ function App() {
                 </AnimatedPage>
               )}
 
-              {currentTab === "results" && (
+              {currentTab === "results" && !isAdmin && (
+                <AnimatedPage key="results">
+                  <div className="space-y-4">
+                    <WinnerBanner />
+                    <Suspense fallback={<LoadingSection />}>
+                      <Results />
+                    </Suspense>
+                  </div>
+                </AnimatedPage>
+              )}
+              {currentTab === "results" && isAdmin && (
                 <AnimatedPage key="results">
                   <Suspense fallback={<LoadingSection />}>
-                    {isAdmin ? <AnalyticsDashboard /> : <Results />}
+                    <AnalyticsDashboard />
                   </Suspense>
                 </AnimatedPage>
               )}
