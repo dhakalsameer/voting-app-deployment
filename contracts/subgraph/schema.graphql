@@ -28,7 +28,7 @@ type ElectionResult @entity(immutable: true) {
   index: BigInt!
   presidentWinnerId: BigInt!
   secretaryWinnerId: BigInt!
-  generalMemberWinnerId: BigInt!
+  generalMemberWinnerIds: [BigInt!]!
   totalCandidates: BigInt!
   timestamp: BigInt!
 }

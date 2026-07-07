@@ -1,8 +1,11 @@
 import {
   VoteCast,
+  BallotCast,
   CandidateRegistered,
   MerkleRootUpdated,
   IdentityMerkleRootUpdated,
+  RegCodeMerkleRootUpdated,
+  PhaseChanged,
   NewElectionStarted,
 } from "./generated/Election3/Election3";
 import { Vote, Candidate, ElectionMeta, ElectionResult } from "./generated/schema";
@@ -65,6 +68,29 @@ export function handleIdentityMerkleRootUpdated(
 ): void {
   let meta = getOrCreateMeta();
   meta.identityMerkleRoot = event.params.newRoot;
+  meta.save();
+}
+
+export function handleBallotCast(event: BallotCast): void {
+  let vote = new Vote(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+  vote.voter = event.params.voter;
+  vote.candidateId = event.params.presId > BigInt.fromI32(0) ? event.params.presId : event.params.secId;
+  vote.timestamp = event.block.timestamp;
+  vote.txHash = event.transaction.hash;
+  vote.blockNumber = event.block.number;
+  vote.save();
+
+  let meta = getOrCreateMeta();
+  meta.voterCount = meta.voterCount.plus(BigInt.fromI32(1));
+  meta.save();
+}
+
+export function handlePhaseChanged(event: PhaseChanged): void {}
+
+export function handleRegCodeMerkleRootUpdated(event: RegCodeMerkleRootUpdated): void {
+  let meta = getOrCreateMeta();
   meta.save();
 }
 

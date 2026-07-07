@@ -537,6 +537,37 @@
     },
     {
       "type": "event",
+      "name": "BallotCast",
+      "inputs": [
+        {
+          "name": "voter",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "presId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "secId",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        },
+        {
+          "name": "gmIds",
+          "type": "uint256[]",
+          "indexed": false,
+          "internalType": "uint256[]"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
       "name": "CandidateRegistered",
       "inputs": [
         {
@@ -562,6 +593,12 @@
           "type": "uint8",
           "indexed": false,
           "internalType": "enum Election3.Position"
+        },
+        {
+          "name": "imageCID",
+          "type": "string",
+          "indexed": false,
+          "internalType": "string"
         }
       ],
       "anonymous": false
@@ -614,6 +651,19 @@
           "type": "uint8",
           "indexed": false,
           "internalType": "enum Election3.Phase"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RegCodeMerkleRootUpdated",
+      "inputs": [
+        {
+          "name": "newRoot",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
         }
       ],
       "anonymous": false
