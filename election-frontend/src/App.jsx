@@ -15,6 +15,7 @@ const VotingPanelV3 = lazy(() => import("./components/VotingPanelV3"));
 const LiveStatsSidebar = lazy(() => import("./components/LiveStatsSidebar"));
 const Results = lazy(() => import("./components/Results"));
 const LiveBlockchainDashboard = lazy(() => import("./components/LiveBlockchainDashboard"));
+const VoterGuide = lazy(() => import("./components/VoterGuide"));
 const ArchitectureOverview = lazy(() => import("./components/ArchitectureOverview"));
 const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard"));
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
@@ -255,9 +256,19 @@ function App() {
               {currentTab === "docs" && (
                 <AnimatedPage key="docs">
                   <Suspense fallback={<LoadingSection />}>
-                    <ArchitectureOverview />
+                    <VoterGuide />
                   </Suspense>
                 </AnimatedPage>
+              )}
+              {currentTab === "docs" && (
+                <details className="mt-8 max-w-3xl mx-auto">
+                  <summary className="text-sm text-app-muted-text cursor-pointer hover:text-app-accent transition-colors px-1 py-2 select-none">
+                    System architecture (for developers)
+                  </summary>
+                  <div className="mt-4">
+                    <ArchitectureOverview />
+                  </div>
+                </details>
               )}
             </AnimatePresence>
           </div>
