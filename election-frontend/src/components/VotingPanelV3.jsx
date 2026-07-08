@@ -735,8 +735,8 @@ export default function VotingPanelV3() {
                         {selectedGMIds.length > 0 && (
                           <div className="space-y-2">
                             {selectedGMIds.map((id, i) => (
-                              <div key={id} className="flex items-center gap-3 bg-app-surface/60 rounded-xl px-4 py-2.5 border border-app-border/30">
-                                <span className="h-7 w-7 rounded-lg bg-app-muted/60 flex items-center justify-center text-xs font-black text-app-muted-text font-mono">{i + 1}</span>
+                              <div key={id} className="flex items-center gap-3 bg-app-elevated rounded-xl px-4 py-2.5 border border-app-border">
+                                <span className="h-7 w-7 rounded-lg bg-app-muted flex items-center justify-center text-xs font-black text-app-muted-text font-mono">{i + 1}</span>
                                 <p className="text-sm font-bold text-app-heading flex-1">{selectedName(id)}</p>
                                 <svg className="h-4 w-4 text-app-trust shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
                               </div>
