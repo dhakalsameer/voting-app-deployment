@@ -252,8 +252,15 @@ export default function VotingPanelV3() {
   const canSubmit = canVote && totalSelected > 0 &&
     (selectedGMIds.length === 0 || gmFemaleSelected >= GM_MIN_FEMALE);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const skippedPresident = !selectedPresidentId && grouped[0]?.length > 0;
+  const skippedSecretary = !selectedSecretaryId && grouped[1]?.length > 0;
+  const skippedGM = selectedGMIds.length === 0 && grouped[2]?.length > 0;
+
   const castVote = async () => {
     if (!wallet || !canSubmit) return;
+    setShowConfirm(false);
     setCasting(true);
     try {
       let proof;
@@ -606,7 +613,7 @@ export default function VotingPanelV3() {
 
             {phase === 2 && (
               <button
-                onClick={castVote}
+                onClick={() => setShowConfirm(true)}
                 disabled={casting || !canSubmit}
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-base font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer"
               >
@@ -630,6 +637,102 @@ export default function VotingPanelV3() {
                   "Select candidates above"
                 )}
               </button>
+            )}
+
+            {showConfirm && (
+              <>
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
+                <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4">
+                  <div className="rounded-2xl border border-app-border bg-app-bg shadow-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-app/50">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-sky-500/20 flex items-center justify-center">
+                          <svg className="h-5 w-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-app-heading">Confirm Your Vote</h3>
+                          <p className="text-sm text-app-muted-text">Review your selections before submitting</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 space-y-3 max-h-[50vh] overflow-y-auto">
+                      {/* President */}
+                      <div className={`rounded-xl border p-4 ${skippedPresident ? "border-amber-500/30 bg-amber-500/[0.04]" : "border-app-border/40 bg-app-surface"}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-app-heading">🏛️ President</span>
+                          {selectedPresidentId ? (
+                            <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Selected</span>
+                          ) : (
+                            <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">Skipped</span>
+                          )}
+                        </div>
+                        {selectedPresidentId && (
+                          <p className="text-sm text-app-body mt-1.5 font-semibold">{selectedName(selectedPresidentId)}</p>
+                        )}
+                        {skippedPresident && (
+                          <p className="text-xs text-amber-400 mt-1.5">You skipped the President position. This means you abstain.</p>
+                        )}
+                      </div>
+
+                      {/* Secretary */}
+                      <div className={`rounded-xl border p-4 ${skippedSecretary ? "border-amber-500/30 bg-amber-500/[0.04]" : "border-app-border/40 bg-app-surface"}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-app-heading">📋 Secretary</span>
+                          {selectedSecretaryId ? (
+                            <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Selected</span>
+                          ) : (
+                            <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">Skipped</span>
+                          )}
+                        </div>
+                        {selectedSecretaryId && (
+                          <p className="text-sm text-app-body mt-1.5 font-semibold">{selectedName(selectedSecretaryId)}</p>
+                        )}
+                        {skippedSecretary && (
+                          <p className="text-xs text-amber-400 mt-1.5">You skipped the Secretary position. This means you abstain.</p>
+                        )}
+                      </div>
+
+                      {/* General Members */}
+                      <div className={`rounded-xl border p-4 ${skippedGM ? "border-amber-500/30 bg-amber-500/[0.04]" : "border-app-border/40 bg-app-surface"}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-app-heading">👥 General Members</span>
+                          {selectedGMIds.length > 0 ? (
+                            <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">{selectedGMIds.length}/{GM_MAX}</span>
+                          ) : (
+                            <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">Skipped</span>
+                          )}
+                        </div>
+                        {selectedGMIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {selectedGMIds.map(id => (
+                              <span key={id} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-app-surface border border-app-border/40 text-app-heading">{selectedName(id)}</span>
+                            ))}
+                          </div>
+                        )}
+                        {skippedGM && (
+                          <p className="text-xs text-amber-400 mt-1.5">You skipped General Members. No GM votes will be cast.</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="px-6 py-4 border-t border-app/50 flex items-center gap-3">
+                      <button
+                        onClick={() => setShowConfirm(false)}
+                        className="flex-1 py-3 rounded-xl border border-app-border text-sm font-bold text-app-muted-text hover:bg-app-accent-soft transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={castVote}
+                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-sm font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 transition-all shadow-lg shadow-emerald-500/25 cursor-pointer"
+                      >
+                        Confirm & Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
