@@ -725,7 +725,7 @@ export default function VotingPanelV3() {
                       </button>
                       <button
                         onClick={castVote}
-                        className="flex-1 py-3 rounded-xl bg-app-accent text-sm font-extrabold text-white uppercase tracking-wider hover:brightness-110 transition-all shadow-lg shadow-app-accent/25 cursor-pointer"
+                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-sm font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 cursor-pointer"
                       >
                         Confirm & Submit
                       </button>
