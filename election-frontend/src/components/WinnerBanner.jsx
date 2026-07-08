@@ -125,7 +125,7 @@ export default function WinnerBanner() {
             )}
             {winnerInfo.gender && (
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                isFemale ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
               }`}>{winnerInfo.gender}</span>
             )}
           </div>

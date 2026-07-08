@@ -82,7 +82,7 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
                 {winners.president.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
                 {winners.president.gender && (
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                    winners.president.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                    winners.president.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                   }`}>{winners.president.gender}</span>
                 )}
               </div>
@@ -103,7 +103,7 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
                 {winners.secretary.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
                 {winners.secretary.gender && (
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                    winners.secretary.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                    winners.secretary.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                   }`}>{winners.secretary.gender}</span>
                 )}
               </div>
@@ -127,7 +127,7 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
                   {gm.year && <span className="text-[10px] text-app-muted-text">{fmtYear(gm.year)}</span>}
                   {gm.gender && (
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                      gm.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                      gm.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                     }`}>{gm.gender}</span>
                   )}
                 </div>
@@ -167,7 +167,7 @@ function CandidateCard({ candidate, maxVotes }) {
           )}
           {candidate.gender && (
             <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-              candidate.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+              candidate.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
             }`}>
               {candidate.gender}
             </span>
@@ -198,10 +198,10 @@ function PositionSection({ title, candidates, maxVotes }) {
       : "border-l-emerald-500 bg-emerald-500/[0.03]";
 
   const badgeColor = title === "President"
-    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
     : title === "Secretary"
-      ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
-      : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      ? "bg-app-accent/10 text-app-accent border-app-accent-border"
+      : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
 
   return (
     <div className={`border-l-4 ${colors} rounded-r-xl p-5 space-y-4`}>
@@ -313,7 +313,7 @@ function LiveResults() {
           <p className="text-xs text-app-muted-text mt-1">{statsError}</p>
           <button
             onClick={() => { setStatsError(null); setStats(null); }}
-            className="mt-3 text-xs text-sky-400 underline hover:text-sky-300 cursor-pointer"
+            className="mt-3 text-xs text-app-accent underline hover:text-app-accent/80 cursor-pointer"
           >
             Retry
           </button>

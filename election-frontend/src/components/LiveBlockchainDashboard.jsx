@@ -32,7 +32,7 @@ function truncate(hash) {
 function Badge({ variant, children }) {
   const colors = {
     emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    blue:    "bg-sky-500/10    text-sky-400    border-sky-500/20",
+    blue:    "bg-app-accent/10 text-app-accent   border-app-accent/20",
     amber:   "bg-amber-500/10  text-amber-400  border-amber-500/20",
     violet:  "bg-violet-500/10 text-violet-400 border-violet-500/20",
     cyan:    "bg-cyan-500/10   text-cyan-400   border-cyan-500/20",

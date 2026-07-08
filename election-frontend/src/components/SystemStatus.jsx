@@ -19,12 +19,12 @@ function StatusItem({ label, status, ok, detail, href }) {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sky-300 hover:text-sky-200 transition-colors underline truncate max-w-[140px] sm:max-w-none"
+                className="text-app-accent hover:text-app-accent/80 transition-colors underline truncate max-w-[140px] sm:max-w-none"
         >
           {detail}
         </a>
       ) : (
-        <span className={ok ? "text-sky-300 font-bold" : "text-rose-400"}>{detail}</span>
+        <span className={ok ? "text-app-accent font-bold" : "text-rose-400"}>{detail}</span>
       )}
     </div>
   );
@@ -115,7 +115,7 @@ export default function SystemStatus() {
                 href={`https://sepolia.etherscan.io`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sky-300 hover:text-sky-200 transition-colors underline truncate max-w-[140px] sm:max-w-none"
+          className="text-app-accent hover:text-app-accent/80 transition-colors underline truncate max-w-[140px] sm:max-w-none"
               >
                 {networkLabel} (LIVE)
               </a>
@@ -150,7 +150,7 @@ export default function SystemStatus() {
                         }
                       }
                     }}
-                    className="ml-1 text-xs underline hover:text-sky-300 transition-colors cursor-pointer"
+                    className="ml-1 text-xs underline hover:text-app-accent transition-colors cursor-pointer"
                   >
                     Switch
                   </button>

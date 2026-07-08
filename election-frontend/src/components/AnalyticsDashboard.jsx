@@ -162,7 +162,7 @@ export default function AnalyticsDashboard() {
                     {winners.president.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
                     {winners.president.gender && (
                       <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                        winners.president.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                        winners.president.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                       }`}>{winners.president.gender}</span>
                     )}
                   </div>
@@ -183,7 +183,7 @@ export default function AnalyticsDashboard() {
                     {winners.secretary.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
                     {winners.secretary.gender && (
                       <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                        winners.secretary.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                        winners.secretary.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                       }`}>{winners.secretary.gender}</span>
                     )}
                   </div>
@@ -210,7 +210,7 @@ export default function AnalyticsDashboard() {
                         {gm.year && <span className="whitespace-nowrap">{fmtYear(gm.year)}</span>}
                         {gm.gender && (
                           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0 ${
-                            gm.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                            gm.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                           }`}>{gm.gender}</span>
                         )}
                       </div>
@@ -243,7 +243,7 @@ export default function AnalyticsDashboard() {
         <p className="text-xs text-app-muted-text mb-3">{dataError}</p>
         <button
           onClick={() => { setDataError(null); fetchData(); }}
-          className="text-xs text-sky-400 underline hover:text-sky-300 cursor-pointer"
+          className="text-xs text-app-accent underline hover:text-app-accent/80 cursor-pointer"
         >
           Retry
         </button>

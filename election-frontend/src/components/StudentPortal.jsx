@@ -457,7 +457,7 @@ function RegisterView({ onLogin }) {
 
           {wallet && merkleProof && onChainVerified === null && (
             <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-4 py-3">
-              <p className="text-sm text-sky-400 font-medium">Code will be verified on-chain</p>
+              <p className="text-sm text-app-accent font-medium">Code will be verified on-chain</p>
               <p className="text-base text-app-muted-text mt-1">
                 Your registration code will be verified against the blockchain before registering.
               </p>

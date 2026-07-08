@@ -50,13 +50,13 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
         disabled ? "opacity-35 cursor-not-allowed" : ""
       } ${
         selected
-          ? "border-sky-400 bg-sky-400/[0.06] shadow-[0_0_12px_rgba(56,189,248,0.08)]"
+          ? "border-app-accent bg-app-accent-soft shadow-[0_0_12px_var(--app-accent-border)]"
           : "border-app-border/40 bg-app-surface hover:border-app-border-soft hover:bg-app-elevated/20"
       }`}
     >
       <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold font-mono transition-all ${
         selected
-          ? "bg-sky-400/20 text-sky-400 border-2 border-sky-400/30"
+          ? "bg-app-accent/20 text-app-accent border-2 border-app-accent/30"
           : "bg-app-muted/40 text-app-muted-text border border-app-border/40"
       }`}>
         {index}
@@ -73,7 +73,7 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
       </div>
 
       <div className="flex-1 min-w-0 text-left">
-        <p className={`text-base font-bold truncate leading-tight ${selected ? "text-sky-300" : "text-app-heading"}`}>
+        <p className={`text-base font-bold truncate leading-tight ${selected ? "text-app-accent" : "text-app-heading"}`}>
           {candidate.name}
         </p>
         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -90,7 +90,7 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
         <div className="flex items-center gap-2 mt-1">
           {candidate.isFemale !== undefined && (
             <span className={`text-xs font-bold tracking-wider px-2 py-0.5 rounded ${
-              candidate.isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+              candidate.isFemale ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
             }`}>
               {candidate.isFemale ? "Female" : "Male"}
             </span>
@@ -103,7 +103,7 @@ function CandidateCard({ candidate, selected, onToggle, disabled: forceDisabled,
 
       <div className={`h-9 w-9 shrink-0 rounded-full border-2 flex items-center justify-center transition-all ${
         selected
-          ? "border-sky-400 bg-sky-400 shadow-sm shadow-sky-400/30"
+          ? "border-app-accent bg-app-accent shadow-sm shadow-app-accent/30"
           : "border-app-border/60"
       }`}>
         {selected && (
@@ -320,8 +320,8 @@ export default function VotingPanelV3() {
                 {phase !== null && (
                   <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                     phase === 2
-                      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                      : "text-sky-400 bg-sky-500/10 border-sky-500/20"
+                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                      : "text-app-accent bg-app-accent-soft border-app-accent-border"
                   }`}>
                     {PHASE_NAMES[phase]}
                   </span>
@@ -563,17 +563,17 @@ export default function VotingPanelV3() {
         {totalCandidates > 0 && (
           <div className="space-y-4 pt-4 border-t border-app/40">
             {canVote && totalSelected > 0 && (
-              <div className="rounded-xl border border-sky-500/20 bg-gradient-to-br from-sky-500/[0.06] to-sky-500/[0.02] p-5 space-y-3">
+              <div className="rounded-xl border border-app-accent-border bg-app-accent-soft p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-sky-500/20 flex items-center justify-center">
-                      <svg className="h-3.5 w-3.5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="h-6 w-6 rounded-full bg-app-accent/20 flex items-center justify-center">
+                      <svg className="h-3.5 w-3.5 text-app-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
-                    <p className="text-sm font-bold text-sky-400">Ballot Summary</p>
+                    <p className="text-sm font-bold text-app-accent">Ballot Summary</p>
                   </div>
-                  <span className="text-xs font-mono font-bold text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/20">
+                  <span className="text-xs font-mono font-bold text-app-accent bg-app-accent/10 px-2.5 py-1 rounded-full border border-app-accent-border">
                     {totalSelected} vote{totalSelected > 1 ? "s" : ""}
                   </span>
                 </div>

@@ -23,7 +23,7 @@ const EVENT_LABELS = {
 const EVENT_CARD_COLORS = {
   VoteCast:            { border: "border-emerald-500/20", bar: "bg-emerald-500",    text: "text-emerald-400", glow: "shadow-emerald-500/20", from: "from-emerald-500/10", to: "to-emerald-600/5" },
   BallotCast:          { border: "border-emerald-500/20", bar: "bg-emerald-500",    text: "text-emerald-400", glow: "shadow-emerald-500/20", from: "from-emerald-500/10", to: "to-emerald-600/5" },
-  CandidateRegistered: { border: "border-sky-500/20",     bar: "bg-sky-500",        text: "text-sky-400",    glow: "shadow-sky-500/20",    from: "from-sky-500/10",    to: "to-sky-600/5" },
+  CandidateRegistered: { border: "border-app-accent/20",  bar: "bg-app-accent",     text: "text-app-accent", glow: "shadow-app-accent/20",  from: "from-app-accent/10", to: "to-app-accent/5" },
   PhaseChanged:        { border: "border-amber-500/20",   bar: "bg-amber-500",      text: "text-amber-400",  glow: "shadow-amber-500/20",  from: "from-amber-500/10",  to: "to-amber-600/5" },
   NewElectionStarted:  { border: "border-rose-500/20",    bar: "bg-rose-500",       text: "text-rose-400",   glow: "shadow-rose-500/20",   from: "from-rose-500/10",   to: "to-rose-600/5" },
 };
