@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS events (
   block_number INTEGER,
   log_index    INTEGER,
   from_address TEXT,
+  election_id  INTEGER DEFAULT 0,
   args         JSONB NOT NULL DEFAULT '{}',
   timestamp    INTEGER NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()),
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -15,5 +16,6 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp DESC);
 
--- Migration: add from_address column for existing databases
+-- Migrations: add columns for existing databases
 ALTER TABLE events ADD COLUMN IF NOT EXISTS from_address TEXT;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS election_id INTEGER DEFAULT 0;

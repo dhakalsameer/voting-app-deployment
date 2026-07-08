@@ -98,20 +98,6 @@ export async function distributeGas(req, res) {
     }
 
     // ── LIVE DISTRIBUTION ──────────────────────────────────────────────────
-    // Ensure distribution_log table exists
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS distribution_log (
-        id              SERIAL PRIMARY KEY,
-        student_id      TEXT NOT NULL REFERENCES students(student_id),
-        wallet_address  TEXT NOT NULL,
-        amount_eth      TEXT NOT NULL,
-        tx_hash         TEXT,
-        status          TEXT NOT NULL,
-        error           TEXT,
-        distributed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
-    `);
-
     const results = [];
     let nonce = await adminSigner.provider.getTransactionCount(adminSigner.address, "pending");
 

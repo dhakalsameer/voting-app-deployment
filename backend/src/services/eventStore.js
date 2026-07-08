@@ -8,11 +8,6 @@ let loaded = false;
 async function loadCache() {
   if (loaded) return;
 
-  // Auto-migration: ensure columns exist
-  try {
-    await db.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS from_address TEXT`);
-    await db.query(`ALTER TABLE events ADD COLUMN IF NOT EXISTS election_id INTEGER DEFAULT 0`);
-  } catch { /* table may not exist yet */ }
   const result = await db.query(
     `SELECT id, event_name, tx_hash, block_number, log_index, from_address, election_id, args, timestamp
      FROM events ORDER BY timestamp DESC, id DESC LIMIT $1`,
