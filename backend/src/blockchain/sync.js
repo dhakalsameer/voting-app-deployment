@@ -356,11 +356,13 @@ export function startBlockchainSync(io) {
       // Insert any winners from the contract that were missing from the DB
       // Use the known position from the contract result, NOT getCandidate().position
       // (candidates mapping is overwritten by later elections)
+      let missingIds = [];
       for (const [id, knownPosition] of winnerPositions) {
         if (insertedBlockchainIds.has(id)) continue;
         try {
           const c = await electionContractV3.getHistoricalCandidate(electionNum, id);
           if (!c.exists) continue;
+          missingIds.push(id);
           await db.query(
             `INSERT INTO election_history (election_number, candidate_name, candidate_position, vote_count, candidate_year, candidate_gender, candidate_photo, blockchain_id, is_winner)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
@@ -373,7 +375,7 @@ export function startBlockchainSync(io) {
       }
 
       const total = snapRes.rows.length + missingIds.length;
-      console.log(`   → Snapshot saved for election #${electionNum} (${total} candidates, ${winnerIds.size} winners, ${missingIds.length} from contract)`);
+      console.log(`   → Snapshot saved for election #${electionNum} (${total} candidates, ${winnerPositions.size} winners, ${missingIds.length} from contract)`);
     } catch (err) {
       console.error("Snapshot error:", err.message);
     }

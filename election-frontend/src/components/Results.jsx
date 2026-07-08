@@ -143,7 +143,7 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
 
 function CandidateCard({ candidate, maxVotes }) {
   const pct = maxVotes > 0 ? ((candidate.vote_count ?? 0) / maxVotes) * 100 : 0;
-  const imgSrc = candidate.image_cid || candidate.photo;
+  const imgSrc = getImageUrl(candidate.image_cid || candidate.photo);
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
       <div className="aspect-square bg-app-muted/20 flex items-center justify-center overflow-hidden">
