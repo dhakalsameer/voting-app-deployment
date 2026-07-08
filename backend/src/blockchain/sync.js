@@ -402,23 +402,39 @@ export function startBlockchainSync(io) {
           existing.rows.map((row) => `${row.candidate_name}|${row.candidate_position}`)
         );
 
-        let inserted = 0;
+        let updated = 0;
 
-        const tryInsert = async (id, knownPosition) => {
+        const markWinner = async (id, knownPosition) => {
           if (id === 0) return;
-          if (existingBcIds.has(Number(id))) return;
           const c = await electionContractV3.getHistoricalCandidate(electionNum, id);
           if (!c.exists) return;
-          // Use the known position from the election result structure, NOT from
-          // getCandidate().position — the contract's candidates mapping gets
-          // overwritten by later elections, so getCandidate returns wrong positions
-          // for IDs that were reused.
           const nameKey = `${c.name}|${knownPosition}`;
-          if (existingNameKeys.has(nameKey)) {
-            existingBcIds.add(Number(c.id));
-            inserted++;
+
+          // Already exists with a matching blockchain_id → just update is_winner
+          if (existingBcIds.has(Number(id))) {
+            await db.query(
+              `UPDATE election_history SET is_winner = true
+               WHERE election_number = $1 AND blockchain_id = $2`,
+              [electionNum, Number(id)]
+            );
+            updated++;
             return;
           }
+
+          // Already exists by name+position but different blockchain_id → update both
+          if (existingNameKeys.has(nameKey)) {
+            await db.query(
+              `UPDATE election_history SET is_winner = true, blockchain_id = $1
+               WHERE election_number = $2 AND candidate_name = $3 AND candidate_position = $4`,
+              [Number(id), electionNum, c.name, knownPosition]
+            );
+            existingBcIds.add(Number(id));
+            existingNameKeys.add(nameKey);
+            updated++;
+            return;
+          }
+
+          // Brand new entry
           await db.query(
             `INSERT INTO election_history (election_number, candidate_name, candidate_position, vote_count, candidate_year, candidate_gender, candidate_photo, snapshot_at, blockchain_id, is_winner)
              VALUES ($1, $2, $3, $4, $5, $6, $7, to_timestamp($8), $9, true)
@@ -427,19 +443,19 @@ export function startBlockchainSync(io) {
           );
           existingBcIds.add(Number(c.id));
           existingNameKeys.add(nameKey);
-          inserted++;
+          updated++;
         };
 
-        await tryInsert(Number(r.presidentWinnerId), "President");
-        await tryInsert(Number(r.secretaryWinnerId), "Secretary");
+        await markWinner(Number(r.presidentWinnerId), "President");
+        await markWinner(Number(r.secretaryWinnerId), "Secretary");
 
         for (const gid of r.generalMemberWinnerIds.map(Number)) {
           if (gid === 0) continue;
-          await tryInsert(gid, "General Member");
+          await markWinner(gid, "General Member");
         }
 
-        if (inserted > 0) {
-          console.log(`   → Backfilled ${inserted} missing winner(s) for election #${electionNum}`);
+        if (updated > 0) {
+          console.log(`   → Backfilled ${updated} winner(s) for election #${electionNum}`);
         }
       }
     } catch (err) {

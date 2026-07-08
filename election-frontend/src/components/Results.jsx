@@ -155,28 +155,30 @@ function CandidateCard({ candidate, maxVotes }) {
             onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
           />
         ) : null}
-        <div className={`${imgSrc ? "hidden" : "flex"} w-full h-full items-center justify-center text-3xl text-app-muted-text`}>
+        <div className={`${imgSrc ? "hidden" : "flex"} w-full h-full items-center justify-center text-4xl text-app-muted-text`}>
           {candidate.gender === "female" ? "👩" : "🧑"}
         </div>
       </div>
-      <div className="p-3 space-y-1.5">
-        <p className="text-sm font-bold text-app-heading leading-tight truncate">{candidate.name}</p>
-        <div className="flex items-center gap-2 text-[10px] text-app-muted-text">
-          {candidate.year && <span>{candidate.year}</span>}
+      <div className="p-4 space-y-2">
+        <p className="text-base font-bold text-app-heading leading-tight truncate">{candidate.name}</p>
+        <div className="flex items-center gap-2 text-xs text-app-muted-text">
+          {candidate.year && (
+            <span className="font-medium">{candidate.year}</span>
+          )}
           {candidate.gender && (
-            <span className={`px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+            <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
               candidate.gender === "female" ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
             }`}>
               {candidate.gender}
             </span>
           )}
         </div>
-        <div className="pt-1">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-mono text-app-heading font-bold">{candidate.vote_count ?? 0}</span>
-            <span className="text-app-muted-text">votes</span>
+        <div className="pt-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-xl font-black font-mono text-app-heading tabular-nums">{candidate.vote_count ?? 0}</span>
+            <span className="text-sm text-app-muted-text font-medium">votes</span>
           </div>
-          <div className="mt-1 h-1.5 rounded-full bg-app-border/30 overflow-hidden">
+          <div className="mt-2 h-2 rounded-full bg-app-border/30 overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[var(--app-trust)] to-[var(--app-accent)] transition-all duration-1000 ease-out"
               style={{ width: `${pct}%` }}
@@ -189,17 +191,34 @@ function CandidateCard({ candidate, maxVotes }) {
 }
 
 function PositionSection({ title, candidates, maxVotes }) {
+  const colors = title === "President"
+    ? "border-l-amber-500 bg-amber-500/[0.03]"
+    : title === "Secretary"
+      ? "border-l-sky-500 bg-sky-500/[0.03]"
+      : "border-l-emerald-500 bg-emerald-500/[0.03]";
+
+  const badgeColor = title === "President"
+    ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+    : title === "Secretary"
+      ? "bg-sky-500/10 text-sky-400 border-sky-500/20"
+      : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+
   return (
-    <div className="space-y-3">
-      <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">{title}</h4>
+    <div className={`border-l-4 ${colors} rounded-r-xl p-5 space-y-4`}>
+      <div className="flex items-center gap-3">
+        <h4 className="text-lg font-bold text-app-heading">{title}</h4>
+        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}`}>
+          {candidates.length} candidate{candidates.length !== 1 ? "s" : ""}
+        </span>
+      </div>
       {candidates.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {candidates.map((c) => (
             <CandidateCard key={c.name + c.position} candidate={c} maxVotes={maxVotes} />
           ))}
         </div>
       ) : (
-        <p className="text-xs text-app-muted-text italic py-4 text-center">No candidates</p>
+        <p className="text-sm text-app-muted-text italic py-4 text-center">No candidates</p>
       )}
     </div>
   );
@@ -464,18 +483,18 @@ function HistoryResults({ election }) {
   }, [candidates]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <WinnersDeclaration candidates={candidates} isLive={false} electionNumber={election.election_number} />
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-app-body">
+      <div className="flex items-baseline justify-between gap-4 px-1">
+        <span className="text-xl font-semibold text-app-heading">
           {new Date(election.snapshot_at).toLocaleDateString(undefined, {
             year: "numeric", month: "short", day: "numeric",
           })}
         </span>
-        <span className="text-sm font-mono text-app-muted-text ml-auto">{totalVotes} votes</span>
+        <span className="text-lg font-bold font-mono text-app-muted-text">{totalVotes} votes</span>
       </div>
       {candidates.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {POSITIONS.map((pos) =>
             grouped[pos] ? (
               <PositionSection key={pos} title={pos} candidates={grouped[pos]} maxVotes={maxVotes} />
@@ -488,7 +507,7 @@ function HistoryResults({ election }) {
             ))}
         </div>
       ) : (
-        <p className="text-xs text-app-muted-text italic py-4 text-center">No data</p>
+        <p className="text-sm text-app-muted-text italic py-4 text-center">No data</p>
       )}
     </div>
   );

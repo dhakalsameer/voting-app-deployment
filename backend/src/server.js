@@ -72,7 +72,7 @@ const app = express();
 const httpServer = createServer(app);
 
 // --- Security middleware ---
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(morgan("short"));
 
 const authLimiter = rateLimit({
