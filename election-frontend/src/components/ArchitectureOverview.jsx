@@ -66,93 +66,12 @@ function SystemArchitectureDiagram() {
   );
 }
 
-function VotingFlowDiagram() {
-  const boxes = [
-    { x: 0, label: "Register", sub: "Student sign-up", color: "var(--app-accent)" },
-    { x: 130, label: "Link Wallet", sub: "MetaMask connect", color: "var(--app-accent)" },
-    { x: 260, label: "Verified", sub: "Admin approves", color: "var(--app-trust)" },
-    { x: 390, label: "Merkle Root", sub: "Whitelist on-chain", color: "var(--app-trust)" },
-    { x: 520, label: "Vote", sub: "Proof + ballot", color: "var(--app-ballot)" },
-    { x: 650, label: "Blockchain", sub: "Immutable record", color: "var(--app-ballot)" },
-  ];
-
-  return (
-    <svg viewBox="0 0 920 140" className="w-full h-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Arrows between boxes */}
-      {boxes.slice(0, -1).map((b, i) => (
-        <g key={`a${i}`}>
-          <line x1={b.x + 115} y1="42" x2={b.x + 130} y2="42" stroke="var(--app-border)" strokeWidth="1.5"/>
-          <polygon points={`${b.x + 126},38 ${b.x + 135},42 ${b.x + 126},46`} fill="var(--app-border)"/>
-        </g>
-      ))}
-
-      {/* Boxes */}
-      {boxes.map((b, i) => (
-        <g key={i}>
-          <rect x={b.x} y="16" width={115} height="52" rx="8" fill="var(--app-surface)" stroke={b.color} strokeWidth="1.5" strokeOpacity="0.5"/>
-          <text x={b.x + 57} y="40" textAnchor="middle" fill={b.color} fontWeight="700" fontSize="14" letterSpacing="0.5">{b.label}</text>
-          <text x={b.x + 57} y="57" textAnchor="middle" fill="var(--app-muted-text)" fontSize="12">{b.sub}</text>
-        </g>
-      ))}
-
-      {/* Result arrow */}
-      <line x1="765" y1="42" x2="802" y2="42" stroke="var(--app-trust)" strokeWidth="2"/>
-      <polygon points="796,37 808,42 796,47" fill="var(--app-trust)"/>
-      <rect x="810" y="22" width="90" height="40" rx="8" fill="var(--app-trust-soft)" stroke="var(--app-trust-border)" strokeWidth="1.5"/>
-      <text x="855" y="47" textAnchor="middle" fill="var(--app-trust)" fontWeight="800" fontSize="14">RESULTS</text>
-    </svg>
-  );
-}
-
 export default function ArchitectureOverview() {
   const phases = [
     { label: "Created", desc: "Admin deploys a new election cycle; candidate list is seeded on-chain.", color: "text-sky-400 bg-sky-500/10 border-sky-500/20" },
     { label: "Registration", desc: "Students register, link wallets, and get verified via Merkle whitelist.", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
     { label: "Voting", desc: "Eligible voters cast secret ballots. Each vote is recorded immutably on the blockchain.", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
     { label: "Ended", desc: "Voting closes. Results are finalized on-chain and viewable by anyone.", color: "text-violet-400 bg-violet-500/10 border-violet-500/20" },
-  ];
-
-  const steps = [
-    {
-      icon: "register",
-      title: "Register Account",
-      desc: "Students create an account with their student ID and set a password. Your student identity is stored securely in the database.",
-    },
-    {
-      icon: "wallet",
-      title: "Link Wallet",
-      desc: "Connect your MetaMask or any Ethereum wallet. Your wallet address is linked to your student profile, creating a verifiable on-chain identity.",
-    },
-    {
-      icon: "verify",
-      title: "Get Verified",
-      desc: "The admin verifies your eligibility. Once approved, you are added to the Merkle tree — a cryptographic whitelist that enables gas-efficient voting.",
-    },
-    {
-      icon: "merkle",
-      title: "Build Whitelist",
-      desc: "When registration closes, the admin rebuilds the Merkle tree with all verified voters and submits the root hash on-chain. Your inclusion can be proven without revealing your identity.",
-    },
-    {
-      icon: "phase",
-      title: "Start Voting",
-      desc: "The admin transitions the contract to the Voting phase. The ballot box opens. Only whitelisted wallets can cast votes.",
-    },
-    {
-      icon: "vote",
-      title: "Cast Ballot",
-      desc: "Select your candidate and submit your vote with a Merkle proof. The smart contract verifies you are eligible, records your vote, and emits a VoteCast event — all in one atomic transaction.",
-    },
-    {
-      icon: "chain",
-      title: "On-Chain Finality",
-      desc: "Your vote is permanently stored on the Sepolia blockchain. No one — not even the admin — can alter, delete, or double-count it. The transaction hash serves as a public receipt.",
-    },
-    {
-      icon: "results",
-      title: "Live Results",
-      desc: "The sync engine indexes blockchain events into a PostgreSQL cache. Results and analytics update in real-time across dashboards accessible to all voters.",
-    },
   ];
 
   const architectures = [
@@ -195,14 +114,7 @@ export default function ArchitectureOverview() {
   ];
 
   const svgs = {
-    register: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    wallet: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><circle cx="18" cy="14" r="1"/></svg>,
-    verify: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/></svg>,
     merkle: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
-    phase: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    vote: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
-    chain: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
-    results: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     contract: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>,
     sync: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
     db: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
@@ -264,21 +176,6 @@ export default function ArchitectureOverview() {
         </div>
       </div>
 
-      {/* ── Voting Flowchart ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
-        <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-2">
-          Voting Data Flow
-        </h3>
-        <p className="text-base text-app-body mb-6">
-          How a vote travels from the student to the blockchain and back.
-        </p>
-        <div className="bg-app-muted/20 rounded-2xl p-4 sm:p-6 lg:p-8 border border-app/50 overflow-x-auto">
-          <div className="min-w-[680px]">
-            <VotingFlowDiagram />
-          </div>
-        </div>
-      </div>
-
       {/* ── Election Lifecycle ── */}
       <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
         <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-2">
@@ -298,35 +195,6 @@ export default function ArchitectureOverview() {
               </div>
               <h4 className="text-base font-bold text-app-heading mb-1">{p.label}</h4>
               <p className="text-base text-app-body leading-relaxed">{p.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Voting Flow Steps ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
-        <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-2">
-          How Voting Works
-        </h3>
-        <p className="text-base text-app-body mb-6">
-          A step-by-step walkthrough from account creation to live results.
-        </p>
-        <div className="space-y-0">
-          {steps.map((s, i) => (
-            <div key={i} className="relative flex gap-5 pb-8 group">
-              {i < steps.length - 1 && (
-                <div className="absolute left-[21px] top-12 bottom-0 w-px bg-app-border/50" />
-              )}
-              <div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--app-trust-border)] bg-[var(--app-trust-soft)] text-[var(--app-trust)]">
-                {svgs[s.icon]}
-              </div>
-              <div className="min-w-0 flex-1 pt-0.5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-mono font-bold text-app-muted-text">STEP {i + 1}</span>
-                </div>
-                <h4 className="text-base font-bold text-app-heading">{s.title}</h4>
-                <p className="text-base text-app-body leading-relaxed mt-1">{s.desc}</p>
-              </div>
             </div>
           ))}
         </div>

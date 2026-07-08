@@ -16,6 +16,7 @@ const LiveStatsSidebar = lazy(() => import("./components/LiveStatsSidebar"));
 const Results = lazy(() => import("./components/Results"));
 const LiveBlockchainDashboard = lazy(() => import("./components/LiveBlockchainDashboard"));
 const VoterGuide = lazy(() => import("./components/VoterGuide"));
+const ArchitectureOverview = lazy(() => import("./components/ArchitectureOverview"));
 const AnalyticsDashboard = lazy(() => import("./components/AnalyticsDashboard"));
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
 const StudentPortal = lazy(() => import("./components/StudentPortal"));
@@ -57,6 +58,7 @@ function App() {
   const [portalOpen, setPortalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
   const [hoveredNode, setHoveredNode] = useState(null);
+  const [docsSubTab, setDocsSubTab] = useState("guide");
 
 
   const currentTab = activeTab || (!wallet ? "home" : isAdmin ? "admin" : "vote");
@@ -255,9 +257,33 @@ function App() {
 
               {currentTab === "docs" && (
                 <AnimatedPage key="docs">
-                  <Suspense fallback={<LoadingSection />}>
-                    <VoterGuide />
-                  </Suspense>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 max-w-3xl mx-auto">
+                      <button
+                        onClick={() => setDocsSubTab("guide")}
+                        className={`text-sm font-bold px-4 py-2 rounded-xl border transition-all cursor-pointer ${
+                          docsSubTab === "guide"
+                            ? "bg-app-accent-soft text-app-accent border-app-accent-border"
+                            : "bg-app-surface text-app-muted-text border-app-border hover:border-app-accent/30 hover:text-app-heading"
+                        }`}
+                      >
+                        🗳️ Voter Guide
+                      </button>
+                      <button
+                        onClick={() => setDocsSubTab("architecture")}
+                        className={`text-sm font-bold px-4 py-2 rounded-xl border transition-all cursor-pointer ${
+                          docsSubTab === "architecture"
+                            ? "bg-app-accent-soft text-app-accent border-app-accent-border"
+                            : "bg-app-surface text-app-muted-text border-app-border hover:border-app-accent/30 hover:text-app-heading"
+                        }`}
+                      >
+                        ⚙️ Architecture
+                      </button>
+                    </div>
+                    <Suspense fallback={<LoadingSection />}>
+                      {docsSubTab === "guide" ? <VoterGuide /> : <ArchitectureOverview />}
+                    </Suspense>
+                  </div>
                 </AnimatedPage>
               )}
             </AnimatePresence>
