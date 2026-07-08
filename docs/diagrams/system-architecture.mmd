@@ -1,0 +1,35 @@
+flowchart TB
+    subgraph "Presentation Layer"
+        direction LR
+        A1[Vote Page] 
+        A2[Results Page]
+        A3[Activity Page]
+        A4[Docs Page]
+    end
+    
+    subgraph "Application Layer"
+        B1[Express REST API]
+        B2[Socket.IO Server]
+        B3[Sync Engine]
+        B4[Merkle Service]
+    end
+    
+    subgraph "Data Layer"
+        C1[(PostgreSQL)]
+        C2[(Sepolia Blockchain)]
+        C3[(IPFS / Pinata)]
+    end
+    
+    A1 -->|fetch / Socket.IO| B1
+    A1 -->|ethers.js + MetaMask| C2
+    A2 --> B1
+    A3 --> B2
+    A4 --> B1
+    
+    B1 --> C1
+    B3 -->|poll every 10s| C2
+    B3 --> C1
+    B3 -->|broadcast| B2
+    B4 --> C2
+    
+    C2 -->|events| B3

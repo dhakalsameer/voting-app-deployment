@@ -1,0 +1,27 @@
+flowchart TD
+    subgraph "Sync Engine runs every 10 seconds"
+        A[fetchAndEmitOnChainEvents] --> B[Query contract event logs in batches]
+        B --> C{Which event?}
+        C -->|CandidateRegistered| D[Upsert candidate in PostgreSQL]
+        C -->|BallotCast| E[Increment vote_count in DB]
+        C -->|PhaseChanged| F[Update cached phase value]
+        C -->|MerkleRootUpdated| G[Emit event to connected clients]
+        C -->|NewElectionStarted| H[Snapshot previous election results]
+        H --> I[Delete all rows from candidates table]
+        
+        J[syncAll - State Polling] --> K[Read candidateCount from contract]
+        K --> L[Iterate over all candidate IDs]
+        L --> M{Vote count changed?}
+        M -->|Yes| N[Broadcast voteUpdate via Socket.IO]
+        M -->|No| O[Skip]
+        
+        P[checkPhase] --> Q[Read current phase from contract]
+        Q --> R{Phase transition detected?}
+        R -->|Phase 3 -> 0| H
+        R -->|Phase -> 2 Voting| S[Auto-rebuild Merkle trees]
+    end
+    
+    D --> T[(PostgreSQL)]
+    E --> T
+    H --> U[(election_history table)]
+    N --> V[Socket.IO emits to Frontend]

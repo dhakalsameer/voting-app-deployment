@@ -1,0 +1,20 @@
+flowchart TD
+    A[Student visits platform] --> B{Has MetaMask installed?}
+    B -->|No| C[Install MetaMask browser extension]
+    C --> D[Create wallet + back up seed phrase]
+    B -->|Yes| D
+    D --> E[Switch MetaMask to Sepolia test network]
+    E --> F[Request free SepoliaETH from faucet]
+    F --> G[Click Register / Open Student Portal]
+    G --> H[Enter: name, student ID, year, gender, photo]
+    H --> I[Submit registration code provided by admin]
+    I --> J[Set account password]
+    J --> K[Connect MetaMask wallet to platform]
+    K --> L[Sign message to prove wallet ownership]
+    L --> M[Status changes to: Awaiting Verification]
+    M --> N[Admin reviews submitted student details]
+    N --> O{Does admin approve?}
+    O -->|Yes| P[Student added to Merkle whitelist]
+    O -->|No| Q[Application rejected — contact admin]
+    P --> R[Admin submits updated Merkle root to contract]
+    R --> S[Status changes to: Ready to Vote]

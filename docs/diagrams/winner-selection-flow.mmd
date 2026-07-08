@@ -1,0 +1,29 @@
+flowchart TD
+    A[Admin calls endElection] --> B[Contract phase = Ended]
+    B --> C[Contract internally determines winners]
+    
+    C --> D[President: candidate with highest vote count in President position]
+    C --> E[Secretary: candidate with highest vote count in Secretary position]
+    C --> F[General Members: two-pass algorithm]
+    
+    F --> G[Pass 1: Select top 2 female GMs by vote count]
+    G --> H[Pass 2: Select top 3 remaining GMs by vote count]
+    H --> I[Total: 5 General Member winners]
+    
+    D --> J[Admin calls startNewElection]
+    E --> J
+    I --> J
+    
+    J --> K[Winner IDs written to electionResults mapping]
+    K --> L[currentElectionId incremented by 1]
+    L --> M[Phase reset back to Created]
+    
+    M --> N[Sync engine detects NewElectionStarted event]
+    N --> O[snapshotResults function runs]
+    O --> P[All candidates saved to election_history table]
+    P --> Q[is_winner = true for blockchain_ids matching contract winners]
+    
+    Q --> R[Frontend WinnerBanner component checks /api/candidates/by-wallet]
+    R --> S{Is connected wallet a winner?}
+    S -->|Yes| T[Display congratulations banner with vote count]
+    S -->|No| U[No banner shown]
