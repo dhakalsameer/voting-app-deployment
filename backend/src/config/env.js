@@ -39,6 +39,8 @@ export const config = {
   pinataSecret: process.env.PINATA_SECRET,
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  // CORS origin — comma-separated list or "*". Defaults to localhost:3000.
+  corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
   // Public base URL the backend is reachable at. Used to build absolute URLs
   // for locally-stored profile photos when Pinata/IPFS is not configured.
   // Falls back to http://localhost:${port} for local dev.

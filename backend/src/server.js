@@ -3,6 +3,9 @@ import path from "path";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 import { config } from "./config/env.js";
 import { db } from "./db.js";
 
@@ -60,19 +63,40 @@ async function startupChecks() {
   }
 }
 
+// Parse comma-separated origins, falling back to the single origin.
+const origins = config.corsOrigin === "*"
+  ? "*"
+  : config.corsOrigin.split(",").map(s => s.trim());
+
 const app = express();
 const httpServer = createServer(app);
+
+// --- Security middleware ---
+app.use(helmet());
+app.use(morgan("short"));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests — try again later." },
+});
+
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+
+app.use(cors({ origin: origins, credentials: true }));
+app.use(express.json({ limit: "10mb" }));
+
 const io = new Server(httpServer, {
   path: "/socket.io/",
   cors: {
-    origin: "*",
+    origin: origins,
     methods: ["GET", "POST"]
   },
   transports: ["polling", "websocket"]
 });
-
-app.use(cors());
-app.use(express.json());
 
 // Serve locally-stored profile photos (fallback when Pinata isn't configured).
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));

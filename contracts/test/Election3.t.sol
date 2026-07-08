@@ -628,4 +628,283 @@ contract Election3Test is Test {
         Election3.ElectionResult memory r = election.getElectionResult(0);
         assertEq(r.presidentWinnerId, 1); // Alice (ID 1) wins tie
     }
+
+    // =========================
+    // POSITION / YEAR CONSTRAINTS
+    // =========================
+
+    function testPresidentMustBeYear4() public {
+        uint256 regEnd = block.timestamp + 1 hours;
+        election.startRegistration(regEnd);
+
+        bytes32 leaf = keccak256(abi.encodePacked(student1, "Alice", uint8(3), true));
+        election.setIdentityMerkleRoot(leaf);
+
+        vm.prank(student1);
+        vm.expectRevert("President must be 4th year");
+        election.registerCandidate("ST-001", "Alice", 3, true, "",
+            Election3.Position.President, new bytes32[](0));
+    }
+
+    function testSecretaryMustBeYear3Or4() public {
+        uint256 regEnd = block.timestamp + 1 hours;
+        election.startRegistration(regEnd);
+
+        bytes32 leaf2 = keccak256(abi.encodePacked(student1, "Bob", uint8(2), false));
+        bytes32 leaf3 = keccak256(abi.encodePacked(student2, "Charlie", uint8(3), false));
+        bytes32 node = leaf2 < leaf3
+            ? keccak256(abi.encodePacked(leaf2, leaf3))
+            : keccak256(abi.encodePacked(leaf3, leaf2));
+        election.setIdentityMerkleRoot(node);
+
+        bytes32[] memory proof1 = new bytes32[](1);
+        proof1[0] = leaf3;
+        bytes32[] memory proof2 = new bytes32[](1);
+        proof2[0] = leaf2;
+
+        vm.prank(student1);
+        vm.expectRevert("Secretary must be 3rd or 4th year");
+        election.registerCandidate("ST-001", "Bob", 2, false, "",
+            Election3.Position.Secretary, proof1);
+
+        vm.prank(student2);
+        election.registerCandidate("ST-002", "Charlie", 3, false, "",
+            Election3.Position.Secretary, proof2);
+
+        assertEq(election.candidateCount(), 1);
+    }
+
+    // =========================
+    // REG CODE MERKLE ROOT
+    // =========================
+
+    function testSetRegCodeMerkleRoot() public {
+        bytes32 root = keccak256("test");
+        election.setRegCodeMerkleRoot(root);
+        assertEq(election.regCodeMerkleRoot(), root);
+    }
+
+    function testVerifyRegCode() public {
+        bytes32 leaf = keccak256(abi.encodePacked("ST-001", "CODE123"));
+        election.setRegCodeMerkleRoot(leaf);
+        assertTrue(election.verifyRegCode("ST-001", "CODE123", new bytes32[](0)));
+    }
+
+    function testNonAdminCannotSetRegCodeRoot() public {
+        vm.prank(student1);
+        vm.expectRevert("Not admin");
+        election.setRegCodeMerkleRoot(bytes32(0));
+    }
+
+    // =========================
+    // NON-ADMIN ACCESS CONTROL
+    // =========================
+
+    function testNonAdminCannotSetIdentityMerkleRoot() public {
+        vm.prank(student1);
+        vm.expectRevert("Not admin");
+        election.setIdentityMerkleRoot(bytes32(0));
+    }
+
+    function testNonAdminCannotStartVoting() public {
+        vm.prank(student1);
+        vm.expectRevert("Not admin");
+        election.startVoting(block.timestamp + 1 hours);
+    }
+
+    function testNonAdminCannotEndElection() public {
+        vm.prank(student1);
+        vm.expectRevert("Not admin");
+        election.endElection();
+    }
+
+    function testNonAdminCannotStartNewElection() public {
+        vm.prank(student1);
+        vm.expectRevert("Not admin");
+        election.startNewElection();
+    }
+
+    // =========================
+    // CAST VOTE — FULL BALLOT WITH GMs
+    // =========================
+
+    function testCastVoteFullBallotWithGMs() public {
+        bytes32 vRoot = keccak256(abi.encodePacked(student1));
+        election.setMerkleRoot(vRoot);
+
+        uint256 regEnd = block.timestamp + 1 hours;
+        uint256 voteEnd = regEnd + 2 hours;
+        election.startRegistration(regEnd);
+
+        // Register President (student2, year 4)
+        election.setIdentityMerkleRoot(
+            keccak256(abi.encodePacked(student2, "Alice", uint8(4), true))
+        );
+        vm.prank(student2);
+        election.registerCandidate("ST-002", "Alice", 4, true, "",
+            Election3.Position.President, new bytes32[](0));
+
+        // Register Secretary (student3, year 3)
+        election.setIdentityMerkleRoot(
+            keccak256(abi.encodePacked(student3, "Bob", uint8(3), false))
+        );
+        vm.prank(student3);
+        election.registerCandidate("ST-003", "Bob", 3, false, "",
+            Election3.Position.Secretary, new bytes32[](0));
+
+        // Register 5 GMs (2 female, 3 male)
+        address[5] memory gmAddrs = [student4, address(0x1111), address(0x2222), address(0x3333), address(0x4444)];
+        string[5] memory gmNames = ["Carol", "Diana", "Eve", "Frank", "Grace"];
+        bool[5] memory gmFemale = [true, true, false, false, false];
+        uint8[5] memory gmYears = [2, 3, 1, 2, 1];
+
+        for (uint256 i = 0; i < 5; i++) {
+            election.setIdentityMerkleRoot(
+                keccak256(abi.encodePacked(gmAddrs[i], gmNames[i], gmYears[i], gmFemale[i]))
+            );
+            vm.prank(gmAddrs[i]);
+            election.registerCandidate(gmNames[i], gmNames[i], gmYears[i], gmFemale[i], "",
+                Election3.Position.GeneralMember, new bytes32[](0));
+        }
+
+        assertEq(election.candidateCount(), 7);
+
+        vm.warp(regEnd + 1);
+        election.startVoting(voteEnd);
+        vm.warp(regEnd + 2);
+
+        uint256[] memory gmIds = new uint256[](5);
+        gmIds[0] = 3; gmIds[1] = 4; gmIds[2] = 5; gmIds[3] = 6; gmIds[4] = 7;
+
+        vm.prank(student1);
+        election.castVote(1, 2, gmIds, new bytes32[](0));
+
+        assertEq(election.getCandidate(1).voteCount, 1);
+        assertEq(election.getCandidate(2).voteCount, 1);
+        for (uint256 i = 3; i <= 7; i++) {
+            assertEq(election.getCandidate(i).voteCount, 1);
+        }
+        assertTrue(election.hasVoted(student1));
+    }
+
+    function testCastVoteRejectsInsufficientFemaleGMs() public {
+        bytes32 vRoot = keccak256(abi.encodePacked(student1));
+        election.setMerkleRoot(vRoot);
+
+        uint256 regEnd = block.timestamp + 1 hours;
+        uint256 voteEnd = regEnd + 2 hours;
+        election.startRegistration(regEnd);
+
+        election.setIdentityMerkleRoot(
+            keccak256(abi.encodePacked(student2, "Pres", uint8(4), true))
+        );
+        vm.prank(student2);
+        election.registerCandidate("ST-002", "Pres", 4, true, "",
+            Election3.Position.President, new bytes32[](0));
+
+        address[5] memory gmAddrs = [student3, student4, address(0x1111), address(0x2222), address(0x3333)];
+        string[5] memory gmNames = ["GM1", "GM2", "GM3", "GM4", "GM5"];
+        bool[5] memory gmFemale = [true, false, false, false, false];
+
+        for (uint256 i = 0; i < 5; i++) {
+            election.setIdentityMerkleRoot(
+                keccak256(abi.encodePacked(gmAddrs[i], gmNames[i], uint8(1 + (i % 4)), gmFemale[i]))
+            );
+            vm.prank(gmAddrs[i]);
+            election.registerCandidate(gmNames[i], gmNames[i], uint8(1 + (i % 4)), gmFemale[i], "",
+                Election3.Position.GeneralMember, new bytes32[](0));
+        }
+
+        vm.warp(regEnd + 1);
+        election.startVoting(voteEnd);
+        vm.warp(regEnd + 2);
+
+        uint256[] memory gmIds = new uint256[](5);
+        gmIds[0] = 2; gmIds[1] = 3; gmIds[2] = 4; gmIds[3] = 5; gmIds[4] = 6;
+
+        vm.prank(student1);
+        vm.expectRevert("Need at least 2 female GM votes");
+        election.castVote(0, 0, gmIds, new bytes32[](0));
+    }
+
+    function testCastVoteRejectsInvalidSecretary() public {
+        bytes32 vRoot = keccak256(abi.encodePacked(student1));
+        election.setMerkleRoot(vRoot);
+
+        uint256 regEnd = block.timestamp + 1 hours;
+        election.startRegistration(regEnd);
+
+        election.setIdentityMerkleRoot(
+            keccak256(abi.encodePacked(student2, "Pres", uint8(4), true))
+        );
+        vm.prank(student2);
+        election.registerCandidate("ST-002", "Pres", 4, true, "",
+            Election3.Position.President, new bytes32[](0));
+
+        vm.warp(regEnd + 1);
+        election.startVoting(block.timestamp + 1 hours);
+        vm.warp(regEnd + 2);
+
+        uint256[] memory gmIds = new uint256[](0);
+        vm.prank(student1);
+        vm.expectRevert("Invalid secretary");
+        election.castVote(1, 99, gmIds, new bytes32[](0));
+    }
+
+    // =========================
+    // END ELECTION EDGE CASES
+    // =========================
+
+    function testCannotEndElectionBeforeVotingEnd() public {
+        uint256 regEnd = block.timestamp + 1 hours;
+        uint256 voteEnd = regEnd + 2 hours;
+
+        election.startRegistration(regEnd);
+        vm.warp(regEnd + 1);
+        election.startVoting(voteEnd);
+
+        // Still before votingEnd — should revert
+        vm.expectRevert("Voting period not over");
+        election.endElection();
+    }
+
+    // =========================
+    // SELECT GM WINNERS EDGE CASES
+    // =========================
+
+    function testStartNewElectionWithInsufficientGMs() public {
+        bytes32 vRoot = keccak256(abi.encodePacked(student1));
+        election.setMerkleRoot(vRoot);
+
+        uint256 regEnd = block.timestamp + 1 hours;
+        uint256 voteEnd = regEnd + 2 hours;
+        election.startRegistration(regEnd);
+
+        // Register President
+        election.setIdentityMerkleRoot(
+            keccak256(abi.encodePacked(student1, "Alice", uint8(4), true))
+        );
+        vm.prank(student1);
+        election.registerCandidate("ST-001", "Alice", 4, true, "",
+            Election3.Position.President, new bytes32[](0));
+
+        // Register 3 GMs (< 5 minimum)
+        for (uint256 i = 0; i < 3; i++) {
+            address a = i == 0 ? student2 : (i == 1 ? student3 : student4);
+            election.setIdentityMerkleRoot(
+                keccak256(abi.encodePacked(a, "GM", uint8(2), true))
+            );
+            vm.prank(a);
+            election.registerCandidate("GM", "GM", 2, true, "",
+                Election3.Position.GeneralMember, new bytes32[](0));
+        }
+
+        vm.warp(regEnd + 1);
+        election.startVoting(voteEnd);
+        vm.warp(voteEnd + 1);
+        election.endElection();
+
+        vm.expectRevert("Need at least 5 GM candidates");
+        election.startNewElection();
+    }
 }
