@@ -641,91 +641,128 @@ export default function VotingPanelV3() {
 
             {showConfirm && (
               <>
-                <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirm(false)} />
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md" onClick={() => setShowConfirm(false)} />
                 <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4">
                   <div className="rounded-2xl border border-app-border bg-app-surface-solid shadow-2xl overflow-hidden">
-                    <div className="px-6 py-5 border-b border-app/50 bg-app-muted/30">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-app-accent-soft flex items-center justify-center">
-                          <svg className="h-5 w-5 text-app-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-app-heading">Confirm Your Vote</h3>
-                          <p className="text-sm text-app-muted-text">Review your selections before submitting</p>
-                        </div>
+                    {/* Header */}
+                    <div className="relative px-6 pt-6 pb-4 text-center border-b border-app/50">
+                      <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10 mb-3">
+                        <span className="text-2xl">🗳️</span>
                       </div>
+                      <h3 className="text-xl font-extrabold text-app-heading">Confirm Your Vote</h3>
+                      <p className="text-sm text-app-muted-text mt-1">Review your selections before submitting to the blockchain</p>
                     </div>
-                    <div className="px-6 py-4 space-y-3 max-h-[55vh] overflow-y-auto">
+
+                    {/* Body */}
+                    <div className="px-6 py-5 space-y-4 max-h-[50vh] overflow-y-auto">
                       {/* President */}
-                      <div className={`rounded-xl border-2 p-4 ${selectedPresidentId ? "border-app-trust-border bg-app-trust-soft" : "border-app-ballot-border bg-app-ballot-soft"}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-black text-app-heading">🏛️ President</span>
+                      <div className={`rounded-2xl border-2 p-5 ${selectedPresidentId ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-sm shadow-sm">🏛️</div>
+                            <span className="text-sm font-extrabold uppercase tracking-wider text-app-heading">President</span>
+                          </div>
                           {selectedPresidentId ? (
-                            <span className="text-xs font-bold text-app-trust bg-app-trust-soft px-3 py-0.5 rounded-full border border-app-trust-border">Selected</span>
+                            <span className="text-[11px] font-bold text-app-trust bg-app-trust-soft px-3 py-1 rounded-full border border-app-trust-border flex items-center gap-1.5">
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                              Selected
+                            </span>
                           ) : (
-                            <span className="text-xs font-bold text-app-ballot bg-app-ballot-soft px-3 py-0.5 rounded-full border border-app-ballot-border">Skipped</span>
+                            <span className="text-[11px] font-bold text-app-ballot bg-app-ballot-soft px-3 py-1 rounded-full border border-app-ballot-border">Skipped</span>
                           )}
                         </div>
                         {selectedPresidentId && (
-                          <p className="text-base text-app-heading mt-1.5 font-extrabold">{selectedName(selectedPresidentId)}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-300 via-emerald-500 to-sky-500 flex items-center justify-center text-sm font-black text-slate-950 shadow-sm">
+                              {selectedName(selectedPresidentId).split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase()}
+                            </div>
+                            <p className="text-base font-extrabold text-app-heading">{selectedName(selectedPresidentId)}</p>
+                          </div>
                         )}
                         {skippedPresident && (
-                          <p className="text-xs text-app-ballot mt-2 font-semibold">You skipped President — your vote will abstain for this position.</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <svg className="h-4 w-4 shrink-0 text-app-ballot" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                            <p className="text-xs text-app-ballot font-semibold">You skipped President — your vote will abstain for this position.</p>
+                          </div>
                         )}
                       </div>
 
                       {/* Secretary */}
-                      <div className={`rounded-xl border-2 p-4 ${selectedSecretaryId ? "border-app-trust-border bg-app-trust-soft" : "border-app-ballot-border bg-app-ballot-soft"}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-black text-app-heading">📋 Secretary</span>
+                      <div className={`rounded-2xl border-2 p-5 ${selectedSecretaryId ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-sm shadow-sm">📋</div>
+                            <span className="text-sm font-extrabold uppercase tracking-wider text-app-heading">Secretary</span>
+                          </div>
                           {selectedSecretaryId ? (
-                            <span className="text-xs font-bold text-app-trust bg-app-trust-soft px-3 py-0.5 rounded-full border border-app-trust-border">Selected</span>
+                            <span className="text-[11px] font-bold text-app-trust bg-app-trust-soft px-3 py-1 rounded-full border border-app-trust-border flex items-center gap-1.5">
+                              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                              Selected
+                            </span>
                           ) : (
-                            <span className="text-xs font-bold text-app-ballot bg-app-ballot-soft px-3 py-0.5 rounded-full border border-app-ballot-border">Skipped</span>
+                            <span className="text-[11px] font-bold text-app-ballot bg-app-ballot-soft px-3 py-1 rounded-full border border-app-ballot-border">Skipped</span>
                           )}
                         </div>
                         {selectedSecretaryId && (
-                          <p className="text-base text-app-heading mt-1.5 font-extrabold">{selectedName(selectedSecretaryId)}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-300 via-emerald-500 to-sky-500 flex items-center justify-center text-sm font-black text-slate-950 shadow-sm">
+                              {selectedName(selectedSecretaryId).split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase()}
+                            </div>
+                            <p className="text-base font-extrabold text-app-heading">{selectedName(selectedSecretaryId)}</p>
+                          </div>
                         )}
                         {skippedSecretary && (
-                          <p className="text-xs text-app-ballot mt-2 font-semibold">You skipped Secretary — your vote will abstain for this position.</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <svg className="h-4 w-4 shrink-0 text-app-ballot" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                            <p className="text-xs text-app-ballot font-semibold">You skipped Secretary — your vote will abstain for this position.</p>
+                          </div>
                         )}
                       </div>
 
                       {/* General Members */}
-                      <div className={`rounded-xl border-2 p-4 ${selectedGMIds.length > 0 ? "border-app-trust-border bg-app-trust-soft" : "border-app-ballot-border bg-app-ballot-soft"}`}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-black text-app-heading">👥 General Members</span>
+                      <div className={`rounded-2xl border-2 p-5 ${selectedGMIds.length > 0 ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-sm shadow-sm">👥</div>
+                            <span className="text-sm font-extrabold uppercase tracking-wider text-app-heading">General Members</span>
+                          </div>
                           {selectedGMIds.length > 0 ? (
-                            <span className="text-xs font-bold text-app-trust bg-app-trust-soft px-3 py-0.5 rounded-full border border-app-trust-border">{selectedGMIds.length}/{GM_MAX}</span>
+                            <span className="text-[11px] font-bold text-app-trust bg-app-trust-soft px-3 py-1 rounded-full border border-app-trust-border">{selectedGMIds.length}/{GM_MAX}</span>
                           ) : (
-                            <span className="text-xs font-bold text-app-ballot bg-app-ballot-soft px-3 py-0.5 rounded-full border border-app-ballot-border">Skipped</span>
+                            <span className="text-[11px] font-bold text-app-ballot bg-app-ballot-soft px-3 py-1 rounded-full border border-app-ballot-border">Skipped</span>
                           )}
                         </div>
                         {selectedGMIds.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {selectedGMIds.map(id => (
-                              <span key={id} className="text-xs font-bold px-3 py-1 rounded-lg bg-app-surface border border-app-border/40 text-app-heading">{selectedName(id)}</span>
+                          <div className="space-y-2">
+                            {selectedGMIds.map((id, i) => (
+                              <div key={id} className="flex items-center gap-3 bg-app-surface/60 rounded-xl px-4 py-2.5 border border-app-border/30">
+                                <span className="h-7 w-7 rounded-lg bg-app-muted/60 flex items-center justify-center text-xs font-black text-app-muted-text font-mono">{i + 1}</span>
+                                <p className="text-sm font-bold text-app-heading flex-1">{selectedName(id)}</p>
+                                <svg className="h-4 w-4 text-app-trust shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                              </div>
                             ))}
                           </div>
                         )}
                         {skippedGM && (
-                          <p className="text-xs text-app-ballot mt-2 font-semibold">You skipped General Members — no GM votes will be cast.</p>
+                          <div className="flex items-center gap-2">
+                            <svg className="h-4 w-4 shrink-0 text-app-ballot" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                            <p className="text-xs text-app-ballot font-semibold">You skipped General Members — no GM votes will be cast.</p>
+                          </div>
                         )}
                       </div>
                     </div>
+
+                    {/* Footer */}
                     <div className="px-6 py-4 border-t border-app/50 bg-app-muted/20 flex items-center gap-3">
                       <button
                         onClick={() => setShowConfirm(false)}
-                        className="flex-1 py-3 rounded-xl border-2 border-app-border bg-app-surface text-sm font-extrabold text-app-heading hover:bg-app-accent-soft hover:border-app-accent-border transition-all cursor-pointer"
+                        className="flex-1 py-3.5 rounded-xl border-2 border-app-border bg-app-surface text-sm font-extrabold text-app-heading hover:bg-app-accent-soft hover:border-app-accent-border hover:text-app-accent transition-all cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={castVote}
-                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-sm font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 cursor-pointer"
+                        className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 text-sm font-extrabold uppercase tracking-wider hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/35 cursor-pointer"
                       >
                         Confirm & Submit
                       </button>
