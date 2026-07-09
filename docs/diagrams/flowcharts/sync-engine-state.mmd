@@ -1,0 +1,11 @@
+flowchart TD
+    START([Start])
+    A[syncAll]
+    B[Read candidateCount from contract]
+    C[Iterate over all candidate IDs]
+    D{Vote count changed?}
+    E[Broadcast voteUpdate via Socket.IO]
+    F[Skip — no change]
+    START --> A --> B --> C --> D
+    D -->|Yes| E --> END([End])
+    D -->|No| F --> END

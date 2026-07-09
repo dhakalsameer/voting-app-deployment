@@ -1,0 +1,11 @@
+flowchart TD
+    START([Start])
+    A[checkPhase]
+    B[Read current phase from contract]
+    C{Phase transition detected?}
+    D[Auto-rebuild Merkle trees on transition to Voting]
+    E[Trigger snapshot on Phase 3 → 0]
+    START --> A --> B --> C
+    C -->|Phase transitions to Voting| D --> END([End])
+    C -->|Phase 3 → Phase 0| E --> END
+    C -->|No transition| END

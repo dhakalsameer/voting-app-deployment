@@ -1,0 +1,18 @@
+flowchart TD
+    START([Start])
+    A[Ballot Summary section updates]
+    B[Click: Cast 7 Votes button]
+    C[Confirmation modal opens]
+    D[Review all selections]
+    E[Click: Confirm & Submit]
+    F[MetaMask transaction popup appears]
+    G[User clicks Confirm in MetaMask]
+    H{Transaction mined on blockchain?}
+    I[Green toast: Vote recorded successfully]
+    J[Red toast: Transaction failed]
+    K[Contract emits BallotCast event]
+    L[Sync engine increments vote count in DB]
+    M[Live results updated via Socket.IO]
+    START --> A --> B --> C --> D --> E --> F --> G --> H
+    H -->|Success| I --> K --> L --> M --> END([End])
+    H -->|Failed| J --> END

@@ -1,0 +1,73 @@
+---
+title: Class Diagram — System Structure
+---
+classDiagram
+    class Election3 {
+        <<contract>>
+        +Phase phase
+        +address admin
+        +bytes32 voterMerkleRoot
+        +bytes32 identityMerkleRoot
+        +bytes32 regCodeMerkleRoot
+        +mapping candidates
+        +mapping electionHistory
+        +constructor(merkleRoot)
+        +setMerkleRoot(root)
+        +startRegistration(end)
+        +startVoting(end)
+        +endElection()
+        +startNewElection()
+        +registerCandidate(guid, name, year, isFemale, imageCID, position, proof)
+        +castVote(presidentId, secretaryId, gmIds, proof)
+        +verifyRegCode(studentId, code, proof)
+        +getCandidate(id)
+        +getPhase()
+        +_findWinner(position)
+        +_selectGMWinners()
+    }
+
+    class MerkleService {
+        <<service>>
+        +generateMerkleRoot(wallets)
+        +generateMerkleProof(wallets, target)
+        +generateIdentityMerkleRoot(identities)
+        +generateIdentityMerkleProof(identities, target)
+        +generateRegCodeMerkleRoot(codes)
+        +generateRegCodeMerkleProof(codes, studentId, code)
+    }
+
+    class SyncEngine {
+        <<service>>
+        +startBlockchainSync(io)
+        -syncAll()
+        -checkPhase()
+        -snapshotResults(electionNum)
+        -backfillElectionHistory()
+    }
+
+    class Controllers {
+        <<layer>>
+        AuthController
+        VoterController
+        CandidateController
+        RegCodeController
+        DistributionController
+        ReminderController
+    }
+
+    class Database {
+        <<PostgreSQL>>
+        students
+        registration_codes
+        candidates
+        election_history
+        events
+        distribution_log
+    }
+
+    Election3 ..> MerkleService : uses roots
+    SyncEngine ..> Election3 : polls events
+    Controllers ..> MerkleService : generates proofs
+    Controllers ..> Election3 : updates roots
+    Controllers ..> Database : CRUD
+    SyncEngine ..> Database : upserts + snapshots

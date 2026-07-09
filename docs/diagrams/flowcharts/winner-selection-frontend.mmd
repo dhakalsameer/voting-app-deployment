@@ -1,0 +1,13 @@
+flowchart TD
+    START([Start])
+    A[Sync engine detects NewElectionStarted event]
+    B[snapshotResults function runs]
+    C[All candidates saved to election_history table]
+    D[is_winner = true for matching blockchain_ids]
+    E[Frontend WinnerBanner checks /api/candidates/by-wallet]
+    F{Connected wallet is a winner?}
+    G[Display congratulations banner with vote count]
+    H[No banner shown]
+    START --> A --> B --> C --> D --> E --> F
+    F -->|Yes| G --> END([End])
+    F -->|No| H --> END

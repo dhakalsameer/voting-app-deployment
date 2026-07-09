@@ -1,0 +1,14 @@
+flowchart TD
+    START([Start])
+    A[Connect MetaMask wallet to platform]
+    B[Sign message to prove wallet ownership]
+    C[Status changes to: Awaiting Verification]
+    D[Admin reviews submitted student details]
+    E{Does admin approve?}
+    F[Student added to Merkle whitelist]
+    G[Admin submits updated Merkle root to contract]
+    H[Status changes to: Ready to Vote]
+    I[Application rejected — contact admin]
+    START --> A --> B --> C --> D --> E
+    E -->|Yes| F --> G --> H --> END([End])
+    E -->|No| I --> END

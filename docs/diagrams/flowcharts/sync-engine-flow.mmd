@@ -1,0 +1,16 @@
+flowchart LR
+    START([Start])
+    A[Sync Engine\nruns every 10s]
+    B[Event Polling\nfetchAndEmitOnChainEvents]
+    C[State Polling\nsyncAll]
+    D[Phase Checking\ncheckPhase]
+    E[(PostgreSQL)]
+    F[Socket.IO\n→ Frontend]
+    G[Snapshot →\nelection_history]
+    START --> A
+    A --> B --> E
+    A --> C --> F
+    A --> D --> G
+    E --> END([End])
+    F --> END
+    G --> END

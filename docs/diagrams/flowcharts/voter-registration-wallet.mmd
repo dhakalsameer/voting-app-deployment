@@ -1,0 +1,12 @@
+flowchart TD
+    START([Start])
+    A[Student visits platform]
+    B{Has MetaMask installed?}
+    C[Install MetaMask browser extension]
+    D[Create wallet + back up seed phrase]
+    E[Switch MetaMask to Sepolia test network]
+    F[Request free SepoliaETH from faucet]
+    START --> A --> B
+    B -->|No| C --> D
+    B -->|Yes| D
+    D --> E --> F --> END([End])

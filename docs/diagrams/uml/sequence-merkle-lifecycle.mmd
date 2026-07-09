@@ -1,0 +1,43 @@
+---
+title: Merkle Tree Lifecycle — Sequence Diagram
+---
+sequenceDiagram
+    participant A as Admin
+    participant API as Backend
+    participant MS as Merkle Service
+    participant DB as PostgreSQL
+    participant SC as Smart Contract
+    participant U as User
+
+    Note over A,U: 1. Voter Tree (Eligibility)
+    A->>API: Verify student wallets
+    API->>DB: SELECT wallet_addresses
+    API->>MS: generateMerkleRoot(wallets)
+    note right of MS: leaf = keccak256(address)
+    MS-->>API: voterMerkleRoot
+    API->>SC: setMerkleRoot(root)
+    U->>API: GET /api/voters/proof
+    API->>MS: generateMerkleProof()
+    API-->>U: proof
+    U->>SC: castVote(..., proof)
+    SC->>SC: MerkleProof.verify()
+
+    Note over A,U: 2. Identity Tree (Candidate)
+    A->>API: Approve identities
+    API->>DB: SELECT (address, name, year, gender)
+    API->>MS: generateIdentityMerkleRoot()
+    note right of MS: leaf = keccak256(address, name, year, gender)
+    API->>SC: setIdentityMerkleRoot(root)
+    U->>API: GET /api/voters/identity-proof
+    U->>SC: registerCandidate(..., proof)
+    SC->>SC: MerkleProof.verify()
+
+    Note over A,U: 3. RegCode Tree (Portal)
+    A->>API: Generate codes
+    API->>DB: INSERT registration_codes
+    API->>MS: generateRegCodeMerkleRoot()
+    note right of MS: leaf = keccak256(studentId, normalize(code))
+    API->>SC: setRegCodeMerkleRoot(root)
+    U->>API: GET /api/codes/proof
+    U->>SC: verifyRegCode(studentId, code, proof)
+    SC-->>U: true / false

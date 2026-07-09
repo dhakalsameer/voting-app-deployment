@@ -1,0 +1,13 @@
+flowchart TD
+    START([Start])
+    A{Is Voter Eligible?}
+    B[Select Candidates\nPresident → Secretary → GMs]
+    C{At least 2\nfemale GMs?}
+    D[Submit Ballot\nConfirm → MetaMask → Mine]
+    E[Sync Updates\nDB → Live Results]
+    F[Not Eligible]
+    START --> A
+    A -->|No| F --> END([End])
+    A -->|Yes| B --> C
+    C -->|No| B
+    C -->|Yes| D --> E --> END
