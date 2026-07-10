@@ -213,7 +213,7 @@ export default function LiveStatsSidebar() {
       {/* Non-voting context */}
       {phase === 1 && !registrationEnded && !noRegEndSet && (
         <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-amber-500/3 p-6 text-center shadow-sm">
-          <p className="text-5xl font-black tabular-nums text-amber-300 leading-none">{stats.candidateCount ?? 0}</p>
+          <p className="text-5xl font-black tabular-nums text-app-ballot leading-none">{stats.candidateCount ?? 0}</p>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text/50 mt-2 mb-3">Candidates Registered</p>
           <p className="text-sm font-semibold text-app-muted-text">A strong field has entered the race — ready to earn your vote.</p>
         </div>
