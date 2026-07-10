@@ -212,10 +212,31 @@ export default function LiveStatsSidebar() {
 
       {/* Non-voting context */}
       {phase === 1 && !registrationEnded && !noRegEndSet && (
-        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-amber-500/3 p-6 text-center shadow-sm">
-          <p className="text-5xl font-black tabular-nums text-app-ballot leading-none">{stats.candidateCount ?? 0}</p>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text/50 mt-2 mb-3">Candidates Registered</p>
-          <p className="text-sm font-semibold text-app-muted-text">A strong field has entered the race — ready to earn your vote.</p>
+        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-amber-500/3 p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">📋</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-app-muted-text">Candidates by Position</span>
+          </div>
+          <div className="space-y-2.5">
+            {stats.positions?.map((pos, i) => {
+              const colors = ["text-app-accent", "text-app-trust", "text-app-ballot"];
+              const dotColors = ["bg-app-accent", "bg-app-trust", "bg-app-ballot"];
+              return (
+                <div key={pos.position} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`h-2.5 w-2.5 rounded-full ${dotColors[i % dotColors.length]}`} />
+                    <span className="text-sm font-bold text-app-heading">{pos.position}</span>
+                  </div>
+                  <span className={`text-2xl font-black tabular-nums leading-none ${colors[i % colors.length]}`}>
+                    {pos.candidates}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-app-muted-text/60 mt-4 text-center italic">
+            A strong field has entered the race — ready to earn your vote.
+          </p>
         </div>
       )}
       {(!isVoting || votingEnded) && noVoteInfo[phase] && phase !== 1 && (
