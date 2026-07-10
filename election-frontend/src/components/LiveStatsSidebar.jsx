@@ -36,56 +36,93 @@ export default function LiveStatsSidebar() {
     return () => clearInterval(id);
   }, []);
 
-  const isVoting = stats?.phase === 2;
-  const remaining = stats?.votingEnd ? stats.votingEnd - now : 0;
-  const timeLeft = remaining > 0 ? formatRemaining(remaining) : null;
+  const phase = stats?.phase ?? 0;
+  const isVoting = phase === 2;
+
+  const votingRemaining = stats?.votingEnd ? stats.votingEnd - now : 0;
+  const votingTimeLeft = votingRemaining > 0 ? formatRemaining(votingRemaining) : null;
+
+  const registrationRemaining = stats?.registrationEnd ? stats.registrationEnd - now : 0;
+  const registrationTimeLeft = registrationRemaining > 0 ? formatRemaining(registrationRemaining) : null;
+
+  const phaseConfig = {
+    0: { label: "CREATED", sub: "Not yet open", color: "text-app-muted-text", border: "border-app/30", bg: "from-app-surface to-app-bg" },
+    1: { label: "REGISTRATION OPEN", sub: "Candidates & Voters can register", color: "text-amber-300", border: "border-amber-500/25", bg: "from-amber-500/15 via-amber-500/8 to-amber-500/3" },
+    2: { label: "VOTING LIVE", sub: "Election in Progress", color: "text-emerald-300", border: "border-emerald-500/25", bg: "from-emerald-500/15 via-emerald-500/8 to-emerald-500/3" },
+    3: { label: "ELECTION ENDED", sub: "Final results available", color: "text-app-muted-text", border: "border-app/30", bg: "from-app-surface to-app-bg" },
+  };
+
+  const pc = phaseConfig[phase] || phaseConfig[0];
+
+  const registrationEnded = phase === 1 && stats?.registrationEnd && now >= stats.registrationEnd;
+  const noRegEndSet = phase === 1 && (!stats?.registrationEnd || stats.registrationEnd === 0);
+  const votingEnded = phase === 2 && stats?.votingEnd && now >= stats.votingEnd;
+
+  const countdownInfo = phase === 1 && !registrationEnded && !noRegEndSet
+    ? { remaining: registrationRemaining, timeLeft: registrationTimeLeft, label: "Registration Closes" }
+    : phase === 2 && !votingEnded
+      ? { remaining: votingRemaining, timeLeft: votingTimeLeft, label: "Time Remaining" }
+      : null;
 
   if (!stats) return null;
+
+  const noVoteInfo = {
+    0: { icon: "🗓️", text: "The election has been created. The registration phase will open soon." },
+    1: registrationEnded
+      ? { icon: "⏰", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered. The registration window has closed — waiting for the admin to start voting.` }
+      : noRegEndSet
+        ? { icon: "📝", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered so far.` }
+        : { icon: "📝", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered so far. Registration closes in ${registrationTimeLeft}.` },
+    2: votingEnded
+      ? { icon: "⏰", text: `${stats.votesCast} vote${stats.votesCast !== 1 ? "s" : ""} cast. The voting window has closed — waiting for the admin to finalize results.` }
+      : null,
+    3: { icon: "🏁", text: "This election has concluded. View the results tab for final outcomes." },
+  };
+
+  const isExpired = registrationEnded || votingEnded;
+  const phaseLabel = registrationEnded ? "REGISTRATION CLOSED" : votingEnded ? "VOTING ENDED" : pc.label;
+  const phaseSub = registrationEnded ? "Awaiting voting phase" : votingEnded ? "Awaiting finalization" : pc.sub;
+  const phaseColor = isExpired ? "text-rose-300" : pc.color;
+  const phaseBorder = isExpired ? "border-rose-500/25" : pc.border;
+  const phaseBg = isExpired ? "from-rose-500/15 via-rose-500/8 to-rose-500/3" : pc.bg;
 
   return (
     <aside className="space-y-5">
       {/* Phase header */}
-      {isVoting ? (
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 via-emerald-500/8 to-emerald-500/3 p-6 text-center shadow-lg shadow-emerald-500/10">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-400/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-300/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
-          <div className="relative">
-            <div className="flex items-center justify-center gap-3 mb-1.5">
+      <div className={`relative overflow-hidden rounded-2xl border ${phaseBorder} bg-gradient-to-br ${phaseBg} p-6 text-center shadow-sm`}>
+        <div className="relative">
+          <div className="flex items-center justify-center gap-3 mb-1.5">
+            {phase === 2 && !votingEnded && (
               <span className="relative flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-400 shadow-lg shadow-emerald-400/50" />
               </span>
-              <span className="text-xl font-black tracking-wide bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
-                VOTING LIVE
-              </span>
-            </div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-400/60">Election in Progress</p>
+            )}
+            <span className={`text-xl font-black tracking-wide ${phaseColor}`}>
+              {phaseLabel}
+            </span>
           </div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text/50 mt-1">{phaseSub}</p>
         </div>
-      ) : (
-        <div className="rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-6 text-center">
-          <p className="text-lg font-black tracking-wide text-app-muted-text">PRE-VOTING</p>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text/50 mt-1">Awaiting Phase</p>
-        </div>
-      )}
+      </div>
 
       {/* Countdown */}
-      {isVoting && timeLeft && (
+      {countdownInfo && countdownInfo.timeLeft && (
         <div className="relative overflow-hidden rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-6 text-center shadow-sm">
           <div className="absolute inset-0 bg-gradient-to-b from-app-accent/[0.03] to-transparent" />
           <div className="relative">
             <div className="flex items-center justify-center gap-2.5 mb-3">
               <span className="text-2xl">⏱️</span>
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text">Time Remaining</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text">{countdownInfo.label}</span>
             </div>
-            <p className="text-4xl font-black tabular-nums tracking-tight text-app-heading">{timeLeft}</p>
+            <p className="text-4xl font-black tabular-nums tracking-tight text-app-heading">{countdownInfo.timeLeft}</p>
             <div className="mt-4 mx-auto w-16 h-1 rounded-full bg-gradient-to-r from-app-accent/40 via-app-accent/60 to-app-accent/40" />
           </div>
         </div>
       )}
 
       {/* Live stats */}
-      {isVoting && (
+      {isVoting && !votingEnded && (
         <>
           {/* Three key stats in one compact row */}
           <div className="rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-4 shadow-sm">
@@ -170,14 +207,14 @@ export default function LiveStatsSidebar() {
               </div>
             </div>
           )}
-
         </>
       )}
 
-      {!isVoting && (
+      {/* Non-voting context */}
+      {(!isVoting || votingEnded) && noVoteInfo[phase] && (
         <div className="rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-6 text-center">
-          <span className="text-3xl mb-3 block">📊</span>
-          <p className="text-sm font-semibold text-app-muted-text">Live results will appear here during the voting phase.</p>
+          <span className="text-3xl mb-3 block">{noVoteInfo[phase].icon}</span>
+          <p className="text-sm font-semibold text-app-muted-text">{noVoteInfo[phase].text}</p>
         </div>
       )}
     </aside>

@@ -37,10 +37,12 @@ router.get("/stats", async (req, res) => {
     }
 
     let phase = 0;
+    let registrationEnd = 0;
     let votingEnd = 0;
     let currentElectionId = 0;
     try {
       phase = Number(await electionContractV3.getPhase());
+      registrationEnd = Number(await electionContractV3.registrationEnd());
       votingEnd = Number(await electionContractV3.votingEnd());
       currentElectionId = Number(await electionContractV3.currentElectionId());
     } catch {}
@@ -63,7 +65,7 @@ router.get("/stats", async (req, res) => {
     const remaining = Math.max(0, totalVoters - votesCast);
     const turnout = totalVoters > 0 ? Number(((votesCast / totalVoters) * 100).toFixed(1)) : 0;
 
-    res.json({ totalVoters, votesCast, remaining, turnout, candidateCount, phase, votingEnd, positions: posResult.rows });
+    res.json({ totalVoters, votesCast, remaining, turnout, candidateCount, phase, registrationEnd, votingEnd, positions: posResult.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
