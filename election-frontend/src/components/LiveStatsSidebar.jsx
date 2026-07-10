@@ -72,7 +72,7 @@ export default function LiveStatsSidebar() {
       ? { icon: "⏰", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered. The registration window has closed — waiting for the admin to start voting.` }
       : noRegEndSet
         ? { icon: "📝", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered so far.` }
-        : { icon: "📝", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered so far. Registration closes in ${registrationTimeLeft}.` },
+        : { icon: "📝", text: `${stats.candidateCount ?? 0} candidate${stats.candidateCount !== 1 ? "s" : ""} registered — the ballot is taking shape.` },
     2: votingEnded
       ? { icon: "⏰", text: `${stats.votesCast} vote${stats.votesCast !== 1 ? "s" : ""} cast. The voting window has closed — waiting for the admin to finalize results.` }
       : null,
@@ -211,7 +211,20 @@ export default function LiveStatsSidebar() {
       )}
 
       {/* Non-voting context */}
-      {(!isVoting || votingEnded) && noVoteInfo[phase] && (
+      {phase === 1 && !registrationEnded && !noRegEndSet && (
+        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-amber-500/3 p-6 text-center shadow-sm">
+          <p className="text-5xl font-black tabular-nums text-amber-300 leading-none">{stats.candidateCount ?? 0}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-muted-text/50 mt-2 mb-3">Candidates Registered</p>
+          <p className="text-sm font-semibold text-app-muted-text">A strong field has entered the race — ready to earn your vote.</p>
+        </div>
+      )}
+      {(!isVoting || votingEnded) && noVoteInfo[phase] && phase !== 1 && (
+        <div className="rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-6 text-center">
+          <span className="text-3xl mb-3 block">{noVoteInfo[phase].icon}</span>
+          <p className="text-sm font-semibold text-app-muted-text">{noVoteInfo[phase].text}</p>
+        </div>
+      )}
+      {(phase === 1 && (registrationEnded || noRegEndSet)) && (
         <div className="rounded-2xl border border-app/30 bg-gradient-to-br from-app-surface to-app-bg p-6 text-center">
           <span className="text-3xl mb-3 block">{noVoteInfo[phase].icon}</span>
           <p className="text-sm font-semibold text-app-muted-text">{noVoteInfo[phase].text}</p>
