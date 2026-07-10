@@ -312,47 +312,48 @@ The presentation layer is a **React.js single-page application (SPA)** styled wi
 The frontend component tree is organized as follows:
 
 ```
-App.jsx
-├── ToastProvider (context — global toast notifications)
-├── ThemeProvider (context — light/dark theme management)
-│   └── data-theme attribute on <html> element
-├── AuthProvider (context — wallet connection, voter status, admin check)
-│   └── AuthContext (shared via createContext)
-├── AppHeader
-│   ├── Navigation tabs: Home, Vote, Results, Activity, Docs
-│   ├── WalletButton (connect/disconnect MetaMask)
-│   ├── ThemeToggle (light/dark switch)
-│   └── Student Portal trigger
-├── ScrollToTop (scroll restoration on navigation)
-├── LandingPage (public landing with election info, history, stats)
-├── VotingPanelV3 (lazy loaded — main voting interface)
-│   ├── CandidateGrid (position-grouped candidate cards)
-│   ├── BallotSummary (selected candidates review)
-│   ├── GenderValidator (≥2 female GM check)
-│   └── TransactionConfirmationModal
-├── LiveStatsSidebar (lazy loaded — real-time turnout, remaining voters)
-├── Results (lazy loaded — live vote results with per-position breakdown)
-│   ├── PositionSection (President/Secretary/GM sections)
-│   ├── CandidateCard (individual candidate with vote count bar)
-│   └── ElectionHistory (past election results)
-├── WinnerBanner (congratulations display for winning wallets)
-├── VoterStatusCard (eligibility status, balance, verification state)
-├── MainRegistrationBanner (registration prompt for unregistered students)
-├── LiveBlockchainDashboard (lazy loaded — event log timeline)
-├── VoterGuide (lazy loaded — step-by-step voting instructions)
-├── ArchitectureOverview (lazy loaded — system architecture explanation)
-├── AnalyticsDashboard (lazy loaded — admin analytics)
-├── AdminDashboard (lazy loaded — admin controls)
-│   ├── ElectionControl (phase management, deadlines)
-│   ├── VerifyVoter (student verification)
-│   ├── GenerateCodes (registration code generation)
-│   ├── CodesUploader (bulk code import via CSV/XLSX)
-│   ├── ManualCodeGenerator (individual code creation)
-│   ├── StudentSpreadsheet (bulk student import)
-│   ├── StudentList (student management table)
-│   ├── GasDistribution (Sepolia ETH distribution)
-│   └── GasHistory (distribution log)
-└── StudentPortal (modal — registration, login, profile)
+ErrorBoundary (catches rendering crashes — fallback UI with reload button)
+└── App.jsx
+    ├── ToastProvider (context — global toast notifications via useToast())
+    ├── ThemeProvider (context — light/dark theme management)
+    │   └── data-theme attribute on <html> element
+    ├── AuthProvider (context — wallet connection, voter status, admin check)
+    │   └── AuthContext (shared via createContext)
+    ├── AppHeader
+    │   ├── Navigation tabs: Home, Vote, Results, Activity, Docs
+    │   ├── WalletButton (connect/disconnect MetaMask)
+    │   ├── ThemeToggle (light/dark switch)
+    │   └── Student Portal trigger
+    ├── ScrollToTop (scroll restoration on navigation)
+    ├── LandingPage (public landing with election info, history, stats)
+    ├── VotingPanelV3 (lazy loaded — main voting interface)
+    │   ├── CandidateGrid (position-grouped candidate cards)
+    │   ├── BallotSummary (selected candidates review)
+    │   ├── GenderValidator (≥2 female GM check)
+    │   └── TransactionConfirmationModal
+    ├── LiveStatsSidebar (lazy loaded — phase-aware sidebar with countdowns, live stats)
+    ├── Results (lazy loaded — live vote results with per-position breakdown)
+    │   ├── PositionSection (President/Secretary/GM sections)
+    │   ├── CandidateCard (individual candidate with vote count bar)
+    │   └── ElectionHistory (past election results)
+    ├── WinnerBanner (personalised congratulations for winning candidates)
+    ├── VoterStatusCard (eligibility status, balance, verification state)
+    ├── MainRegistrationBanner (registration prompt for unregistered students)
+    ├── LiveBlockchainDashboard (lazy loaded — event log timeline)
+    ├── VoterGuide (lazy loaded — step-by-step voting instructions)
+    ├── ArchitectureOverview (lazy loaded — system architecture explanation)
+    ├── AnalyticsDashboard (lazy loaded — admin analytics)
+    ├── AdminDashboard (lazy loaded — admin controls)
+    │   ├── ElectionControl (phase management, deadlines)
+    │   ├── VerifyVoter (student verification)
+    │   ├── GenerateCodes (registration code generation)
+    │   ├── CodesUploader (bulk code import via CSV/XLSX)
+    │   ├── ManualCodeGenerator (individual code creation)
+    │   ├── StudentSpreadsheet (bulk student import)
+    │   ├── StudentList (student management table)
+    │   ├── GasDistribution (Sepolia ETH distribution)
+    │   └── GasHistory (distribution log)
+    └── StudentPortal (modal — registration, login, profile)
 ```
 
 **3.3.1.2 Context Providers and State Management**
@@ -520,6 +521,164 @@ const CONTRACT_ERRORS = {
 ```
 
 The `formatContractError()` function searches the raw error message against all known patterns and returns the appropriate user-friendly message. The `formatAPIError()` function similarly handles REST API errors from the backend.
+
+**ErrorBoundary Component** (`components/ErrorBoundary.jsx`, 30 lines)
+
+A React error boundary wraps the entire application to catch rendering errors from any child component. When an error is caught:
+
+1. The error is logged to `console.error` for debugging
+2. A user-friendly fallback UI is rendered with:
+   - An error icon and "Something went wrong" heading
+   - The error message for transparency
+   - A "Reload Page" button that calls `window.location.reload()`
+3. The boundary resets on navigation, allowing automatic recovery
+
+This prevents a single component crash (e.g., a null reference in a data-dependent child) from taking down the entire application. The fallback UI is intentionally minimal and stable — built with plain Tailwind classes and no external state dependencies — to ensure it renders reliably even when React's component tree is corrupted.
+
+```jsx
+// Simplified — ErrorBoundary catches rendering crashes and shows a reload prompt
+{hasError ? (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center p-8">
+      <span className="text-4xl">⚠️</span>
+      <h2 className="text-xl font-bold mt-2">Something went wrong</h2>
+      <p className="text-sm text-muted mt-1">{error.message}</p>
+      <button onClick={() => window.location.reload()}>Reload Page</button>
+    </div>
+  </div>
+) : children}
+```
+
+> **Full Source**: Key frontend components including AuthContext and VotingPanelV3 are provided in Appendix E.
+
+**3.3.1.8 Loading and Empty States**
+
+The frontend implements consistent patterns for asynchronous states across all components:
+
+**Loading States**
+- **AuthContext**: A `loading` boolean tracks MetaMask connection progress; consumer components render nothing until loading completes
+- **Lazy-loaded components** (`VotingPanelV3`, `LiveStatsSidebar`, etc.): React's `Suspense` with a fallback spinner prevents layout shift
+- **Data-fetching components**: Each component initialises its state to `null` and returns `null` (renders nothing) until data is available — a pattern used consistently across `LiveStatsSidebar`, `WinnerBanner`, `Results`, and `VotingPanelV3`:
+
+```javascript
+// Pattern: render nothing while loading, full UI when data arrives
+const [stats, setStats] = useState(null);
+// ... fetchStats() sets stats on success
+if (!stats) return null;           // <-- loading guard
+return <UI />;                      // <-- data available
+```
+
+- **Admin panels**: Tables and forms show a centred spinner (`<div className="animate-spin">`) during API calls, with the button text changing to "Saving..." or "Processing..."
+
+**Empty States**
+Components handle zero-data conditions with descriptive placeholder cards rather than blank areas:
+
+| Component | Empty State Display |
+|-----------|-------------------|
+| `Results` — candidates | "No candidates registered for this election yet." |
+| `Results` — history | "No past elections found." |
+| `AnalyticsDashboard` | "No data available yet. The dashboard populates during the voting phase." |
+| `WinnerBanner` | Returns `null` (no banner) when the connected wallet is not a winner |
+
+**Phase-Transition Resilience**: Components that depend on contract state (phase, vote counts, deadlines) use polling intervals (10s for stats, 30s for winner checks) with `try/catch` wrappers. If an API call fails (e.g., during phase transition), the component retains its last valid state and updates automatically on the next successful poll.
+
+**3.3.1.9 LiveStatsSidebar Phase Display**
+
+The live statistics sidebar (`components/LiveStatsSidebar.jsx`, 220 lines) is a continuously updating panel that adapts its content and styling based on the current election phase. It polls `GET /api/results/stats` every 10 seconds for phase, vote counts, candidate count, and deadline data.
+
+**Phase-Aware Header**: The sidebar renders a distinct header for every phase, with appropriate colours and messaging:
+
+| Phase State | Header Label | Styling | Subtitle |
+|-------------|-------------|---------|----------|
+| 0 — Created | CREATED | Muted grey | "Not yet open" |
+| 1 — Registration (active) | REGISTRATION OPEN | Amber accent | "Candidates & Voters can register" |
+| 1 — Registration (expired) | REGISTRATION CLOSED | Rose/red accent | "Awaiting voting phase" |
+| 2 — Voting (active) | VOTING LIVE | Emerald accent, animated ping dot | "Election in Progress" |
+| 2 — Voting (expired) | VOTING ENDED | Rose/red accent | "Awaiting finalization" |
+| 3 — Ended | ELECTION ENDED | Muted grey | "Final results available" |
+
+```javascript
+// Phase detection logic — sidebar maps each on-chain phase to a visual state
+const registrationEnded = phase === 1 && now >= stats.registrationEnd;
+const votingEnded = phase === 2 && now >= stats.votingEnd;
+const phaseLabel = registrationEnded ? "REGISTRATION CLOSED"
+                 : votingEnded ? "VOTING ENDED"
+                 : phaseConfig[phase].label;
+```
+
+**Countdown Timer**: When a phase has an active deadline (registration or voting), a live countdown card displays the remaining time (days/hours/minutes/seconds), updating every second via a local `setInterval`. The label adapts dynamically:
+- Phase 1: "Registration Closes" → shows `registrationEnd - now`
+- Phase 2: "Time Remaining" → shows `votingEnd - now`
+- Expired phases: No countdown is rendered
+
+**Live Stats Block** (Voting phase only): When voting is active, the sidebar expands to show:
+- Votes cast / remaining / total voter counts
+- Turnout percentage with animated progress bar
+- Per-position breakdown with horizontal bar charts
+- These stats are hidden when `votingEnded` is true
+
+**Context Messages**: For non-voting phases, a contextual info card replaces the live stats block:
+
+| Phase | Icon | Message |
+|-------|------|---------|
+| 0 Created | 🗓️ | "The election has been created. The registration phase will open soon." |
+| 1 Registration (active) | 📝 | "X candidates registered so far. Registration closes in Y." |
+| 1 Registration (expired) | ⏰ | "X candidates registered. The registration window has closed — waiting for the admin to start voting." |
+| 1 Registration (no deadline) | 📝 | "X candidates registered so far." |
+| 2 Voting (expired) | ⏰ | "X votes cast. The voting window has closed — waiting for the admin to finalize results." |
+| 3 Ended | 🏁 | "This election has concluded. View the results tab for final outcomes." |
+
+This design ensures the sidebar always shows relevant, accurate information regardless of what stage the election is in, eliminating stale or misleading placeholder text.
+
+**3.3.1.10 WinnerBanner Congratulations Display**
+
+The `WinnerBanner` component (`components/WinnerBanner.jsx`, 143 lines) displays a personalised congratulatory message to the winning candidate after the election concludes. It is rendered on both the Vote and Results tabs for non-admin users.
+
+**Detection Logic**: The component checks for winner status through a multi-step polling process (30-second interval):
+
+1. The connected wallet address is checked against the backend API
+2. If the election phase is 3 (Ended) or 0 (Created), it queries:
+   - `GET /api/candidates/by-wallet/{wallet}` — fetches the candidate record
+   - `GET /api/results/history` — fetches all past election snapshots
+3. The latest election history entry is scanned for a candidate matching the wallet's name with `is_winner: true`
+4. If found, the banner renders with the winner's details
+
+```javascript
+// Simplified — WinnerBanner checks if the connected wallet belongs to a winner
+const latest = history[0];
+const winner = latest.candidates?.find(
+  c => c.is_winner && c.name === candidate.name
+);
+if (winner) setWinnerInfo({ name, position, voteCount, year, gender, photo });
+```
+
+**Visual Presentation**: The banner displays:
+- 🎉 Party popper emoji with "You Did It, {name}!" heading
+- "Your peers trust you to lead. Make them proud." motivational subtitle
+- Candidate photo (or 🏆 fallback), position label, year, and gender badge
+- Vote count in large type
+- "Your leadership will shape the future of the IT Club. Lead with integrity." footer
+
+**Privacy Consideration**: The component renders `null` (empty) for non-winners, non-candidates, and users without a connected wallet. Winner status is never publicly broadcast — only the winning wallet holder sees the congratulation message, as it requires the wallet's private key to be connected.
+
+**3.3.1.11 Toast Notification System**
+
+The `ToastProvider` (`components/ui/Toast.jsx`, 85 lines) wraps the application and provides a global notification channel accessible from any component via `useToast()`:
+
+```javascript
+const { showToast } = useToast();
+showToast("Vote cast successfully!", "success");
+```
+
+Toast notifications support three severity levels with distinct styling:
+
+| Type | Icon | Background | Use Case |
+|------|------|-----------|----------|
+| `success` | ✅ | Emerald/green | Transaction confirmed, registration complete |
+| `error` | ❌ | Rose/red | Transaction failed, network error |
+| `info` | ℹ️ | Indigo/blue | Phase change, status update |
+
+Notifications auto-dismiss after 4 seconds and stack vertically when multiple are triggered rapidly. The toast is positioned fixed at the top-right of the viewport and uses Framer Motion for slide-in/out animation.
 
 > **Full Source**: Key frontend components including AuthContext and VotingPanelV3 are provided in Appendix E.
 
