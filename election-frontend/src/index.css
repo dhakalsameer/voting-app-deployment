@@ -183,3 +183,33 @@
 
   .text-glow-emerald { text-shadow: 0 0 8px color-mix(in srgb, var(--app-trust) 50%, transparent); }
 }
+
+@media print {
+  body { background: #ffffff !important; }
+  #analytics-report {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  #analytics-report h2,
+  #analytics-report h3,
+  #analytics-report h4,
+  #analytics-report p,
+  #analytics-report span,
+  #analytics-report td,
+  #analytics-report th,
+  #analytics-report li {
+    color: #000000 !important;
+  }
+  #analytics-report svg { max-height: 60mm; }
+  #analytics-report table { page-break-inside: auto; }
+  #analytics-report tr { page-break-inside: avoid; }
+  nav, aside, .sidebar, button, .btn-secondary,
+  .app-header, footer, .Toastify, [role="navigation"],
+  .toast-container, .toast { display: none !important; }
+}

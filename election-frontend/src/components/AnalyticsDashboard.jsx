@@ -4,8 +4,6 @@ import {
   PieChart, Pie, Cell, Legend 
 } from "recharts";
 import { API_URL } from "../config";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#0ea5e9"];
 
@@ -105,35 +103,8 @@ export default function AnalyticsDashboard() {
       ? new Date(currentTab.data.snapshot_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       : null;
 
-  const downloadPDF = async () => {
-    try {
-      const input = document.getElementById("analytics-report");
-      if (!input) return alert("Report section not found.");
-
-      const bgColor = document.documentElement.getAttribute("data-theme") === "light" ? "#ffffff" : "#070b14";
-
-      // html2canvas v1.4.1 cannot parse oklch/oklab colors (Tailwind v4).
-      // Using foreignObjectRendering delegates to the native browser engine
-      // which handles modern CSS correctly.
-      const canvas = await html2canvas(input, {
-        scale: 2,
-        backgroundColor: bgColor,
-        useCORS: true,
-        logging: false,
-        foreignObjectRendering: true,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Election_Report_${new Date().toLocaleDateString()}.pdf`);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-      alert("Could not generate report. Check console for details.");
-    }
+  const downloadPDF = () => {
+    window.print();
   };
 
   function WinnersBanner() {
