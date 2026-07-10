@@ -217,26 +217,23 @@ export default function LiveStatsSidebar() {
             <span className="text-xl">📋</span>
             <span className="text-xs font-bold uppercase tracking-widest text-app-muted-text">Candidates by Position</span>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {stats.positions?.map((pos, i) => {
               const colors = ["text-app-accent", "text-app-trust", "text-app-ballot"];
               const dotColors = ["bg-app-accent", "bg-app-trust", "bg-app-ballot"];
               return (
                 <div key={pos.position} className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className={`h-2.5 w-2.5 rounded-full ${dotColors[i % dotColors.length]}`} />
-                    <span className="text-sm font-bold text-app-heading">{pos.position}</span>
+                    <span className={`h-3 w-3 rounded-full ${dotColors[i % dotColors.length]}`} />
+                    <span className="text-base font-bold text-app-heading">{pos.position}</span>
                   </div>
-                  <span className={`text-2xl font-black tabular-nums leading-none ${colors[i % colors.length]}`}>
+                  <span className={`text-3xl font-black tabular-nums leading-none ${colors[i % colors.length]}`}>
                     {pos.candidates}
                   </span>
                 </div>
               );
             })}
           </div>
-          <p className="text-xs text-app-muted-text/60 mt-4 text-center italic">
-            A strong field has entered the race — ready to earn your vote.
-          </p>
         </div>
       )}
       {(!isVoting || votingEnded) && noVoteInfo[phase] && phase !== 1 && (
