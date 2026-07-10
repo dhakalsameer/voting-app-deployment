@@ -111,11 +111,16 @@ export default function AnalyticsDashboard() {
       if (!input) return alert("Report section not found.");
 
       const bgColor = document.documentElement.getAttribute("data-theme") === "light" ? "#ffffff" : "#070b14";
+
+      // html2canvas v1.4.1 cannot parse oklch/oklab colors (Tailwind v4).
+      // Using foreignObjectRendering delegates to the native browser engine
+      // which handles modern CSS correctly.
       const canvas = await html2canvas(input, {
         scale: 2,
         backgroundColor: bgColor,
         useCORS: true,
         logging: false,
+        foreignObjectRendering: true,
       });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
