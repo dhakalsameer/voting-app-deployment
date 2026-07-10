@@ -106,16 +106,29 @@ export default function AnalyticsDashboard() {
       : null;
 
   const downloadPDF = async () => {
-    const input = document.getElementById("analytics-report");
-    const canvas = await html2canvas(input, { scale: 2, backgroundColor: "#080f0b" });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`Election_Report_${new Date().toLocaleDateString()}.pdf`);
+    try {
+      const input = document.getElementById("analytics-report");
+      if (!input) return alert("Report section not found.");
+
+      const bgColor = document.documentElement.getAttribute("data-theme") === "light" ? "#ffffff" : "#070b14";
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        backgroundColor: bgColor,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Election_Report_${new Date().toLocaleDateString()}.pdf`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert("Could not generate report. Check console for details.");
+    }
   };
 
   function WinnersBanner() {
