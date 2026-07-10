@@ -7,7 +7,7 @@ import { API_URL } from "../config";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-const COLORS = ["#10b981", "#34d399", "#0ea5e9", "#20b2aa", "#3b82f6", "#059669"];
+const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#0ea5e9"];
 
 export default function AnalyticsDashboard() {
   const [data, setData] = useState([]);
