@@ -139,6 +139,7 @@ export default function ElectionControl() {
   const [candidateCount, setCandidateCount] = useState(0);
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   const [syncingWhitelist, setSyncingWhitelist] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -409,41 +410,48 @@ export default function ElectionControl() {
         ) : history.length === 0 ? (
           <p className="text-base text-app-muted-text mt-2">No past election results yet.</p>
         ) : (
-          <div className="space-y-3 mt-3">
-            {[...history].reverse().map((r) => (
-              <div key={r.id} className="rounded-xl border border-app/70 bg-app-surface overflow-hidden shadow-sm">
-                <div className="px-4 py-3 border-b border-app/30 bg-gradient-to-r from-app-surface to-app-elevated">
-                  <h4 className="text-sm font-bold text-app-heading">Election #{r.id + 1}</h4>
-                  <p className="text-[11px] text-app-muted-text/60 mt-0.5">
-                    {r.timestamp} · {r.totalCandidates} candidates
-                  </p>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold mb-1.5">President</p>
-                      <p className="text-sm font-bold text-app-heading">{r.pres}</p>
-                    </div>
-                    <div className="rounded-lg border border-sky-500/20 bg-sky-500/[0.06] px-4 py-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-sky-400 font-bold mb-1.5">Secretary</p>
-                      <p className="text-sm font-bold text-app-heading">{r.sec}</p>
-                    </div>
-                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-amber-400 font-bold mb-1.5">General Member</p>
-                      {r.gmNames ? (
-                        <ul className="space-y-0.5">
-                          {r.gmNames.map((name, idx) => (
-                            <li key={idx} className="text-sm font-bold text-app-heading">{name}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm font-bold text-app-heading">—</p>
-                      )}
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+            {[...history].reverse().map((r) => {
+              const isOpen = expandedId === r.id;
+              return (
+                <div
+                  key={r.id}
+                  className="rounded-xl border border-app/70 bg-app-surface overflow-hidden shadow-sm cursor-pointer hover:shadow-md hover:border-app transition-all"
+                  onClick={() => setExpandedId(isOpen ? null : r.id)}
+                >
+                  <div className="px-4 py-3 text-center border-b border-app/20">
+                    <h4 className="text-sm font-bold text-app-heading">Election #{r.id + 1}</h4>
+                    <p className="text-[10px] text-app-muted-text/60 mt-0.5">
+                      {r.timestamp} · {r.totalCandidates} candidates
+                    </p>
                   </div>
+                  {isOpen && (
+                    <div className="p-3 space-y-2 border-t border-app/20">
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-3 py-2 text-center">
+                        <p className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold mb-0.5">President</p>
+                        <p className="text-sm font-bold text-app-heading">{r.pres}</p>
+                      </div>
+                      <div className="rounded-lg border border-sky-500/20 bg-sky-500/[0.06] px-3 py-2 text-center">
+                        <p className="text-[9px] uppercase tracking-widest text-sky-400 font-bold mb-0.5">Secretary</p>
+                        <p className="text-sm font-bold text-app-heading">{r.sec}</p>
+                      </div>
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-center">
+                        <p className="text-[9px] uppercase tracking-widest text-amber-400 font-bold mb-0.5">General Member</p>
+                        {r.gmNames ? (
+                          <ul className="space-y-0.5">
+                            {r.gmNames.map((name, idx) => (
+                              <li key={idx} className="text-sm font-bold text-app-heading">{name}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm font-bold text-app-heading">—</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
