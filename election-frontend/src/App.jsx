@@ -204,7 +204,7 @@ function App() {
               {currentTab === "vote" && !isAdmin && wallet && (
                 <AnimatedPage key="vote">
                   <div className="lg:grid lg:grid-cols-[280px_1fr] gap-6 items-start">
-                    <div className="hidden lg:block space-y-3">
+                    <div className="hidden lg:block space-y-3 sticky top-4 self-start">
                       <Suspense fallback={null}>
                         <LiveStatsSidebar />
                       </Suspense>
