@@ -417,16 +417,15 @@ export default function ElectionControl() {
                 <div key={r.id} className="rounded-lg border border-app overflow-hidden">
                   <button
                     onClick={() => setExpandedId(isOpen ? null : r.id)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-app-surface hover:bg-app-elevated transition-colors cursor-pointer text-left"
+                    className="w-full flex flex-col px-4 py-3 bg-app-surface hover:bg-app-elevated transition-colors cursor-pointer text-left"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center justify-between w-full">
                       <span className="text-sm font-bold text-app-heading">Election #{r.id + 1}</span>
-                      <span className="text-[11px] text-app-muted-text truncate">{r.timestamp}</span>
+                      <span className={`text-sm transition-transform shrink-0 ${isOpen ? "rotate-180" : ""}`}>▾</span>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-app-muted-text/60">{r.totalCandidates} candidates</span>
-                      <span className={`text-sm transition-transform ${isOpen ? "rotate-180" : ""}`}>▾</span>
-                    </div>
+                    <span className="text-[11px] text-app-muted-text/60 mt-0.5">
+                      {r.timestamp} · {r.totalCandidates} candidates
+                    </span>
                   </button>
                   {isOpen && (
                     <div className="border-t border-app/30 p-4 space-y-2 text-sm">
