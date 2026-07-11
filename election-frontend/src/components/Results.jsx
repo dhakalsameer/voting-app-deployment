@@ -515,7 +515,7 @@ function HistoryResults({ election }) {
 
 export default function Results() {
   const [history, setHistory] = useState([]);
-  const [selectedElection, setSelectedElection] = useState("live");
+  const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     const loadHistoryFromContract = async () => {
@@ -583,16 +583,6 @@ export default function Results() {
     fetchHistory();
   }, []);
 
-  const tabs = useMemo(() => {
-    const t = [{ key: "live", label: "Live" }];
-    for (const h of history) {
-      t.push({ key: String(h.election_number), label: `Election ${h.election_number}`, data: h });
-    }
-    return t;
-  }, [history]);
-
-  const currentElection = tabs.find((t) => t.key === selectedElection);
-
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
       <div className="px-4 py-3 border-b border-app">
@@ -603,34 +593,55 @@ export default function Results() {
           </span>
           <h2 className="text-base font-semibold text-app-heading">Results</h2>
         </div>
-
-        {tabs.length > 1 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setSelectedElection(tab.key)}
-                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-                  selectedElection === tab.key
-                    ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
-                    : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="p-4">
-        {selectedElection === "live" ? (
-          <LiveResults />
-        ) : currentElection?.data ? (
-          <HistoryResults election={currentElection.data} />
-        ) : (
-          <div className="py-8 text-center">
-            <p className="text-base text-app-muted-text italic">Election data not available</p>
+        <LiveResults />
+
+        {history.length > 0 && (
+          <div className="mt-8 border-t border-app pt-6">
+            <h3 className="flex items-center gap-2 text-base font-bold text-app-heading mb-4">
+              <span>📜</span> Election History
+            </h3>
+            <div className="space-y-2">
+              {[...history].reverse().map((election) => {
+                const isOpen = expanded === election.election_number;
+                const total = election.candidates.reduce((a, c) => a + Number(c.vote_count ?? 0), 0);
+                return (
+                  <div key={election.election_number} className="rounded-xl border border-app/50 overflow-hidden">
+                    <button
+                      onClick={() => setExpanded(isOpen ? null : election.election_number)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-app-surface hover:bg-app-elevated transition-colors cursor-pointer text-left"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-sm font-bold text-app-heading shrink-0">
+                          Election #{election.election_number}
+                        </span>
+                        <span className="text-[11px] text-app-muted-text truncate">
+                          {new Date(election.snapshot_at).toLocaleDateString(undefined, {
+                            year: "numeric", month: "short", day: "numeric",
+                          })}
+                        </span>
+                        <span className="text-[11px] font-mono text-app-muted-text/60 shrink-0">
+                          {election.candidates.length} candidates
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs font-bold font-mono text-app-accent">{total} votes</span>
+                        <span className={`text-sm transition-transform ${isOpen ? "rotate-180" : ""}`}>▾</span>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-app/30">
+                        <div className="p-4">
+                          <HistoryResults election={election} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
