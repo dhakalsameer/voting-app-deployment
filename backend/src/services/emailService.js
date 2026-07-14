@@ -77,6 +77,51 @@ export async function sendRegistrationCode({ email, name, student_id, code, elec
  * Send registration codes to multiple students.
  * Returns { sent, failed, devMode }.
  */
+function buildWinnerEmailHtml({ name, position, voteCount, electionNumber }) {
+  const posLabel = position || "a position";
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+      <div style="text-align:center;font-size:40px;margin-bottom:12px;">🎉🏆</div>
+      <h2 style="color:#10b981;text-align:center;">Congratulations, ${name}!</h2>
+      <p style="text-align:center;font-size:16px;color:#374151;">
+        You have been elected as <strong>${posLabel}</strong> in
+        <strong>Election #${electionNumber}</strong>
+        with <strong>${voteCount}</strong> vote${voteCount !== 1 ? "s" : ""}.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="font-size:14px;color:#166534;margin:0;">
+          Your peers trust you to lead. Make them proud.
+        </p>
+      </div>
+      <p style="color:#6b7280;font-size:13px;">The results are recorded on-chain and can be verified anytime.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+      <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>
+    </div>
+  `;
+}
+
+export async function sendWinnerCongratulation({ email, name, position, voteCount, electionNumber }) {
+  const t = getTransporter();
+
+  if (!t) {
+    console.log("─── WINNER EMAIL (SMTP not configured) ───");
+    console.log(`To: ${email}`);
+    console.log(`Subject: 🎉 Congratulations ${name} — You Won Election #${electionNumber}!`);
+    console.log(`Position: ${position}, Votes: ${voteCount}`);
+    console.log("───────────────────────────────────────────");
+    return { devMode: true, email };
+  }
+
+  const info = await t.sendMail({
+    from: SMTP_FROM || SMTP_USER,
+    to: email,
+    subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
+    html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
+  });
+
+  return { messageId: info.messageId, email };
+}
+
 export async function sendBatchRegistrationCodes(students, electionName) {
   const sent = [];
   const failed = [];

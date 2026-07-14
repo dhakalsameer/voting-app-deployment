@@ -4,6 +4,7 @@ import { config } from "../config/env.js";
 import { db } from "../db.js";
 import { addEvent, seedHistoricalEvents } from "../services/eventStore.js";
 import { rebuildMerkleTrees } from "../controllers/voterController.js";
+import { sendWinnerCongratulation } from "../services/emailService.js";
 
 const POLL_MS = 10000;
 const MAX_BLOCK_RANGE = 10; // Alchemy free tier limit for eth_getLogs
@@ -376,8 +377,45 @@ export function startBlockchainSync(io) {
 
       const total = snapRes.rows.length + missingIds.length;
       console.log(`   → Snapshot saved for election #${electionNum} (${total} candidates, ${winnerPositions.size} winners, ${missingIds.length} from contract)`);
+
+      await sendWinnerNotifications(electionNum);
     } catch (err) {
       console.error("Snapshot error:", err.message);
+    }
+  }
+
+  async function sendWinnerNotifications(electionNum) {
+    try {
+      const result = await db.query(
+        `SELECT s.email, s.name AS student_name, eh.candidate_name, eh.candidate_position, eh.vote_count
+         FROM election_history eh
+         JOIN candidates c ON c.blockchain_id = eh.blockchain_id
+         JOIN students s ON s.student_id = c.student_id
+         WHERE eh.election_number = $1 AND eh.is_winner = true AND s.email IS NOT NULL AND c.blockchain_id IS NOT NULL`,
+        [electionNum]
+      );
+
+      if (result.rows.length === 0) {
+        console.log(`   → No winner emails to send for election #${electionNum}`);
+        return;
+      }
+
+      const promises = result.rows.map(row =>
+        sendWinnerCongratulation({
+          email: row.email,
+          name: row.student_name,
+          position: row.candidate_position,
+          voteCount: row.vote_count,
+          electionNumber: electionNum,
+        }).catch(err => {
+          console.error(`   → Failed to send winner email to ${row.email}: ${err.message}`);
+        })
+      );
+
+      await Promise.all(promises);
+      console.log(`   → Winner notifications sent for election #${electionNum} (${result.rows.length} emails)`);
+    } catch (err) {
+      console.error("   → Winner notification error:", err.message);
     }
   }
 
