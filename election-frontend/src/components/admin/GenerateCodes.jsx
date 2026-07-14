@@ -493,12 +493,6 @@ export default function GenerateCodes() {
               render: (c) => (c.created_at ? new Date(c.created_at).toLocaleDateString() : "\u2014"),
             },
             {
-              key: "used_at",
-              label: "Claimed At",
-              cellClassName: "font-mono text-sm",
-              render: (c) => (c.used_at ? new Date(c.used_at).toLocaleDateString() : "\u2014"),
-            },
-            {
               key: "email",
               label: "Email",
               cellClassName: "text-sm text-app-muted-text max-w-[180px] truncate",
