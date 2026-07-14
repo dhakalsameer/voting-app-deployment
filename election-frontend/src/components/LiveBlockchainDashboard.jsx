@@ -80,29 +80,29 @@ function EventCard({ event }) {
 
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-app/50 bg-app-muted/20">
-        <div className="flex items-center gap-3">
-          <span className="text-base">{meta.icon}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b border-app/50 bg-app-muted/20">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <span className="text-sm sm:text-base">{meta.icon}</span>
           <Badge variant={meta.color}>{meta.label}</Badge>
           {event.fromAddress && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
               <button
                 onClick={() => handleCopy(event.fromAddress, setFromCopied)}
-                className="text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[11px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy wallet address"
               >
                 {truncate(event.fromAddress)}
               </button>
-              {fromCopied && <span className="text-xs text-emerald-400 font-semibold">Copied</span>}
+              {fromCopied && <span className="text-[10px] text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
           {event.txHash && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
               <button
                 onClick={() => handleCopy(event.txHash, setCopied)}
-                className="text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[11px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy tx hash"
               >
                 {truncate(event.txHash)}
@@ -111,16 +111,16 @@ function EventCard({ event }) {
                 href={`${SEPOLIA_EXPLORER}/tx/${event.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-base text-app-heading hover:text-app-accent transition-colors font-bold"
+                className="text-sm sm:text-base text-app-heading hover:text-app-accent transition-colors font-bold"
                 title="View on Etherscan"
               >
                 ↗
               </a>
-              {copied && <span className="text-xs text-emerald-400 font-semibold">Copied</span>}
+              {copied && <span className="text-[10px] text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3 text-xs font-mono text-app-muted-text">
+        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-mono text-app-muted-text">
           {event.blockNumber && (
             <a
               href={`${SEPOLIA_EXPLORER}/block/${event.blockNumber}`}
@@ -138,7 +138,7 @@ function EventCard({ event }) {
           )}
         </div>
       </div>
-      <div className="px-5 py-4">
+      <div className="px-3 sm:px-5 py-3 sm:py-4">
         {event.eventName === "CandidateRegistered" && (
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
             <span className="text-app-muted-text">Candidate ID</span>
@@ -289,16 +289,17 @@ export default function LiveBlockchainDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3 mb-4">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-          <h3 className="text-sm sm:text-base md:text-xl font-black text-emerald-400 uppercase tracking-wide sm:tracking-widest">Blockchain Activity Feed</h3>
-          <span className="text-[10px] sm:text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
+      <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
+        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
+          <div className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="text-xs sm:text-sm font-mono text-app-muted-text shrink-0">activity_feed.log</span>
+          <span className="text-xs font-mono text-emerald-400 shrink-0">— Loading</span>
         </div>
-        <div className="rounded-xl border border-app bg-app-surface p-10 text-center space-y-3">
+        <div className="p-10 text-center space-y-3">
           <div className="animate-spin mx-auto h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full" />
           <p className="text-sm text-app-muted-text">Loading blockchain events from server…</p>
         </div>
@@ -308,89 +309,101 @@ export default function LiveBlockchainDashboard() {
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3 mb-4">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
-          </span>
-          <h3 className="text-sm sm:text-base md:text-xl font-black text-rose-400 uppercase tracking-wide sm:tracking-widest">Blockchain Activity Feed</h3>
+      <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
+        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
+          <div className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="text-xs sm:text-sm font-mono text-app-muted-text shrink-0">activity_feed.log</span>
+          <span className="text-xs font-mono text-rose-400 shrink-0">— Error</span>
         </div>
-        <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-8 text-center">
-          <p className="text-base text-rose-400 font-semibold">{error}</p>
-          <p className="text-sm text-app-muted-text mt-2">Make sure the backend server is running.</p>
+        <div className="p-8 text-center">
+          <p className="text-sm sm:text-base text-rose-400 font-semibold">{error}</p>
+          <p className="text-xs sm:text-sm text-app-muted-text mt-2">Make sure the backend server is running.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
+    <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
+      {/* Window Title Bar */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+          </div>
+          <span className="text-xs sm:text-sm font-mono text-app-muted-text hidden sm:block">activity_feed.log</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <h3 className="text-sm sm:text-base md:text-xl font-black text-emerald-400 uppercase tracking-wide sm:tracking-widest truncate">Blockchain Activity Feed</h3>
-          <span className="text-[10px] sm:text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
+          <h3 className="text-xs sm:text-sm font-bold text-emerald-400 uppercase tracking-wider truncate">Blockchain Activity Feed</h3>
+          <span className="text-[9px] sm:text-[10px] font-mono text-emerald-500/80 bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
         </div>
         <a
           href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs sm:text-sm text-app-muted-text hover:text-app-accent transition-colors underline underline-offset-2 shrink-0"
+          className="text-[10px] sm:text-xs text-app-muted-text hover:text-app-accent transition-colors underline underline-offset-2 shrink-0 hidden sm:block"
         >
           View Contract ↗
         </a>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
-        <StatCard label="Total" value={stats.total} color="emerald" />
-        <StatCard label="Votes" value={stats.votes} color="emerald" />
-        <StatCard label="Candidates" value={stats.candidates} color="blue" />
-        <StatCard label="Phases" value={stats.phaseChanges} color="amber" />
-        <StatCard label="Merkle" value={stats.merkleUpdates} color="violet" />
-        <StatCard label="Identity" value={stats.identityUpdates} color="cyan" />
-        <StatCard label="Elections" value={stats.elections} color="rose" />
-      </div>
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+        {/* Stats Row */}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 sm:gap-3">
+          <StatCard label="Total" value={stats.total} color="emerald" />
+          <StatCard label="Votes" value={stats.votes} color="emerald" />
+          <StatCard label="Candidates" value={stats.candidates} color="blue" />
+          <StatCard label="Phases" value={stats.phaseChanges} color="amber" />
+          <StatCard label="Merkle" value={stats.merkleUpdates} color="violet" />
+          <StatCard label="Identity" value={stats.identityUpdates} color="cyan" />
+          <StatCard label="Elections" value={stats.elections} color="rose" />
+        </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2">
-        <FilterTab active={filter === "All"} onClick={() => setFilter("All")}>
-          All <span className="text-xs opacity-60">({tabCounts.All})</span>
-        </FilterTab>
-        {EVENT_NAMES.map(name => (
-          <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)}>
-            {EVENT_META[name].icon} {EVENT_META[name].label} <span className="text-xs opacity-60">({tabCounts[name] || 0})</span>
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <FilterTab active={filter === "All"} onClick={() => setFilter("All")}>
+            All <span className="text-[10px] opacity-60">({tabCounts.All})</span>
           </FilterTab>
-        ))}
-      </div>
+          {EVENT_NAMES.map(name => (
+            <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)}>
+              {EVENT_META[name].icon} {EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
+            </FilterTab>
+          ))}
+        </div>
 
-      {/* Events Feed */}
-      <div
-        ref={feedRef}
-        className="space-y-2 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin"
-      >
-        {filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-app bg-app-muted/20 p-10 text-center">
-            <p className="text-base text-app-muted-text">
-              {filter === "All" ? "No on-chain events detected yet." : `No ${EVENT_META[filter]?.label || filter} events yet.`}
-            </p>
-            <p className="text-sm text-app-muted-text mt-1">
-              Events will appear here in real-time as the sync engine detects them.
-            </p>
-          </div>
-        ) : (
-          filtered.map((ev, i) => <EventCard key={`${ev.txHash}-${ev.logIndex}-${i}`} event={ev} />)
-        )}
-      </div>
+        {/* Events Feed */}
+        <div
+          ref={feedRef}
+          className="space-y-2 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin"
+        >
+          {filtered.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-app bg-app-muted/20 p-8 sm:p-10 text-center">
+              <p className="text-sm sm:text-base text-app-muted-text">
+                {filter === "All" ? "No on-chain events detected yet." : `No ${EVENT_META[filter]?.label || filter} events yet.`}
+              </p>
+              <p className="text-xs sm:text-sm text-app-muted-text mt-1">
+                Events will appear here in real-time as the sync engine detects them.
+              </p>
+            </div>
+          ) : (
+            filtered.map((ev, i) => <EventCard key={`${ev.txHash}-${ev.logIndex}-${i}`} event={ev} />)
+          )}
+        </div>
 
-      <p className="text-sm text-app-muted-text leading-relaxed italic">
-        Powered by the backend sync engine + Socket.IO — blockchain events are indexed server-side.
-      </p>
+        <p className="text-[11px] sm:text-sm text-app-muted-text leading-relaxed italic">
+          Powered by the backend sync engine + Socket.IO — blockchain events are indexed server-side.
+        </p>
+      </div>
     </div>
   );
 }
@@ -405,11 +418,11 @@ function StatCard({ label, value, color }) {
     rose:    "bg-rose-400",
   };
   return (
-    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface px-2 sm:px-4 py-2 sm:py-3.5 text-center">
-      <p className="text-base sm:text-2xl font-black text-app-heading">{value}</p>
+    <div className="rounded-lg sm:rounded-xl border border-app bg-app-elevated/30 px-1.5 sm:px-3 py-1.5 sm:py-3 text-center">
+      <p className="text-sm sm:text-2xl font-black text-app-heading">{value}</p>
       <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
-        <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${dotColors[color] || "bg-emerald-400"}`} />
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">{label}</p>
+        <span className={`h-1 w-1 sm:h-2 sm:w-2 rounded-full ${dotColors[color] || "bg-emerald-400"}`} />
+        <p className="text-[8px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">{label}</p>
       </div>
     </div>
   );
@@ -419,7 +432,7 @@ function FilterTab({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className={`text-sm font-bold px-3.5 py-2 rounded-lg border transition-all cursor-pointer ${
+      className={`text-[11px] sm:text-sm font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
         active
           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
           : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
