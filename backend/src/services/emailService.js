@@ -25,6 +25,9 @@ function getSender() {
         port: parseInt(SMTP_PORT, 10),
         secure: parseInt(SMTP_PORT, 10) === 465,
         auth: { user: SMTP_USER, pass: SMTP_PASS },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
       });
     }
     return { type: "smtp", client: transporter };
