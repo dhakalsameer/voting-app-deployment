@@ -44,21 +44,21 @@ export default function AdminDashboard() {
       {/* header card */}
       <div className="rounded-xl border border-app bg-app-surface">
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <span className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg bg-app-accent-soft text-lg sm:text-xl">🛡️</span>
-              <div>
-                <h2 className="text-lg sm:text-2xl font-bold text-app-heading">Admin Dashboard</h2>
-                <p className="text-sm sm:text-base text-app-muted-text mt-0.5">Manage election phases, voters, and funds</p>
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-2xl font-bold text-app-heading">Admin Dashboard</h2>
+                <p className="text-[10px] sm:text-base text-app-muted-text mt-0.5">Manage election phases, voters, and funds</p>
               </div>
             </div>
             {balance && (
-              <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-muted/30 px-3 sm:px-5 py-1.5 sm:py-2.5 self-start sm:self-auto">
-                <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-app-heading" viewBox="0 0 24 24" fill="currentColor">
+              <div className="flex items-center gap-1.5 sm:gap-2 rounded-lg border border-app-border bg-app-muted/30 px-2.5 sm:px-5 py-1 sm:py-2.5 shrink-0">
+                <svg className="h-3.5 w-3.5 sm:h-5 sm:w-5 shrink-0 text-app-heading" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
                   <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
                 </svg>
-                <span className="text-sm sm:text-lg font-mono font-semibold text-app-heading">{Number(balance).toFixed(4)} ETH</span>
+                <span className="text-[11px] sm:text-lg font-mono font-semibold text-app-heading whitespace-nowrap">{Number(balance).toFixed(4)} ETH</span>
               </div>
             )}
           </div>
