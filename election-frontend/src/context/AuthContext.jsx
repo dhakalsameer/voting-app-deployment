@@ -4,6 +4,10 @@ import ABI from "../abi/Election3.json";
 import { CONTRACT_ADDRESS_V3, API_URL } from "../config";
 import { AuthContext } from "./AuthContextValue";
 
+function isMobileBrowser() {
+  return /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+}
+
 export function AuthProvider({ children }) {
   const [wallet, setWallet] = useState(null);
   const [student, setStudent] = useState(null);
@@ -92,9 +96,15 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const [showMobilePrompt, setShowMobilePrompt] = useState(false);
+
   const connectWallet = async () => {
     if (!window.ethereum) {
-      alert("MetaMask not found!");
+      if (isMobileBrowser()) {
+        setShowMobilePrompt(true);
+      } else {
+        alert("MetaMask not found! Please install the MetaMask browser extension.");
+      }
       return null;
     }
 
@@ -170,6 +180,65 @@ export function AuthProvider({ children }) {
       }}
     >
       {children}
+
+      {showMobilePrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-2xl border border-app-border bg-app-surface-solid p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-app-heading">Connect Wallet</h3>
+              <button
+                onClick={() => setShowMobilePrompt(false)}
+                className="h-8 w-8 flex items-center justify-center rounded-lg text-app-muted-text hover:text-app-heading cursor-pointer"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-sm text-app-body leading-relaxed">
+              MetaMask is not detected in this browser. To connect your wallet on mobile:
+            </p>
+
+            <ol className="space-y-2 text-sm text-app-body">
+              <li className="flex gap-2">
+                <span className="font-bold text-app-accent shrink-0">1.</span>
+                <span>Tap the button below to open this site in MetaMask&apos;s built-in browser.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold text-app-accent shrink-0">2.</span>
+                <span>Connect your wallet from inside the MetaMask browser.</span>
+              </li>
+            </ol>
+
+            <a
+              href={`https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary w-full justify-center text-base"
+              onClick={() => setShowMobilePrompt(false)}
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
+                <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
+              </svg>
+              Open in MetaMask
+            </a>
+
+            <p className="text-xs text-center text-app-muted-text">
+              Don&apos;t have MetaMask?{" "}
+              <a
+                href="https://play.google.com/store/apps/details?id=io.metamask"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-app-accent underline"
+              >
+                Install from Play Store
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }
