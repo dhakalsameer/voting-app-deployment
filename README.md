@@ -25,7 +25,7 @@ Full project source + zero-cost deployment for **Vercel** (frontend), **Render**
 4. Add these environment variables:
 
 ```
-DATABASE_URL=<your-neon-connection-string>
+DATABASE_URL=postgresql://neondb_owner:npg_9WPYKCIemj7B@ep-fragrant-feather-atn1tm50.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require
 RPC_URL=https://eth-sepolia.g.alchemy.com/v2/95pRrhpYhS2hhiYfaqfDw
 CONTRACT_ADDRESS_V3=0xF9E3123055ba2409e1F841bFEb6620F2Ab6EcCe6
 PRIVATE_KEY=0x4c54307a0f284fb4493ecf28b1f3fc3e05623c4293672c7081077e8187749d63
