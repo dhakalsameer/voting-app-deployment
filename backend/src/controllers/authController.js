@@ -12,14 +12,14 @@ const VALID_GENDERS = ["male", "female", "other"];
 export const verifyCode = async (req, res) => {
   try {
     const student_id = req.body.student_id || req.body.studentId;
-    const code = req.body.code;
+    const code = (req.body.code || "").replace(/-/g, "");
 
     if (!student_id || !code) {
       return res.status(400).json({ error: "student_id and code are required" });
     }
 
     const result = await db.query(
-      "SELECT id FROM registration_codes WHERE student_id = $1 AND code = $2 AND used = false",
+      "SELECT id FROM registration_codes WHERE student_id = $1 AND REPLACE(code, '-', '') = $2 AND used = false",
       [student_id, code]
     );
 
@@ -36,7 +36,11 @@ export const verifyCode = async (req, res) => {
 
 export const registerStudent = async (req, res) => {
   try {
-    const { student_id, code, password, wallet, signature } = req.body;
+    const student_id = req.body.student_id;
+    const code = (req.body.code || "").replace(/-/g, "");
+    const password = req.body.password;
+    const wallet = req.body.wallet;
+    const signature = req.body.signature;
     // name/year/gender are optional — admin may have pre-filled them.
     const name = req.body.name || null;
     const year = req.body.year || null;
@@ -51,7 +55,9 @@ export const registerStudent = async (req, res) => {
 
     // 1. Verify registration code exists and is unused
     const codeResult = await db.query(
-      "SELECT id FROM registration_codes WHERE student_id = $1 AND code = $2 AND used = false",
+      `SELECT rc.id FROM registration_codes rc
+       WHERE rc.student_id = $1 AND REPLACE(rc.code, '-', '') = $2 AND rc.used = false
+       LIMIT 1`,
       [student_id, code]
     );
     if (codeResult.rows.length === 0) {
@@ -118,7 +124,7 @@ export const registerStudent = async (req, res) => {
 
     // 5. Mark code as used
     await db.query(
-      "UPDATE registration_codes SET used = true, used_at = NOW() WHERE student_id = $1 AND code = $2",
+      "UPDATE registration_codes SET used = true, used_at = NOW() WHERE student_id = $1 AND REPLACE(code, '-', '') = $2",
       [student_id, code]
     );
 
