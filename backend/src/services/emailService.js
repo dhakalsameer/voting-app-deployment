@@ -1,27 +1,35 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = process.env.SMTP_PORT;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
 
+const DEFAULT_FROM = "GU Election <noreply@gu-voting.vercel.app>";
 
-
+let resend = null;
 let transporter = null;
 
-function getTransporter() {
-  if (transporter) return transporter;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    return null;
+function getSender() {
+  if (RESEND_API_KEY) {
+    if (!resend) resend = new Resend(RESEND_API_KEY);
+    return { type: "resend", client: resend };
   }
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT, 10),
-    secure: parseInt(SMTP_PORT, 10) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-  return transporter;
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    if (!transporter) {
+      transporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: parseInt(SMTP_PORT, 10),
+        secure: parseInt(SMTP_PORT, 10) === 465,
+        auth: { user: SMTP_USER, pass: SMTP_PASS },
+      });
+    }
+    return { type: "smtp", client: transporter };
+  }
+  return null;
 }
 
 function buildEmailHtml({ name, student_id, code, electionName }) {
@@ -45,31 +53,41 @@ function buildEmailHtml({ name, student_id, code, electionName }) {
 
 /**
  * Send a registration code email to a single student.
- * Falls back to console log in dev mode if SMTP is not configured.
+ * Uses Resend if configured, falls back to Gmail SMTP, then console log.
  */
 export async function sendRegistrationCode({ email, name, student_id, code, electionName }) {
-  const t = getTransporter();
-
+  const sender = getSender();
   const displayName = name || student_id;
   const title = electionName || "University IT Election";
 
-  if (!t) {
-    console.log("─── EMAIL (SMTP not configured — printed instead) ───");
+  if (!sender) {
+    console.log("─── EMAIL (no provider configured — printed instead) ───");
+    console.log("  Set RESEND_API_KEY or SMTP_* env vars to send real emails.");
     console.log(`To: ${email}`);
     console.log(`Subject: Your Registration Code for ${title}`);
     console.log(`Student: ${displayName} (${student_id})`);
     console.log(`Code: ${code}`);
-    console.log("───────────────────────────────────────────────");
+    console.log("───────────────────────────────────────────────────────");
     return { devMode: true, email, student_id, code };
   }
 
-  const info = await t.sendMail({
+  if (sender.type === "resend") {
+    const { data, error } = await sender.client.emails.send({
+      from: SMTP_FROM || DEFAULT_FROM,
+      to: email,
+      subject: `Your Registration Code for ${title}`,
+      html: buildEmailHtml({ name, student_id, code, electionName }),
+    });
+    if (error) throw new Error(error.message);
+    return { messageId: data?.id, email, student_id };
+  }
+
+  const info = await sender.client.sendMail({
     from: SMTP_FROM || SMTP_USER,
     to: email,
     subject: `Your Registration Code for ${title}`,
     html: buildEmailHtml({ name, student_id, code, electionName }),
   });
-
   return { messageId: info.messageId, email, student_id };
 }
 
@@ -101,24 +119,34 @@ function buildWinnerEmailHtml({ name, position, voteCount, electionNumber }) {
 }
 
 export async function sendWinnerCongratulation({ email, name, position, voteCount, electionNumber }) {
-  const t = getTransporter();
+  const sender = getSender();
 
-  if (!t) {
-    console.log("─── WINNER EMAIL (SMTP not configured) ───");
+  if (!sender) {
+    console.log("─── WINNER EMAIL (no provider configured) ───");
     console.log(`To: ${email}`);
     console.log(`Subject: 🎉 Congratulations ${name} — You Won Election #${electionNumber}!`);
     console.log(`Position: ${position}, Votes: ${voteCount}`);
-    console.log("───────────────────────────────────────────");
+    console.log("───────────────────────────────────────────────");
     return { devMode: true, email };
   }
 
-  const info = await t.sendMail({
+  if (sender.type === "resend") {
+    const { data, error } = await sender.client.emails.send({
+      from: SMTP_FROM || DEFAULT_FROM,
+      to: email,
+      subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
+      html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
+    });
+    if (error) throw new Error(error.message);
+    return { messageId: data?.id, email };
+  }
+
+  const info = await sender.client.sendMail({
     from: SMTP_FROM || SMTP_USER,
     to: email,
     subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
     html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
   });
-
   return { messageId: info.messageId, email };
 }
 

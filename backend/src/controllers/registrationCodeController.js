@@ -337,7 +337,7 @@ export const sendCodesEmail = async (req, res) => {
 
     return res.json({
       message: devMode
-        ? `Emails logged to console (SMTP not configured). Set SMTP_* env vars to send real emails.`
+        ? `Emails logged to console (no provider configured). Set RESEND_API_KEY or SMTP_* env vars to send real emails.`
         : `Emails sent to ${sent.length} student(s)`,
       sent,
       failed,
