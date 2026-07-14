@@ -142,12 +142,34 @@ node backend/scripts/test_e2e.mjs
 
 The contract is deployed to **Sepolia Testnet** (chain ID 11155111).
 
+### Docker (Recommended)
+
+```bash
+# 1. Build and start all services
+docker compose up -d
+
+# 2. Run database migrations
+docker compose exec backend node scripts/migrate.js
+
+# 3. Open http://localhost
+```
+
+Services: `postgres` (PostgreSQL 16), `backend` (Express on :5000), `frontend` (nginx on :80).
+
+### Manual
+
 ```bash
 # Deploy contract
 cd contracts && forge script script/DeployElection3.s.sol --rpc-url $RPC_URL --broadcast
 
 # Migrate database
 cd backend && node scripts/migrate.js
+
+# Start backend
+cd backend && npm start
+
+# Build & serve frontend
+cd election-frontend && npm run build && npm run preview
 ```
 
 ## Project Structure

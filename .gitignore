@@ -5,3 +5,6 @@ screenshots/
 backend/reports/
 Project_Report.pdf
 *.log
+
+# Docker
+docker-data/

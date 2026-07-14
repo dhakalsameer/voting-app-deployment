@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: election_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CHANGE_ME}
+      POSTGRES_DB: election
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U election_admin -d election"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgres://election_admin:${POSTGRES_PASSWORD:-CHANGE_ME}@postgres:5432/election
+      BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-http://localhost:5000}
+    volumes:
+      - backend_uploads:/app/uploads
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  frontend:
+    build: ./election-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-/api}
+      VITE_CONTRACT_ADDRESS_V3: ${CONTRACT_ADDRESS_V3}
+
+volumes:
+  pgdata:
+  backend_uploads:
