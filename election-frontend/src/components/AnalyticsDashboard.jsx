@@ -130,56 +130,56 @@ export default function AnalyticsDashboard() {
     }
 
     return (
-      <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-        <div className="px-5 py-3 border-b border-app flex items-center justify-between">
+      <div className="rounded-xl border border-app bg-app-surface">
+        <div className="px-4 sm:px-5 py-3 border-b border-app flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold text-app-heading flex items-center gap-2">
             <span className="text-base">🏆</span> {title}
           </h3>
           {electionDate && (
-            <span className="text-[11px] font-mono text-app-muted-text">{electionDate}</span>
+            <span className="text-[10px] sm:text-[11px] font-mono text-app-muted-text">{electionDate}</span>
           )}
         </div>
-        <div className="p-5 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
+          <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4">
             {winners.president && (
-              <div className="flex items-center gap-4 rounded-xl border border-[var(--app-trust-border)] bg-[var(--app-trust-soft)] px-5 py-4">
+              <div className="flex items-center gap-3 sm:gap-4 rounded-xl border border-[var(--app-trust-border)] bg-[var(--app-trust-soft)] px-4 sm:px-5 py-3 sm:py-4">
                 <Avatar src={getImageUrl(winners.president.photo || winners.president.image_cid)} name={winners.president.name} gender={winners.president.gender} size="lg" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-trust)] mb-1">President</p>
-                  <p className="text-lg font-bold text-app-heading break-words">{winners.president.name}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {winners.president.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
+                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--app-trust)] mb-0.5 sm:mb-1">President</p>
+                  <p className="text-sm sm:text-lg font-bold text-app-heading break-words">{winners.president.name}</p>
+                  <div className="flex items-center gap-2 mt-1 sm:mt-1.5">
+                    {winners.president.year && <span className="text-[10px] sm:text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
                     {winners.president.gender && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
+                      <span className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
                         winners.president.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                       }`}>{winners.president.gender}</span>
                     )}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-2xl font-black text-[var(--app-trust)]">{winners.president.votes}</p>
-                  <p className="text-[10px] text-app-muted-text">votes</p>
+                  <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{winners.president.votes}</p>
+                  <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
                 </div>
               </div>
             )}
             {winners.secretary && (
-              <div className="flex items-center gap-4 rounded-xl border border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] px-5 py-4">
+              <div className="flex items-center gap-3 sm:gap-4 rounded-xl border border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] px-4 sm:px-5 py-3 sm:py-4">
                 <Avatar src={getImageUrl(winners.secretary.photo || winners.secretary.image_cid)} name={winners.secretary.name} gender={winners.secretary.gender} size="lg" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-accent)] mb-1">Secretary</p>
-                  <p className="text-lg font-bold text-app-heading break-words">{winners.secretary.name}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {winners.secretary.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
+                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--app-accent)] mb-0.5 sm:mb-1">Secretary</p>
+                  <p className="text-sm sm:text-lg font-bold text-app-heading break-words">{winners.secretary.name}</p>
+                  <div className="flex items-center gap-2 mt-1 sm:mt-1.5">
+                    {winners.secretary.year && <span className="text-[10px] sm:text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
                     {winners.secretary.gender && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
+                      <span className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
                         winners.secretary.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                       }`}>{winners.secretary.gender}</span>
                     )}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-2xl font-black text-[var(--app-accent)]">{winners.secretary.votes}</p>
-                  <p className="text-[10px] text-app-muted-text">votes</p>
+                  <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{winners.secretary.votes}</p>
+                  <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
                 </div>
               </div>
             )}
@@ -187,25 +187,25 @@ export default function AnalyticsDashboard() {
 
           {winners.gmWinners.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-ballot)] mb-3">General Members</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--app-ballot)] mb-2 sm:mb-3">General Members</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                 {winners.gmWinners.map((gm, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-xl border border-[var(--app-ballot-border)] bg-[var(--app-ballot-soft)] px-4 py-3.5">
-                    <span className="text-xs font-mono font-bold text-[var(--app-ballot)] w-5 shrink-0">#{i + 1}</span>
+                  <div key={i} className="flex items-center gap-2 sm:gap-3 rounded-xl border border-[var(--app-ballot-border)] bg-[var(--app-ballot-soft)] px-3 sm:px-4 py-2.5 sm:py-3.5">
+                    <span className="text-[10px] sm:text-xs font-mono font-bold text-[var(--app-ballot)] w-4 sm:w-5 shrink-0">#{i + 1}</span>
                     <Avatar src={getImageUrl(gm.photo || gm.image_cid)} name={gm.name} gender={gm.gender} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-app-heading break-words leading-snug">{gm.name}</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-app-muted-text mt-0.5">
+                      <p className="text-[11px] sm:text-sm font-bold text-app-heading break-words leading-snug">{gm.name}</p>
+                      <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-app-muted-text mt-0.5">
                         {gm.year && <span className="whitespace-nowrap">{fmtYear(gm.year)}</span>}
                         {gm.gender && (
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                          <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                             gm.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                           }`}>{gm.gender}</span>
                         )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-base font-bold text-[var(--app-ballot)]">{gm.votes}</p>
+                      <p className="text-sm sm:text-base font-bold text-[var(--app-ballot)]">{gm.votes}</p>
                     </div>
                   </div>
                 ))}
@@ -242,16 +242,16 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="section-gap mt-0 lg:mt-0">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-wider">
+          <h2 className="text-lg sm:text-2xl font-black text-app-heading uppercase tracking-wider">
             Election Intelligence
           </h2>
-          <p className="text-app-body text-sm mt-1">Real-time data visualization & audit reporting</p>
+          <p className="text-app-body text-xs sm:text-sm mt-1">Real-time data visualization & audit reporting</p>
         </div>
         <button
           onClick={downloadPDF}
-          className="btn-secondary shrink-0 self-start sm:self-auto"
+          className="btn-secondary shrink-0 self-start sm:self-auto text-xs sm:text-sm"
         >
           <span aria-hidden="true">📥</span>
           Download Audit Report
@@ -259,12 +259,12 @@ export default function AnalyticsDashboard() {
       </div>
 
       {tabs.length > 1 && (
-        <div className="flex flex-wrap gap-1.5 mt-3 mb-4">
+        <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-3 mb-3 sm:mb-4 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setSelectedElection(tab.key)}
-              className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedElection === tab.key
                   ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
                   : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
@@ -276,7 +276,7 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
-      <div id="analytics-report" className="space-y-6 sm:space-y-8 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
+      <div id="analytics-report" className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
         <WinnersBanner />
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -363,32 +363,32 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Analytics Table */}
-        <div className="glass-panel rounded-2xl border border-app overflow-hidden shadow-card">
-          <div className="table-responsive">
-          <table className="w-full text-left">
+        <div className="glass-panel rounded-2xl border border-app shadow-card">
+          <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[500px]">
             <thead className="bg-app-elevated border-b border-app">
               <tr>
-                <th className="px-6 py-4 text-xs font-mono font-bold text-app-muted uppercase tracking-widest">Candidate</th>
-                <th className="px-6 py-4 text-xs font-mono font-bold text-app-muted uppercase tracking-widest">Position</th>
-                <th className="px-6 py-4 text-xs font-mono font-bold text-app-muted uppercase tracking-widest">Votes</th>
-                <th className="px-6 py-4 text-xs font-mono font-bold text-app-muted uppercase tracking-widest">Ballot Share</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Candidate</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Position</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Votes</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Ballot Share</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-app/40 bg-app-muted/30">
               {displayData.length > 0 ? displayData.map(c => (
                 <tr key={c.id} className="hover:bg-app-trust-soft transition-colors">
-                  <td className="px-6 py-4 min-w-0 font-bold text-app-heading text-base">{c.name}</td>
-                  <td className="px-6 py-4 text-xs font-mono font-bold text-app-trust uppercase tracking-wider">{c.position}</td>
-                  <td className="px-6 py-4 font-mono font-black text-app-heading text-base">{c.vote_count}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                       <div className="h-1.5 w-16 bg-app-muted border border-app rounded-full overflow-hidden">
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 min-w-0 font-bold text-app-heading text-xs sm:text-base whitespace-nowrap">{c.name}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-trust uppercase tracking-wider whitespace-nowrap">{c.position}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono font-black text-app-heading text-xs sm:text-base whitespace-nowrap">{c.vote_count}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                       <div className="h-1.5 w-12 sm:w-16 bg-app-muted border border-app rounded-full overflow-hidden shrink-0">
                           <div 
                             className="h-full bg-gradient-to-r from-[var(--app-trust)] to-[var(--app-accent)]" 
                             style={{ width: `${(Number(c.vote_count) / totalVotes * 100) || 0}%` }}
                           ></div>
                        </div>
-                       <span className="text-xs font-mono font-bold text-app-muted">
+                       <span className="text-[10px] sm:text-xs font-mono font-bold text-app-muted">
                         {((Number(c.vote_count) / totalVotes * 100) || 0).toFixed(1)}%
                        </span>
                     </div>
@@ -396,7 +396,7 @@ export default function AnalyticsDashboard() {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-app-muted-text italic text-sm">No candidates available for this election</td>
+                  <td colSpan={4} className="px-4 sm:px-6 py-8 text-center text-app-muted-text italic text-sm">No candidates available for this election</td>
                 </tr>
               )}
             </tbody>
