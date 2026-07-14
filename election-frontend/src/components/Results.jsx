@@ -67,50 +67,50 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
   const title = isLive ? "Current Leaders" : `Election ${electionNumber} Winners`;
 
   return (
-    <div className="rounded-xl border border-[var(--app-trust-border)] bg-gradient-to-br from-[var(--app-trust-soft)] via-[var(--app-accent-soft)] to-[var(--app-ballot-soft)] p-6 mb-6">
-      <h3 className="text-base font-bold uppercase tracking-wider text-app-heading mb-5 flex items-center gap-2">
+    <div className="rounded-xl border border-[var(--app-trust-border)] bg-gradient-to-br from-[var(--app-trust-soft)] via-[var(--app-accent-soft)] to-[var(--app-ballot-soft)] p-4 sm:p-6 mb-6">
+      <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-app-heading mb-4 sm:mb-5 flex items-center gap-2">
         <span className="text-lg">🏆</span> {title}
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+      <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4 mb-5">
         {winners.president && (
-          <div className="flex items-center gap-4 rounded-xl border border-[var(--app-trust-border)] bg-[var(--app-trust-soft)] px-5 py-4">
+          <div className="flex items-center gap-3 sm:gap-4 rounded-xl border border-[var(--app-trust-border)] bg-[var(--app-trust-soft)] px-4 sm:px-5 py-3 sm:py-4">
             <Avatar src={getImageUrl(winners.president.image_cid || winners.president.photo)} name={winners.president.name} />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-trust)] mb-1">President</p>
-              <p className="text-lg font-bold text-app-heading break-words">{winners.president.name}</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                {winners.president.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--app-trust)] mb-0.5 sm:mb-1">President</p>
+              <p className="text-base sm:text-lg font-bold text-app-heading break-words">{winners.president.name}</p>
+              <div className="flex items-center gap-2 mt-1">
+                {winners.president.year && <span className="text-[10px] sm:text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.president.year)}</span>}
                 {winners.president.gender && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
+                  <span className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
                     winners.president.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                   }`}>{winners.president.gender}</span>
                 )}
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
-              <p className="text-[10px] text-app-muted-text">votes</p>
+              <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
+              <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
             </div>
           </div>
         )}
         {winners.secretary && (
-          <div className="flex items-center gap-4 rounded-xl border border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] px-5 py-4">
+          <div className="flex items-center gap-3 sm:gap-4 rounded-xl border border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] px-4 sm:px-5 py-3 sm:py-4">
             <Avatar src={getImageUrl(winners.secretary.image_cid || winners.secretary.photo)} name={winners.secretary.name} />
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-accent)] mb-1">Secretary</p>
-              <p className="text-lg font-bold text-app-heading break-words">{winners.secretary.name}</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                {winners.secretary.year && <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[var(--app-accent)] mb-0.5 sm:mb-1">Secretary</p>
+              <p className="text-base sm:text-lg font-bold text-app-heading break-words">{winners.secretary.name}</p>
+              <div className="flex items-center gap-2 mt-1">
+                {winners.secretary.year && <span className="text-[10px] sm:text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winners.secretary.year)}</span>}
                 {winners.secretary.gender && (
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
+                  <span className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
                     winners.secretary.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
                   }`}>{winners.secretary.gender}</span>
                 )}
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
-              <p className="text-[10px] text-app-muted-text">votes</p>
+              <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
+              <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
             </div>
           </div>
         )}
@@ -359,36 +359,36 @@ function LiveResults() {
       )}
 
       {/* Main stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div key={`votes-${animateId}`} className="rounded-xl border border-app bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 p-5 space-y-2 transition-all duration-500">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div key={`votes-${animateId}`} className="rounded-xl border border-app bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 p-3 sm:p-5 space-y-1 sm:space-y-2 transition-all duration-500">
           <div className="flex items-center justify-between">
-            <span className="text-2xl">🗳️</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">{stats.turnout}%</span>
+            <span className="text-lg sm:text-2xl">🗳️</span>
+            <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400">{stats.turnout}%</span>
           </div>
-          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.votesCast}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Votes Cast</p>
-          <p className="text-xs text-app-muted-text/60">ballots recorded on-chain</p>
+          <p className="text-xl sm:text-3xl font-black text-app-heading tabular-nums">{stats.votesCast}</p>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">Votes Cast</p>
+          <p className="text-[10px] sm:text-xs text-app-muted-text/60">ballots recorded on-chain</p>
         </div>
 
-        <div className="rounded-xl border border-app bg-gradient-to-br from-sky-500/5 to-sky-500/10 p-5 space-y-2">
-          <span className="text-2xl">👥</span>
-          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.totalVoters}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Total Voters</p>
-          <p className="text-xs text-app-muted-text/60">eligible to vote</p>
+        <div className="rounded-xl border border-app bg-gradient-to-br from-sky-500/5 to-sky-500/10 p-3 sm:p-5 space-y-1 sm:space-y-2">
+          <span className="text-lg sm:text-2xl">👥</span>
+          <p className="text-xl sm:text-3xl font-black text-app-heading tabular-nums">{stats.totalVoters}</p>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">Total Voters</p>
+          <p className="text-[10px] sm:text-xs text-app-muted-text/60">eligible to vote</p>
         </div>
 
-        <div className="rounded-xl border border-app bg-gradient-to-br from-amber-500/5 to-amber-500/10 p-5 space-y-2">
-          <span className="text-2xl">⏳</span>
-          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.remaining}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Remaining</p>
-          <p className="text-xs text-app-muted-text/60">yet to cast vote</p>
+        <div className="rounded-xl border border-app bg-gradient-to-br from-amber-500/5 to-amber-500/10 p-3 sm:p-5 space-y-1 sm:space-y-2">
+          <span className="text-lg sm:text-2xl">⏳</span>
+          <p className="text-xl sm:text-3xl font-black text-app-heading tabular-nums">{stats.remaining}</p>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">Remaining</p>
+          <p className="text-[10px] sm:text-xs text-app-muted-text/60">yet to cast vote</p>
         </div>
 
-        <div className="rounded-xl border border-app bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-5 space-y-2">
-          <span className="text-2xl">🏆</span>
-          <p className="text-3xl font-black text-app-heading tabular-nums">{stats.candidateCount}</p>
-          <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidates</p>
-          <p className="text-xs text-app-muted-text/60">across all positions</p>
+        <div className="rounded-xl border border-app bg-gradient-to-br from-purple-500/5 to-purple-500/10 p-3 sm:p-5 space-y-1 sm:space-y-2">
+          <span className="text-lg sm:text-2xl">🏆</span>
+          <p className="text-xl sm:text-3xl font-black text-app-heading tabular-nums">{stats.candidateCount}</p>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">Candidates</p>
+          <p className="text-[10px] sm:text-xs text-app-muted-text/60">across all positions</p>
         </div>
       </div>
 
@@ -594,23 +594,23 @@ export default function Results() {
   const currentElection = tabs.find((t) => t.key === selectedElection);
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-      <div className="px-4 py-3 border-b border-app">
+    <div className="rounded-xl border border-app bg-app-surface">
+      <div className="px-4 sm:px-6 py-3 border-b border-app">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--app-accent)] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--app-accent)]" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--app-accent)]" />
           </span>
-          <h2 className="text-base font-semibold text-app-heading">Results</h2>
+          <h2 className="text-sm sm:text-base font-semibold text-app-heading">Results</h2>
         </div>
 
         {tabs.length > 1 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2 -mx-1 px-1 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setSelectedElection(tab.key)}
-                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   selectedElection === tab.key
                     ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
                     : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
@@ -623,7 +623,7 @@ export default function Results() {
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4 md:p-6">
         {selectedElection === "live" ? (
           <LiveResults />
         ) : currentElection?.data ? (

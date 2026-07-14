@@ -43,50 +43,52 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* header card */}
       <div className="rounded-xl border border-app bg-app-surface">
-        <div className="px-6 py-5 border-b border-app flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-app-accent-soft text-xl">🛡️</span>
-            <div>
-              <h2 className="text-2xl font-bold text-app-heading">Admin Dashboard</h2>
-              <p className="text-base text-app-muted-text mt-0.5">Manage election phases, voters, and funds</p>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <span className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg bg-app-accent-soft text-lg sm:text-xl">🛡️</span>
+              <div>
+                <h2 className="text-lg sm:text-2xl font-bold text-app-heading">Admin Dashboard</h2>
+                <p className="text-sm sm:text-base text-app-muted-text mt-0.5">Manage election phases, voters, and funds</p>
+              </div>
             </div>
+            {balance && (
+              <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-muted/30 px-3 sm:px-5 py-1.5 sm:py-2.5 self-start sm:self-auto">
+                <svg className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-app-heading" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
+                  <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
+                </svg>
+                <span className="text-sm sm:text-lg font-mono font-semibold text-app-heading">{Number(balance).toFixed(4)} ETH</span>
+              </div>
+            )}
           </div>
-          {balance && (
-            <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-muted/30 px-5 py-2.5">
-              <svg className="h-5 w-5 shrink-0 text-app-heading" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
-                <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
-              </svg>
-              <span className="text-lg font-mono font-semibold text-app-heading">{Number(balance).toFixed(4)} ETH</span>
-            </div>
-          )}
         </div>
 
         {balance !== null && Number(balance) < 0.05 && (
-          <div className="mx-6 mt-4 px-4 py-3 rounded-lg border border-rose-500/20 bg-rose-500/5">
-            <p className="text-base text-rose-400 font-medium">Low balance — {Number(balance).toFixed(4)} ETH</p>
+          <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-rose-500/20 bg-rose-500/5">
+            <p className="text-xs sm:text-base text-rose-400 font-medium">Low balance — {Number(balance).toFixed(4)} ETH</p>
           </div>
         )}
 
         <div ref={mainSentinelRef} className="h-px" />
-        <div className={`flex gap-2 pt-5 pb-3 overflow-x-auto sticky top-20 z-30 transition-all duration-200 ${mainStuck ? "bg-app-surface/80 backdrop-blur-sm shadow-sm" : "bg-transparent"} -mx-6 px-6`}>
+        <div className={`flex gap-1.5 sm:gap-2 pt-4 sm:pt-5 pb-2 sm:pb-3 overflow-x-auto sticky top-20 z-30 transition-all duration-200 ${mainStuck ? "bg-app-surface/80 backdrop-blur-sm shadow-sm" : "bg-transparent"} -mx-4 sm:-mx-6 px-4 sm:px-6`}>
           {ADMIN_TABS.map(t => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg text-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 tab === t.id
                   ? "text-app-accent bg-app-accent-soft shadow-sm"
                   : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
               }`}
             >
-              {typeof t.icon === "string" ? <span className="text-xl">{t.icon}</span> : <span className="flex items-center justify-center w-6 h-6 text-app-accent">{t.icon}</span>}
+              {typeof t.icon === "string" ? <span className="text-base sm:text-xl">{t.icon}</span> : <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 text-app-accent">{t.icon}</span>}
               {t.label}
             </button>
           ))}
         </div>
 
-        <div className="px-6 py-6">
+        <div className="px-4 sm:px-6 py-4 sm:py-6">
           {tab === "controls" && <ElectionControl />}
           {tab === "voters" && (
             <VoterSection />
@@ -123,18 +125,18 @@ function VoterSection() {
   return (
     <div>
       <div ref={subSentinelRef} className="h-px" />
-      <div className={`flex gap-3 mb-6 pb-5 border-b border-app overflow-x-auto sticky top-[10rem] z-20 transition-all duration-200 ${subStuck ? "bg-app-background/80 backdrop-blur-sm" : "bg-transparent"} -mx-6 px-6`}>
+      <div className={`flex gap-1.5 sm:gap-3 mb-4 sm:mb-6 pb-3 sm:pb-5 border-b border-app overflow-x-auto sticky top-[10rem] z-20 transition-all duration-200 ${subStuck ? "bg-app-background/80 backdrop-blur-sm" : "bg-transparent"} -mx-4 sm:-mx-6 px-4 sm:px-6`}>
         {subTabs.map(t => (
           <button
             key={t.id}
             onClick={() => setSubTab(t.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-base font-semibold transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-base font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               subTab === t.id
                 ? "text-app-accent bg-app-accent-soft shadow-sm"
                 : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
             }`}
           >
-            <span className="text-lg">{t.icon}</span>
+            <span className="text-sm sm:text-lg">{t.icon}</span>
             {t.label}
           </button>
         ))}
