@@ -79,6 +79,25 @@
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-border) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--app-border);
+    border-radius: 3px;
+  }
 }
 
 @layer utilities {
