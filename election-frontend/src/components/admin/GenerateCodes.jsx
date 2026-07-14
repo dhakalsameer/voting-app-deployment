@@ -299,12 +299,12 @@ export default function GenerateCodes() {
     <div className="space-y-6">
       <SectionHeader icon="🔑" title="Registration Codes" />
 
-      <div className="flex gap-2 border-b border-app pb-3">
+      <div className="flex gap-2 overflow-x-auto border-b border-app pb-3">
         {INPUT_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setInputTab(t.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-base font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-base font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               inputTab === t.id
                 ? "text-app-accent bg-app-accent-soft shadow-sm"
                 : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
@@ -354,7 +354,7 @@ export default function GenerateCodes() {
       </div>
 
       <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 sm:justify-between">
           <div>
             <h3 className="text-sm font-bold text-app-heading">⏰ Auto Reminder Emails</h3>
             <p className="text-xs text-app-muted-text mt-0.5">
@@ -363,7 +363,7 @@ export default function GenerateCodes() {
               {reminderConfig?.lastSentCount > 0 && ` · Sent: ${reminderConfig.lastSentCount}`}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleSendReminderNow}
               disabled={sendingReminder || pendingStats.with_email === 0 || !wallet}

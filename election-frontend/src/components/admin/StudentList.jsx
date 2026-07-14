@@ -200,7 +200,7 @@ export default function StudentList() {
       </div>
 
       {/* Year filter */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setYearFilter("all")} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${yearFilter === "all" ? "text-app-accent bg-app-accent-soft" : "text-app-muted-text hover:text-app-heading bg-app-muted/20 hover:bg-app-elevated"}`}>All</button>
         <button onClick={() => setYearFilter("1")} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${yearFilter === "1" ? "text-app-accent bg-app-accent-soft" : "text-app-muted-text hover:text-app-heading bg-app-muted/20 hover:bg-app-elevated"}`}>1st Year</button>
         <button onClick={() => setYearFilter("2")} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${yearFilter === "2" ? "text-app-accent bg-app-accent-soft" : "text-app-muted-text hover:text-app-heading bg-app-muted/20 hover:bg-app-elevated"}`}>2nd Year</button>
