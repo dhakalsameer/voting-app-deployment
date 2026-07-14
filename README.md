@@ -36,6 +36,8 @@ SMTP_PORT=587
 SMTP_USER=sameerdhakal1234@gmail.com
 SMTP_PASS=sxxk puiw rtki fdbc
 SMTP_FROM=GU Election Committee <sameerdhakal1234@gmail.com>
+PINATA_KEY=4776f3188c16583323c5
+PINATA_SECRET=7b40ef23108de5d06916b37fab3daa8093fc6ab3912ab1cb441fb44f1ef74a7b
 ```
 
 5. After deploy, open **Shell** tab and run:
