@@ -290,13 +290,13 @@ export default function LiveBlockchainDashboard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="relative flex h-3 w-3">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </span>
-          <h3 className="text-xl font-black text-emerald-400 uppercase tracking-widest">Blockchain Activity Feed</h3>
-          <span className="text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 uppercase">Sepolia</span>
+          <h3 className="text-sm sm:text-base md:text-xl font-black text-emerald-400 uppercase tracking-wide sm:tracking-widest">Blockchain Activity Feed</h3>
+          <span className="text-[10px] sm:text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
         </div>
         <div className="rounded-xl border border-app bg-app-surface p-10 text-center space-y-3">
           <div className="animate-spin mx-auto h-8 w-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full" />
@@ -309,12 +309,12 @@ export default function LiveBlockchainDashboard() {
   if (error) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="relative flex h-3 w-3">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
           </span>
-          <h3 className="text-xl font-black text-rose-400 uppercase tracking-widest">Blockchain Activity Feed</h3>
+          <h3 className="text-sm sm:text-base md:text-xl font-black text-rose-400 uppercase tracking-wide sm:tracking-widest">Blockchain Activity Feed</h3>
         </div>
         <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-8 text-center">
           <p className="text-base text-rose-400 font-semibold">{error}</p>
@@ -327,20 +327,20 @@ export default function LiveBlockchainDashboard() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="relative flex h-3 w-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </span>
-          <h3 className="text-xl font-black text-emerald-400 uppercase tracking-widest">Blockchain Activity Feed</h3>
-          <span className="text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 uppercase">Sepolia</span>
+          <h3 className="text-sm sm:text-base md:text-xl font-black text-emerald-400 uppercase tracking-wide sm:tracking-widest truncate">Blockchain Activity Feed</h3>
+          <span className="text-[10px] sm:text-xs font-mono text-emerald-500/80 bg-emerald-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
         </div>
         <a
           href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-app-muted-text hover:text-app-accent transition-colors underline underline-offset-2"
+          className="text-xs sm:text-sm text-app-muted-text hover:text-app-accent transition-colors underline underline-offset-2 shrink-0"
         >
           View Contract ↗
         </a>
@@ -405,11 +405,11 @@ function StatCard({ label, value, color }) {
     rose:    "bg-rose-400",
   };
   return (
-    <div className="rounded-xl border border-app bg-app-surface px-4 py-3.5 text-center">
-      <p className="text-2xl font-black text-app-heading">{value}</p>
-      <div className="flex items-center justify-center gap-1.5 mt-1">
-        <span className={`h-2 w-2 rounded-full ${dotColors[color] || "bg-emerald-400"}`} />
-        <p className="text-xs font-bold uppercase tracking-wider text-app-muted-text">{label}</p>
+    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface px-2 sm:px-4 py-2 sm:py-3.5 text-center">
+      <p className="text-base sm:text-2xl font-black text-app-heading">{value}</p>
+      <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
+        <span className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${dotColors[color] || "bg-emerald-400"}`} />
+        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">{label}</p>
       </div>
     </div>
   );
