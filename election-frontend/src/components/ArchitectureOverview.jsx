@@ -126,18 +126,18 @@ export default function ArchitectureOverview() {
     <div id="architecture-overview" className="space-y-8 sm:space-y-10">
 
       {/* ── Hero ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card relative overflow-hidden">
+      <div className="glass-panel p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <span className="relative flex h-3 w-3">
+            <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-500" />
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-app-heading uppercase tracking-widest">
+            <h2 className="text-xl sm:text-3xl font-black text-app-heading uppercase tracking-widest">
               Decentralized Voting System
             </h2>
           </div>
-          <p className="text-base sm:text-lg text-app-body leading-relaxed max-w-3xl">
+          <p className="text-sm sm:text-lg text-app-body leading-relaxed max-w-3xl">
             A fully on-chain election system built on the Sepolia testnet. Voter eligibility is enforced via Merkle proofs,
             every vote is recorded immutably on the blockchain, and a real-time sync engine powers live dashboards —
             all while keeping gas costs minimal.
@@ -146,81 +146,79 @@ export default function ArchitectureOverview() {
       </div>
 
       {/* ── System Architecture Flowchart ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
-        <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-2">
+      <div className="glass-panel p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
+        <h3 className="text-lg sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-1 sm:mb-2">
           System Architecture
         </h3>
-        <p className="text-base text-app-body mb-6">
+        <p className="text-sm sm:text-base text-app-body mb-4 sm:mb-6">
           How the frontend, backend, database, and blockchain fit together.
         </p>
-        <div className="bg-app-muted/20 rounded-2xl p-4 sm:p-6 lg:p-8 border border-app/50 overflow-x-auto">
-          <div className="min-w-[580px]">
-            <SystemArchitectureDiagram />
-          </div>
+        <div className="bg-app-muted/20 rounded-2xl p-3 sm:p-6 lg:p-8 border border-app/50 overflow-x-auto">
+          <SystemArchitectureDiagram />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mt-4 sm:mt-6">
           {architectures.map((a) => (
             <div
               key={a.title}
-              className="flex flex-col gap-3 bg-app-elevated/35 border border-app rounded-2xl p-5 transition-all duration-300"
+              className="flex flex-col gap-2 sm:gap-3 bg-app-elevated/35 border border-app rounded-2xl p-4 sm:p-5 transition-all duration-300"
             >
               <div className="flex items-center gap-2">
-                <span className={`flex items-center justify-center w-9 h-9 rounded-lg border ${a.accent}`}>
+                <span className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg border ${a.accent}`}>
                   {svgs[a.icon]}
                 </span>
-                <h4 className="text-base font-bold text-app-heading">{a.title}</h4>
+                <h4 className="text-sm sm:text-base font-bold text-app-heading">{a.title}</h4>
               </div>
-              <p className="text-base text-app-body leading-relaxed">{a.desc}</p>
+              <p className="text-sm sm:text-base text-app-body leading-relaxed">{a.desc}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── Election Lifecycle ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
-        <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-2">
+      <div className="glass-panel p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
+        <h3 className="text-lg sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-1 sm:mb-2">
           Election Lifecycle
         </h3>
-        <p className="text-base text-app-body mb-6">
+        <p className="text-sm sm:text-base text-app-body mb-4 sm:mb-6">
           Each election progresses through four distinct phases, controlled by the smart contract admin.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
           {phases.map((p, i) => (
             <div key={p.label} className="relative flex flex-col items-center text-center">
               {i > 0 && (
                 <div className="hidden sm:block absolute -left-3 top-5 w-3 h-px bg-app-border" />
               )}
-              <div className={`w-10 h-10 rounded-full border ${p.color} flex items-center justify-center text-base font-black mb-3`}>
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border ${p.color} flex items-center justify-center text-sm sm:text-base font-black mb-2 sm:mb-3`}>
                 {i + 1}
               </div>
-              <h4 className="text-base font-bold text-app-heading mb-1">{p.label}</h4>
-              <p className="text-base text-app-body leading-relaxed">{p.desc}</p>
+              <h4 className="text-sm sm:text-base font-bold text-app-heading mb-1">{p.label}</h4>
+              <p className="text-xs sm:text-base text-app-body leading-relaxed">{p.desc}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── Benefits ── */}
-      <div className="glass-panel p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
-        <h3 className="text-xl sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-6">
+      <div className="glass-panel p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-app shadow-card">
+        <h3 className="text-lg sm:text-2xl font-black text-app-heading uppercase tracking-widest mb-4 sm:mb-6">
           Why Decentralized?
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="border-l-2 border-[var(--app-trust-border)] pl-5">
-            <h4 className="text-base font-bold text-app-heading mb-1">Immutability</h4>
-            <p className="text-base text-app-body leading-relaxed">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="border-l-2 border-[var(--app-trust-border)] pl-4 sm:pl-5">
+            <h4 className="text-sm sm:text-base font-bold text-app-heading mb-1">Immutability</h4>
+            <p className="text-sm sm:text-base text-app-body leading-relaxed">
               Once a vote is recorded on the blockchain, it can never be altered or deleted. The election result is final and verifiable by anyone.
             </p>
           </div>
-          <div className="border-l-2 border-[var(--app-accent-border)] pl-5">
-            <h4 className="text-base font-bold text-app-heading mb-1">Transparency</h4>
-            <p className="text-base text-app-body leading-relaxed">
+          <div className="border-l-2 border-[var(--app-accent-border)] pl-4 sm:pl-5">
+            <h4 className="text-sm sm:text-base font-bold text-app-heading mb-1">Transparency</h4>
+            <p className="text-sm sm:text-base text-app-body leading-relaxed">
               Every transaction — vote, registration, phase change — is publicly visible on Etherscan. Anyone can independently audit the election.
             </p>
           </div>
-          <div className="border-l-2 border-[var(--app-ballot-border)] pl-5">
-            <h4 className="text-base font-bold text-app-heading mb-1">Trustless</h4>
-            <p className="text-base text-app-body leading-relaxed">
+          <div className="border-l-2 border-[var(--app-ballot-border)] pl-4 sm:pl-5">
+            <h4 className="text-sm sm:text-base font-bold text-app-heading mb-1">Trustless</h4>
+            <p className="text-sm sm:text-base text-app-body leading-relaxed">
               No central authority controls the outcome. The smart contract enforces the rules deterministically — not even the admin can insert fraudulent votes.
             </p>
           </div>
