@@ -64,6 +64,13 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
   const hasAny = winners.president || winners.secretary || winners.gmWinners.length > 0;
   if (!hasAny) return null;
 
+  const presTotal = candidates.filter(c => c.position === "President").reduce((s, c) => s + Number(c.vote_count || 0), 0);
+  const secTotal = candidates.filter(c => c.position === "Secretary").reduce((s, c) => s + Number(c.vote_count || 0), 0);
+  const gmTotal = candidates.filter(c => c.position === "General Member").reduce((s, c) => s + Number(c.vote_count || 0), 0);
+
+  const pShare = presTotal > 0 ? ((Number(winners.president?.vote_count || 0) / presTotal) * 100).toFixed(1) : null;
+  const sShare = secTotal > 0 ? ((Number(winners.secretary?.vote_count || 0) / secTotal) * 100).toFixed(1) : null;
+
   const title = isLive ? "Current Leaders" : `Election ${electionNumber} Winners`;
 
   return (
@@ -89,7 +96,9 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
-              <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+              <p className="text-[9px] sm:text-[10px] text-app-muted-text">
+                {pShare ? `${pShare}% share` : "votes"}
+              </p>
             </div>
           </div>
         )}
@@ -110,7 +119,9 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
-              <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+              <p className="text-[9px] sm:text-[10px] text-app-muted-text">
+                {sShare ? `${sShare}% share` : "votes"}
+              </p>
             </div>
           </div>
         )}
@@ -118,22 +129,30 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
       {winners.gmWinners.length > 0 && (
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-ballot)] mb-3">General Members</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {winners.gmWinners.map((gm, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 rounded-xl border border-[var(--app-ballot-border)] bg-[var(--app-ballot-soft)] px-4 py-4 text-center">
-                <Avatar src={getImageUrl(gm.image_cid || gm.photo)} name={gm.name} size="sm" />
-                <p className="text-sm font-bold text-app-heading leading-snug break-words w-full">{gm.name}</p>
-                <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                  {gm.year && <span className="text-[10px] text-app-muted-text">{fmtYear(gm.year)}</span>}
-                  {gm.gender && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                      gm.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
-                    }`}>{gm.gender}</span>
-                  )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+            {winners.gmWinners.map((gm, i) => {
+              const gmShare = gmTotal > 0 ? ((Number(gm.vote_count || 0) / gmTotal) * 100).toFixed(1) : null;
+              return (
+                <div key={i} className="flex flex-col items-center gap-1.5 sm:gap-2 rounded-xl border border-[var(--app-ballot-border)] bg-[var(--app-ballot-soft)] px-3 sm:px-4 py-3 sm:py-4 text-center">
+                  <Avatar src={getImageUrl(gm.image_cid || gm.photo)} name={gm.name} size="sm" />
+                  <p className="text-[11px] sm:text-sm font-bold text-app-heading leading-snug break-words w-full">{gm.name}</p>
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    {gm.year && <span className="text-[10px] text-app-muted-text">{fmtYear(gm.year)}</span>}
+                    {gm.gender && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                        gm.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
+                      }`}>{gm.gender}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs sm:text-sm font-mono font-bold text-[var(--app-ballot)]">{Number(gm.vote_count)}</span>
+                    <span className="text-[9px] sm:text-[10px] text-app-muted-text">
+                      ({gmShare ? `${gmShare}%` : ""})
+                    </span>
+                  </div>
                 </div>
-                <span className="text-sm font-mono font-bold text-[var(--app-ballot)]">{Number(gm.vote_count)} vote{Number(gm.vote_count) !== 1 ? "s" : ""}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -145,8 +164,8 @@ function CandidateCard({ candidate, maxVotes }) {
   const pct = maxVotes > 0 ? ((candidate.vote_count ?? 0) / maxVotes) * 100 : 0;
   const imgSrc = getImageUrl(candidate.image_cid || candidate.photo);
   return (
-    <div className="rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
-      <div className="aspect-square bg-app-muted/20 flex items-center justify-center overflow-hidden">
+    <div className="rounded-xl border border-app bg-app-surface transition-all hover:border-app-accent/30">
+      <div className="hidden sm:block aspect-square bg-app-muted/20 flex items-center justify-center overflow-hidden rounded-t-xl">
         {imgSrc ? (
           <img
             src={imgSrc}
@@ -159,26 +178,28 @@ function CandidateCard({ candidate, maxVotes }) {
           {candidate.gender === "female" ? "👩" : "🧑"}
         </div>
       </div>
-      <div className="p-4 space-y-2">
-        <p className="text-base font-bold text-app-heading leading-tight truncate">{candidate.name}</p>
-        <div className="flex items-center gap-2 text-xs text-app-muted-text">
+      <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2">
+        <p className="text-xs sm:text-base font-bold text-app-heading leading-tight truncate">{candidate.name}</p>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-app-muted-text">
           {candidate.year && (
             <span className="font-medium">{candidate.year}</span>
           )}
           {candidate.gender && (
-            <span className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
+            <span className={`px-1.5 sm:px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
               candidate.gender === "female" ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
             }`}>
               {candidate.gender}
             </span>
           )}
         </div>
-        <div className="pt-2">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xl font-black font-mono text-app-heading tabular-nums">{candidate.vote_count ?? 0}</span>
-            <span className="text-sm text-app-muted-text font-medium">votes</span>
+        <div className="pt-1 sm:pt-2">
+          <div className="flex items-baseline justify-between gap-1 sm:gap-2">
+            <span className="text-sm sm:text-xl font-black font-mono text-app-heading tabular-nums">{candidate.vote_count ?? 0}</span>
+            <span className="text-[10px] sm:text-sm text-app-muted-text font-medium">
+              {pct.toFixed(1)}% share
+            </span>
           </div>
-          <div className="mt-2 h-2 rounded-full bg-app-border/30 overflow-hidden">
+          <div className="mt-1.5 sm:mt-2 h-1.5 sm:h-2 rounded-full bg-app-border/30 overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[var(--app-trust)] to-[var(--app-accent)] transition-all duration-1000 ease-out"
               style={{ width: `${pct}%` }}
@@ -204,15 +225,15 @@ function PositionSection({ title, candidates, maxVotes }) {
       : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
 
   return (
-    <div className={`border-l-4 ${colors} rounded-r-xl p-5 space-y-4`}>
-      <div className="flex items-center gap-3">
-        <h4 className="text-lg font-bold text-app-heading">{title}</h4>
-        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}`}>
+    <div className={`border-l-4 ${colors} rounded-r-xl p-3 sm:p-5 space-y-3 sm:space-y-4`}>
+      <div className="flex items-center gap-2 sm:gap-3">
+        <h4 className="text-sm sm:text-lg font-bold text-app-heading">{title}</h4>
+        <span className={`text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full border whitespace-nowrap ${badgeColor}`}>
           {candidates.length} candidate{candidates.length !== 1 ? "s" : ""}
         </span>
       </div>
       {candidates.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
           {candidates.map((c) => (
             <CandidateCard key={c.name + c.position} candidate={c} maxVotes={maxVotes} />
           ))}
