@@ -4,10 +4,12 @@ import {
   PieChart, Pie, Cell, Legend 
 } from "recharts";
 import { API_URL } from "../config";
+import { useToast } from "./ui/Toast";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#0ea5e9"];
 
 export default function AnalyticsDashboard() {
+  const { error: showError, info } = useToast();
   const [data, setData] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +106,11 @@ export default function AnalyticsDashboard() {
       : null;
 
   const downloadPDF = () => {
-    window.print();
+    try {
+      window.print();
+    } catch {
+      info("Use your browser's Print/PDF option (Ctrl+P or menu → Print) to save as PDF.");
+    }
   };
 
   function WinnersBanner() {
