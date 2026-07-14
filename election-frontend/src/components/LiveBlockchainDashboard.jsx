@@ -332,19 +332,19 @@ export default function LiveBlockchainDashboard() {
       {/* Window Title Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500/80" />
           </div>
           <span className="text-xs sm:text-sm font-mono text-app-muted-text hidden sm:block">activity_feed.log</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <h3 className="text-xs sm:text-sm font-bold text-emerald-400 uppercase tracking-wider truncate">Blockchain Activity Feed</h3>
+          <h3 className="text-xs sm:text-sm font-bold text-emerald-400 uppercase tracking-wider truncate min-w-0">Blockchain Activity Feed</h3>
           <span className="text-[9px] sm:text-[10px] font-mono text-emerald-500/80 bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
         </div>
         <a
