@@ -5,3 +5,19 @@ screenshots/
 backend/reports/
 Project_Report.pdf
 *.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

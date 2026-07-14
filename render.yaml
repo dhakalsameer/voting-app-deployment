@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: voting-app-backend
+    runtime: node
+    repo: https://github.com/dhakalsameer/voting-app-deployment
+    branch: main
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "5000"
+      - key: NODE_VERSION
+        value: "20"
+      - key: DATABASE_URL
+        sync: false
+      - key: RPC_URL
+        sync: false
+      - key: CONTRACT_ADDRESS_V3
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://gu-it-voting.vercel.app
+      - key: BACKEND_PUBLIC_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
