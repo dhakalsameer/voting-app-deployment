@@ -73,7 +73,7 @@ export async function sendRegistrationCode({ email, name, student_id, code, elec
 
   if (sender.type === "resend") {
     const { data, error } = await sender.client.emails.send({
-      from: SMTP_FROM || DEFAULT_FROM,
+      from: DEFAULT_FROM,
       to: email,
       subject: `Your Registration Code for ${title}`,
       html: buildEmailHtml({ name, student_id, code, electionName }),
@@ -132,7 +132,7 @@ export async function sendWinnerCongratulation({ email, name, position, voteCoun
 
   if (sender.type === "resend") {
     const { data, error } = await sender.client.emails.send({
-      from: SMTP_FROM || DEFAULT_FROM,
+      from: DEFAULT_FROM,
       to: email,
       subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
       html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
