@@ -30,7 +30,7 @@ RPC_URL=https://eth-sepolia.g.alchemy.com/v2/95pRrhpYhS2hhiYfaqfDw
 CONTRACT_ADDRESS_V3=0xF9E3123055ba2409e1F841bFEb6620F2Ab6EcCe6
 PRIVATE_KEY=0x4c54307a0f284fb4493ecf28b1f3fc3e05623c4293672c7081077e8187749d63
 JWT_SECRET=59ed7542fc3f78c57a3dffc6eae4ad8b1e7467ef62cb33db93e4c964c20375e22d724df63a60746ad65e9001b6b21a82
-CORS_ORIGIN=https://voting-app-frontend.vercel.app
+CORS_ORIGIN=https://gu-it-voting.vercel.app
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=sameerdhakal1234@gmail.com
@@ -54,7 +54,7 @@ PINATA_SECRET=7b40ef23108de5d06916b37fab3daa8093fc6ab3912ab1cb441fb44f1ef74a7b
 
 | Variable | Value |
 |----------|-------|
-| `VITE_API_URL` | `https://voting-app-backend.onrender.com` |
+| `VITE_API_URL` | `https://voting-app-deployment.onrender.com` |
 | `VITE_CONTRACT_ADDRESS_V3` | `0xF9E3123055ba2409e1F841bFEb6620F2Ab6EcCe6` |
 
 5. Deploy
