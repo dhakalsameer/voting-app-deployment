@@ -96,9 +96,9 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
-              <p className="text-[9px] sm:text-[10px] text-app-muted-text">
-                {pShare ? `${pShare}% share` : "votes"}
-              </p>
+              {pShare && (
+                <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-trust)] bg-[var(--app-trust-soft)] px-1.5 py-0.5 rounded mt-0.5">{pShare}%</p>
+              )}
             </div>
           </div>
         )}
@@ -119,9 +119,9 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
-              <p className="text-[9px] sm:text-[10px] text-app-muted-text">
-                {sShare ? `${sShare}% share` : "votes"}
-              </p>
+              {sShare && (
+                <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-accent)] bg-[var(--app-accent-soft)] px-1.5 py-0.5 rounded mt-0.5">{sShare}%</p>
+              )}
             </div>
           </div>
         )}
@@ -146,9 +146,9 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-xs sm:text-sm font-mono font-bold text-[var(--app-ballot)]">{Number(gm.vote_count)}</span>
-                    <span className="text-[9px] sm:text-[10px] text-app-muted-text">
-                      ({gmShare ? `${gmShare}%` : ""})
-                    </span>
+                    {gmShare && (
+                      <span className="text-[9px] sm:text-[10px] font-bold text-[var(--app-ballot)] bg-[var(--app-ballot-soft)] px-1 py-0.5 rounded">{gmShare}%</span>
+                    )}
                   </div>
                 </div>
               );
@@ -193,10 +193,10 @@ function CandidateCard({ candidate, maxVotes }) {
           )}
         </div>
         <div className="pt-1 sm:pt-2">
-          <div className="flex items-baseline justify-between gap-1 sm:gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-sm sm:text-xl font-black font-mono text-app-heading tabular-nums">{candidate.vote_count ?? 0}</span>
-            <span className="text-[10px] sm:text-sm text-app-muted-text font-medium">
-              {pct.toFixed(1)}% share
+            <span className="text-[11px] sm:text-sm font-semibold text-app-muted-text bg-app-muted/20 px-1.5 py-0.5 rounded">
+              {pct.toFixed(1)}%
             </span>
           </div>
           <div className="mt-1.5 sm:mt-2 h-1.5 sm:h-2 rounded-full bg-app-border/30 overflow-hidden">
