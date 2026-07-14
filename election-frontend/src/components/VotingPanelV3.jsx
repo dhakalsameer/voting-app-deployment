@@ -301,24 +301,24 @@ export default function VotingPanelV3() {
 
   return (
     <div className="rounded-2xl border border-app/80 bg-app-surface shadow-card overflow-hidden">
-      <div className="px-6 py-5 border-b border-app/50 bg-gradient-to-r from-sky-500/[0.03] via-transparent to-transparent">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10">
-              <span className="text-2xl">🗳️</span>
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app/50 bg-gradient-to-r from-sky-500/[0.03] via-transparent to-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="h-10 w-10 sm:h-14 sm:w-14 shrink-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10">
+              <span className="text-lg sm:text-2xl">🗳️</span>
             </div>
             <div className="min-w-0">
-              <h2 className="text-xl font-extrabold tracking-tight text-app-heading">Official Ballot</h2>
-              <p className="text-sm text-app-muted-text mt-0.5">IT Club Election {new Date().getFullYear()}</p>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-app-heading">Official Ballot</h2>
+              <p className="text-xs sm:text-sm text-app-muted-text mt-0.5">IT Club Election {new Date().getFullYear()}</p>
+              <div className="flex items-center gap-2 mt-1 sm:mt-1.5 flex-wrap">
                 {totalCandidates > 0 && (
                   <>
-                    <span className="text-sm text-app-muted-text">{totalCandidates} candidate{totalCandidates !== 1 ? "s" : ""}</span>
+                    <span className="text-xs sm:text-sm text-app-muted-text">{totalCandidates} candidate{totalCandidates !== 1 ? "s" : ""}</span>
                     <span className="h-1 w-1 rounded-full bg-app-border shrink-0" />
                   </>
                 )}
                 {phase !== null && (
-                  <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                  <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2 sm:px-2.5 py-0.5 rounded-full border ${
                     phase === 2
                       ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
                       : "text-app-accent bg-app-accent-soft border-app-accent-border"
@@ -329,32 +329,32 @@ export default function VotingPanelV3() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
             {(phase === 1 || phase === 2) && (
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 {phase === 2 && votingEnd && (
                   <>
-                    <p className="text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Voting ends</p>
-                    <p className="text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(votingEnd)}</p>
-                    <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(votingEnd - now)}</p>
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Voting ends</p>
+                    <p className="text-[11px] sm:text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(votingEnd)}</p>
+                    <p className="text-[11px] sm:text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(votingEnd - now)}</p>
                   </>
                 )}
                 {phase === 1 && regEnd && (
                   <>
-                    <p className="text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Registration ends</p>
-                    <p className="text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(regEnd)}</p>
-                    <p className="text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(regEnd - now)}</p>
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-app-muted-text font-medium">Registration ends</p>
+                    <p className="text-[11px] sm:text-xs font-mono font-bold text-app-heading mt-0.5">{formatTime(regEnd)}</p>
+                    <p className="text-[11px] sm:text-xs font-mono font-bold text-emerald-400 mt-0.5">{formatRemaining(regEnd - now)}</p>
                   </>
                 )}
               </div>
             )}
             {balance && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-muted/50 border border-app-border/40">
-                <svg className="h-3.5 w-3.5 text-app-muted-text shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-app-muted/50 border border-app-border/40">
+                <svg className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-app-muted-text shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2L4 12.5l8 3.5 8-3.5L12 2z" opacity="0.6" />
                   <path d="M12 16.5l-8-3.5L12 22l8-9-8 3.5z" />
                 </svg>
-                <span className="text-[11px] font-mono text-app-muted-text">{Number(balance).toFixed(4)} ETH</span>
+                <span className="text-[10px] sm:text-[11px] font-mono text-app-muted-text">{Number(balance).toFixed(4)} ETH</span>
               </div>
             )}
           </div>
