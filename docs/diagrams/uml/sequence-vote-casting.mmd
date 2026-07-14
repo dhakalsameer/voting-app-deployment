@@ -1,0 +1,34 @@
+---
+title: Vote Casting — Sequence Diagram
+---
+sequenceDiagram
+    participant V as Voter
+    participant UI as Frontend
+    participant API as Express API
+    participant SC as Smart Contract
+    participant SE as Sync Engine
+    participant DB as PostgreSQL
+
+    V->>UI: Connect MetaMask wallet
+    UI->>API: GET /api/voters/me?wallet=0x...
+    API-->>UI: Voter status (eligible)
+    
+    V->>UI: Select President, Secretary, GMs (up to 5)
+    V->>UI: Click "Cast Vote"
+    UI->>API: GET /api/voters/proof?wallet=0x...
+    API-->>UI: Merkle proof array
+    
+    UI->>SC: castVote(presId, secId, gmIds, proof)
+    SC->>SC: Verify Merkle proof
+    SC->>SC: Validate female GM count (≥2)
+    SC->>SC: Record vote counts
+    SC-->>UI: Transaction receipt (BallotCast event)
+    
+    par Live sync
+        SE->>SC: Poll for VoteCast events
+        SC-->>SE: BallotCast log
+        SE->>DB: UPDATE vote_count
+        SE-->>UI: Socket.IO voteUpdate
+    end
+    
+    UI-->>V: Updated results displayed

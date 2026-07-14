@@ -1,0 +1,33 @@
+flowchart TD
+    START([Start])
+    
+    subgraph "Off-chain Setup"
+        A[Admin collects all verified voter wallet addresses]
+        B[merkleService.js generates Merkle tree from addresses]
+        C[Root hash extracted from tree]
+        D[Admin submits root hash to contract]
+    end
+    
+    subgraph "On-chain Voting"
+        E[Voter connects wallet]
+        F[Merkle proof = array of sibling hashes]
+        G[Voter submits: candidate IDs + Merkle proof]
+        H[Contract recomputes root: hash proof + voter address]
+        I{Computed root == stored root?}
+    end
+    
+    subgraph "Result"
+        J[Vote accepted and recorded]
+        K[Vote rejected]
+    end
+    
+    START --> A
+    A --> B --> C --> D
+    C --> H
+    D --> I
+    E --> F --> G --> H
+    H --> I
+    I -->|Yes| J
+    I -->|No| K
+    J --> END([End])
+    K --> END([End])

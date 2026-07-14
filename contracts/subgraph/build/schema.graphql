@@ -1,0 +1,34 @@
+type Candidate @entity(immutable: false) {
+  id: ID!
+  blockchainId: BigInt!
+  name: String!
+  position: String!
+  voteCount: BigInt!
+}
+
+type Vote @entity(immutable: true) {
+  id: ID!
+  voter: Bytes!
+  candidateId: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+  blockNumber: BigInt!
+}
+
+type ElectionMeta @entity(immutable: false) {
+  id: ID!
+  voterCount: BigInt!
+  candidateCount: BigInt!
+  merkleRoot: Bytes
+  identityMerkleRoot: Bytes
+}
+
+type ElectionResult @entity(immutable: true) {
+  id: ID!
+  index: BigInt!
+  presidentWinnerId: BigInt!
+  secretaryWinnerId: BigInt!
+  generalMemberWinnerId: BigInt!
+  totalCandidates: BigInt!
+  timestamp: BigInt!
+}

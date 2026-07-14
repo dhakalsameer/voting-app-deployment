@@ -1,0 +1,7 @@
+flowchart TD
+    START([Start])
+    A[Contract Determines Winners\nPresident → Secretary → 5 GMs]
+    B[On-Chain Finalization\nWinners Written → Phase Reset]
+    C[Sync Snapshots → is_winner set]
+    D[Frontend Checks Wallet\nand Shows Banner]
+    START --> A --> B --> C --> D --> END([End])

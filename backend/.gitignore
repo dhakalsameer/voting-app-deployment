@@ -1,0 +1,28 @@
+# Never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Build artifacts
+dist/
+build/
+
+# Runtime logs
+server.log
+
+# Locally-uploaded profile photos (Pinata/IPFS is the canonical store).
+# These are referenced by `local:` CIDs and are ephemeral by design
+# unless BACKEND_PUBLIC_URL + a persistent volume are configured.
+uploads/

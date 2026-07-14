@@ -1,0 +1,57 @@
+---
+title: State Machine — Election3.sol Phase Transitions
+---
+stateDiagram-v2
+    [*] --> Created : Contract deployed
+    
+    state Created {
+        [*] --> setMerkleRoot
+        [*] --> setIdentityMerkleRoot
+        [*] --> setRegCodeMerkleRoot
+    }
+    
+    Created --> Registration : startRegistration(end)
+    
+    state Registration {
+        [*] --> registerCandidate
+        [*] --> setMerkleRoot
+        [*] --> setIdentityMerkleRoot
+        [*] --> setRegCodeMerkleRoot
+        [*] --> verifyRegCode
+    }
+    
+    Registration --> Voting : startVoting(end)
+    
+    state Voting {
+        [*] --> castVote
+        [*] --> vote
+        [*] --> getCandidate
+    }
+    
+    Voting --> Ended : endElection()
+    
+    state Ended {
+        [*] --> startNewElection
+        [*] --> getElectionResult
+        [*] --> getHistoricalCandidate
+    }
+    
+    Ended --> Created : startNewElection()
+    
+    note right of Registration
+        Merkle roots can be updated in
+        Created and Registration phases.
+        Frozen once Voting begins.
+    end note
+    
+    note right of Voting
+        Merkle proof is required.
+        At least 2 female GM votes
+        enforced in castVote.
+    end note
+    
+    note right of Ended
+        Winner algorithm in startNewElection:
+        President & Secretary: highest votes.
+        GM: 2-pass (2 female, then 3 any).
+    end note

@@ -1,0 +1,23 @@
+---
+title: System Architecture — Three-Layer Topology
+---
+flowchart TB
+    subgraph P["Presentation Layer (React)"]
+        FE["Web App<br/>Voting, Results, Admin, Portal"]
+    end
+
+    subgraph A["Application Layer (Node.js Express)"]
+        BE["REST API & Socket.IO<br/>Sync Engine, Merkle Service"]
+    end
+
+    subgraph D["Data Layer"]
+        PG["PostgreSQL"]
+        BC["Ethereum Sepolia"]
+        IP["IPFS / Pinata"]
+    end
+
+    FE -->|REST / WebSocket| BE
+    FE -->|ethers.js + MetaMask| BC
+    BE -->|SQL| PG
+    BE -->|Events 10s| BC
+    BE -->|Store| IP

@@ -1,0 +1,55 @@
+---
+title: Component Diagram — System Components
+---
+flowchart TB
+    subgraph FRONTEND["Frontend (React + Tailwind)"]
+        VP[VotingPanelV3<br/>Multi-position ballot]
+        SP[StudentPortal<br/>Registration & auth]
+        AD[AdminDashboard<br/>Election management]
+        RP[Results<br/>Live vote counts]
+        LS[LiveStatsSidebar<br/>Turnout stats]
+        LB[LiveBlockchainDashboard<br/>Event timeline]
+        AC[AuthContext<br/>Wallet, voter status]
+        SC[Socket.IO Client<br/>Real-time events]
+        CI[ethers.js<br/>Contract interface]
+    end
+
+    subgraph BACKEND["Backend (Express 5 + Node.js)"]
+        API[REST API<br/>12 route modules]
+        CT[Controllers<br/>10 modules]
+        MS[Merkle Service<br/>3 tree types]
+        SY[Sync Engine<br/>10s poll, dedup]
+        SI[Socket.IO Server<br/>4 event types]
+        ES[Email Service<br/>Nodemailer]
+    end
+
+    subgraph DATA["Data Layer"]
+        PDB[(PostgreSQL<br/>6 tables)]
+        E3[(Election3.sol<br/>Phase, votes, roots)]
+        IP[(IPFS / Pinata<br/>Photos)]
+    end
+
+    subgraph EXTERNAL["External"]
+        MM[MetaMask<br/>Browser wallet]
+        RP[Alchemy RPC<br/>Sepolia node]
+        SM[SMTP Email]
+    end
+
+    VP -->|GET /api/voters/proof| API
+    VP -->|castVote| CI
+    SP -->|POST /api/auth/*| API
+    AD -->|POST /api/admin/*| API
+    RP -->|GET /api/results| API
+
+    API -->|delegates| CT
+    CT --> MS
+    CT --> ES
+    SY -->|queryFilter| RP
+    SY -->|upsert| PDB
+    SY -->|emit| SI
+    SI -->|real-time| SC
+    CI -->|sendTransaction| MM
+    MM -->|JSON-RPC| E3
+    CT --> PDB
+    MS -->|setMerkleRoot| E3
+    ES --> SM

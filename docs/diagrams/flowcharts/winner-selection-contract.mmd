@@ -1,0 +1,19 @@
+flowchart TD
+    START([Start])
+    A[Admin calls endElection]
+    B[Contract phase = Ended]
+    C[Contract internally determines winners]
+    D[President: highest vote count]
+    E[Secretary: highest vote count]
+    F[Pass 1: top 2 female GMs by vote count]
+    G[Pass 2: top 3 remaining GMs by vote count]
+    H[Total: 7 winners determined]
+    I[Admin calls startNewElection]
+    J[Winner IDs written to electionResults]
+    K[currentElectionId incremented by 1]
+    L[Phase reset back to Created]
+    START --> A --> B --> C
+    C --> D --> I
+    C --> E --> I
+    C --> F --> G --> H --> I
+    I --> J --> K --> L --> END([End])

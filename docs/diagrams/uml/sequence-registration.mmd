@@ -1,0 +1,27 @@
+---
+title: Student Registration — Sequence Diagram
+---
+sequenceDiagram
+    participant S as Student
+    participant UI as Frontend
+    participant API as Express API
+    participant DB as PostgreSQL
+    participant A as Admin
+    participant SC as Smart Contract
+
+    S->>UI: Install MetaMask & get SepoliaETH
+    S->>UI: Fill registration form (name, ID, year, gender, photo)
+    S->>UI: Submit registration code
+    S->>UI: Set account password
+    UI->>API: POST /api/student/register
+    API->>DB: INSERT student (wallet_verified=false)
+    API-->>UI: Registration submitted
+    UI-->>S: Status: Awaiting Verification
+
+    A->>UI: Review student details
+    A->>API: Approve registration
+    API->>DB: UPDATE eligible_to_vote=true
+    API->>SC: Submit updated Merkle root
+    SC-->>API: MerkleRootUpdated event
+    API-->>UI: Student verified
+    UI-->>S: Status: Ready to Vote

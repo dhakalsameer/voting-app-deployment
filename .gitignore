@@ -1,3 +1,23 @@
+.aider*
+.kimchi/
+Pasted image.png
+screenshots/
+backend/reports/
+Project_Report.pdf
+*.log
+
+# Secrets
 .env
-app/
-docker-data/
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

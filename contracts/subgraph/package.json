@@ -1,0 +1,13 @@
+{
+  "name": "election3-subgraph",
+  "version": "1.0.0",
+  "scripts": {
+    "codegen": "npx --yes @graphprotocol/graph-cli codegen",
+    "build": "npx --yes @graphprotocol/graph-cli build",
+    "deploy": "npx --yes @graphprotocol/graph-cli deploy"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "latest",
+    "@graphprotocol/graph-ts": "latest"
+  }
+}

@@ -1,0 +1,41 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Election3
+    network: sepolia
+    source:
+      address: "0x8084eDB9D79aD595933Ac81F923AA7e7bBE2d2A6"
+      abi: Election3
+      startBlock: 11108310
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Candidate
+        - Vote
+        - ElectionMeta
+        - ElectionResult
+      abis:
+        - name: Election3
+          file: ./abi/Election3.json
+      eventHandlers:
+        - event: CandidateRegistered(indexed uint256,indexed address,string,uint8,string)
+          handler: handleCandidateRegistered
+        - event: VoteCast(indexed address,uint256)
+          handler: handleVoteCast
+        - event: BallotCast(indexed address,uint256,uint256,uint256[])
+          handler: handleBallotCast
+        - event: MerkleRootUpdated(bytes32)
+          handler: handleMerkleRootUpdated
+        - event: IdentityMerkleRootUpdated(bytes32)
+          handler: handleIdentityMerkleRootUpdated
+        - event: RegCodeMerkleRootUpdated(bytes32)
+          handler: handleRegCodeMerkleRootUpdated
+        - event: PhaseChanged(uint8)
+          handler: handlePhaseChanged
+        - event: NewElectionStarted(indexed uint256)
+          handler: handleNewElectionStarted
+      file: ./mapping.ts

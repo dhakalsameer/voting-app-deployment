@@ -1,0 +1,32 @@
+---
+title: Admin Operations — Sequence Diagram
+---
+sequenceDiagram
+    participant A as Admin
+    participant UI as Frontend
+    participant API as Backend
+    participant MS as Merkle Service
+    participant SC as Smart Contract
+    participant DB as PostgreSQL
+
+    A->>UI: Set deadlines, manage phases
+    UI->>SC: startRegistration(regEnd)
+    UI->>SC: startVoting(voteEnd)
+    UI->>SC: endElection()
+    SC-->>UI: PhaseChanged events
+
+    A->>UI: Select & verify pending students
+    UI->>API: POST /api/voters/verify-bulk
+    API->>DB: UPDATE eligible_to_vote=true
+    API->>MS: generateMerkleRoot(wallets)
+    API->>MS: generateIdentityMerkleRoot(identities)
+    MS-->>API: New roots
+    API->>SC: setMerkleRoot + setIdentityMerkleRoot
+    SC-->>API: MerkleRootUpdated events
+
+    A->>UI: Upload spreadsheet for codes
+    UI->>API: POST /api/admin/generate-codes
+    API->>DB: INSERT registration_codes
+    API->>MS: generateRegCodeMerkleRoot()
+    API->>SC: setRegCodeMerkleRoot(root)
+    API->>API: Send batch emails

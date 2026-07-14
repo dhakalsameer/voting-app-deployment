@@ -1,0 +1,10 @@
+flowchart TD
+    START([Start]) --> Created
+    Created -->|startRegistration| Registration
+    Registration -->|startVoting| Voting
+    Voting -->|endElection| Ended
+    Ended -->|startNewElection| Created
+    Created -.->|setMerkleRoot / setIdentityMerkleRoot| Created
+    Registration -.->|registerCandidate / setMerkleRoot| Registration
+    Voting -.->|castVote| Voting
+    Created --> END([End])

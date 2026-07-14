@@ -1,0 +1,33 @@
+---
+title: Sync Engine — Sequence Diagram
+---
+sequenceDiagram
+    participant SE as Sync Engine
+    participant SC as Smart Contract
+    participant DB as PostgreSQL
+    participant FE as Frontend
+
+    SE->>SC: On startup: getPhase(), candidateCount()
+    SE->>DB: Clean stale candidates, backfill history
+
+    loop Every 10 seconds
+        SE->>SC: queryFilter (7 event types, batched 10 blocks)
+        SC-->>SE: New events (candidates, votes, phases)
+        SE->>SE: Dedup by txHash+logIndex
+        SE->>DB: INSERT events, UPSERT candidates
+        SE-->>FE: Socket.IO "blockchainEvent"
+
+        SE->>SC: candidateCount(), getCandidate()
+        SC-->>SE: Vote count changes
+        alt Votes updated
+            SE->>DB: UPDATE vote_count
+            SE-->>FE: Socket.IO "voteUpdate"
+        end
+
+        SE->>SC: getPhase()
+        alt Phase changed
+            SE->>DB: snapshotResults() on end
+            SE->>SC: rebuildMerkleTrees() on voting start
+            SE-->>FE: Socket.IO "blockchainEvent"
+        end
+    end

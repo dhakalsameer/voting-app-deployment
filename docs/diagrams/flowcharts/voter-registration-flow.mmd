@@ -1,0 +1,11 @@
+flowchart TD
+    START([Start])
+    A[Wallet Setup\nMetaMask → Sepolia → Faucet]
+    B[Account Registration\nProfile → Code → Password]
+    C[Connect & Verify\nSign Message → Await Admin]
+    D{Admin Approved?}
+    E[Merkle Whitelist →\nReady to Vote]
+    F[Rejected]
+    START --> A --> B --> C --> D
+    D -->|Yes| E --> END([End])
+    D -->|No| F --> END

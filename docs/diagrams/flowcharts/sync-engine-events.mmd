@@ -1,0 +1,22 @@
+flowchart TD
+    START([Start])
+    A[fetchAndEmitOnChainEvents]
+    B[Query contract event logs in batches]
+    C{Which event type?}
+    D[Upsert candidate in PostgreSQL]
+    E[Increment vote_count in DB]
+    F[Update cached phase value in DB]
+    G[Emit MerkleRootUpdated to clients]
+    H[Snapshot previous election results]
+    I[Delete all rows from candidates table]
+    START --> A --> B --> C
+    C -->|CandidateRegistered| D
+    C -->|BallotCast| E
+    C -->|PhaseChanged| F
+    C -->|MerkleRootUpdated| G
+    C -->|NewElectionStarted| H --> I
+    D --> END([End])
+    E --> END
+    F --> END
+    G --> END
+    I --> END

@@ -1,0 +1,38 @@
+---
+title: Deployment Diagram — Physical Architecture
+---
+flowchart LR
+    subgraph C["Client Machine"]
+        BR[Web Browser<br/>React SPA + Socket.IO Client]
+        MM[MetaMask Wallet Extension]
+    end
+
+    subgraph S["Server Machine (Node.js 22)"]
+        EX[Express 5 Server :5000<br/>REST API + Socket.IO + Sync Engine]
+        SV[Services: Merkle, Email,<br/>EventStore, Reminder Cron]
+    end
+
+    subgraph D["Database Server"]
+        PG[PostgreSQL 16<br/>students, candidates,<br/>election_history, events,<br/>registration_codes, distribution_log]
+    end
+
+    subgraph BC["Sepolia Testnet"]
+        AL[Alchemy RPC Node]
+        E3[Election3.sol Contract]
+        SG[The Graph Subgraph]
+    end
+
+    subgraph E["External"]
+        PI[Pinata IPFS]
+        SM[SMTP Email Server]
+    end
+
+    BR -->|HTTP :5000| EX
+    BR -->|WebSocket :5000| EX
+    MM -->|JSON-RPC| AL
+    EX -->|TCP 5432| PG
+    EX -->|queryFilter 10s| AL
+    AL -->|eth_call| E3
+    E3 -->|indexes| SG
+    EX -->|Pinata API| PI
+    EX -->|Nodemailer| SM

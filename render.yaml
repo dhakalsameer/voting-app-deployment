@@ -2,7 +2,7 @@ services:
   - type: web
     name: voting-app-backend
     runtime: node
-    repo: https://github.com/dhakalsameer/Decentralized-Voting-System
+    repo: https://github.com/dhakalsameer/voting-app-deployment
     branch: main
     rootDir: backend
     buildCommand: npm ci

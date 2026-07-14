@@ -1,0 +1,44 @@
+---
+title: Full Election Lifecycle — Sequence Diagram
+---
+sequenceDiagram
+    participant A as Admin
+    participant SC as Smart Contract
+    participant SE as Sync Engine
+    participant DB as PostgreSQL
+    participant V as Voters / Candidates
+
+    Note over A,V: PHASE 0→1: Setup → Registration
+    A->>SC: Deploy, set 3 Merkle roots
+    A->>SC: startRegistration(regEnd)
+    SC-->>SE: PhaseChanged
+
+    loop Candidates register
+        V->>SC: registerCandidate(guid, name, year, gender, pos, proof)
+        SE->>SC: Poll CandidateRegistered
+        SE->>DB: UPSERT candidates
+    end
+
+    Note over A,V: PHASE 1→2: Voting Opens
+    A->>SC: startVoting(voteEnd)
+    SE->>SC: rebuildMerkleTrees()
+
+    loop Voters cast ballots
+        V->>SC: castVote(presId, secId, gmIds, proof)
+        SC->>SC: Verify proof + female GM quota
+        SE->>SC: Poll VoteCast
+        SE->>DB: UPDATE vote_count
+    end
+
+    Note over A,V: PHASE 2→3: Election Ends
+    A->>SC: endElection()
+    SE->>DB: snapshotResults()
+    SE-->>A: PhaseChanged(Ended)
+
+    Note over A,V: PHASE 3→0: New Election
+    A->>SC: startNewElection()
+    SC->>SC: _findWinner(President)
+    SC->>SC: _findWinner(Secretary)
+    SC->>SC: _selectGMWinners() (2 female + 3 any)
+    SC->>SC: Store result, reset to Phase 0
+    SE->>DB: snapshot + DELETE candidates

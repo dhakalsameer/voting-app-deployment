@@ -1,0 +1,39 @@
+---
+title: Candidate Self-Registration — Sequence Diagram
+---
+sequenceDiagram
+    participant S as Student
+    participant UI as Frontend
+    participant API as Express API
+    participant MS as Merkle Service
+    participant SC as Smart Contract
+    participant SE as Sync Engine
+    participant DB as PostgreSQL
+
+    S->>UI: Connect MetaMask & open portal
+    UI->>API: GET /api/voters/me?wallet=0x...
+    API-->>UI: Identity fields (name, year, gender)
+    
+    S->>UI: Click "Register as Candidate"
+    UI->>API: GET /api/voters/identity-proof?wallet=0x...
+    API->>MS: Generate identity Merkle proof
+    MS-->>API: Proof array
+    API-->>UI: { proof, identity }
+    
+    S->>UI: Select position (President/Secretary/GM)
+    S->>UI: Upload profile photo
+    UI->>API: POST /api/candidates/upload-photo
+    API-->>UI: imageCID
+    
+    S->>UI: Submit registration
+    UI->>SC: registerCandidate(guid, name, year, isFemale, imageCID, pos, proof)
+    SC->>SC: Verify identity Merkle proof
+    SC->>SC: Check position eligibility (year req)
+    SC-->>UI: CandidateRegistered event
+    
+    SE->>SC: Poll for new candidate events
+    SC-->>SE: Candidate struct
+    SE->>DB: UPSERT candidates table
+    SE-->>UI: Socket.IO blockchainEvent
+    
+    UI-->>S: "Registration confirmed! ID: 1"

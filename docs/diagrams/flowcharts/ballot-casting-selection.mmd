@@ -1,0 +1,12 @@
+flowchart TD
+    START([Start])
+    A[Candidate grid displayed]
+    B[Select one President candidate]
+    C[Select one Secretary candidate]
+    D[Select up to 5 General Member candidates]
+    E{At least 2 female GMs selected?}
+    F[Show: Select at least 2 female candidates]
+    G[Selections complete]
+    START --> A --> B --> C --> D --> E
+    E -->|No| F --> D
+    E -->|Yes| G --> END([End])

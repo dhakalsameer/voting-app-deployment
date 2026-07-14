@@ -1,0 +1,85 @@
+erDiagram
+
+    students {
+        text student_id PK
+        text name
+        text wallet_address UK
+        text email UK
+        text year
+        text gender
+        text image_cid
+        text password_hash
+        boolean wallet_verified
+        boolean eligible_to_vote
+        boolean registered
+        timestamptz created_at
+    }
+
+    candidates {
+        serial id PK
+        text name
+        text student_id
+        text position
+        text status
+        text gender
+        text year
+        text image_cid
+        integer blockchain_id UK
+        integer vote_count
+        text wallet_address
+        text applied_by FK
+        timestamptz created_at
+    }
+
+    registration_codes {
+        serial id PK
+        text student_id
+        text code UK
+        boolean used
+        timestamptz used_at
+        timestamptz created_at
+    }
+
+    election_history {
+        serial id PK
+        integer election_number
+        text candidate_name
+        text candidate_position
+        integer vote_count
+        text candidate_gender
+        text candidate_year
+        text candidate_photo
+        integer blockchain_id UK
+        boolean is_winner
+        text wallet_address
+        timestamptz snapshot_at
+    }
+
+    events {
+        serial id PK
+        text event_name
+        text tx_hash
+        integer block_number
+        integer log_index
+        text from_address
+        jsonb args
+        integer timestamp
+        timestamptz created_at
+    }
+
+    distribution_log {
+        serial id PK
+        text student_id FK
+        text wallet_address
+        text amount_eth
+        text tx_hash
+        text status
+        text error
+        timestamptz distributed_at
+    }
+
+    students ||--o{ candidates : "applied_by"
+    students ||--o{ registration_codes : "has"
+    students ||--o{ distribution_log : "receives"
+    candidates }o--|| election_history : "archived_as"
+    candidates ||--o{ events : "emitted"
