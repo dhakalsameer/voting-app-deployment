@@ -81,7 +81,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
               <img
                 src="/images/gu-icon.png"
                 alt="GU"
-                className="h-10 w-10 md:h-12 md:w-12 rounded-md object-contain shrink-0"
+                className="h-12 w-12 sm:h-14 sm:w-14 rounded-md object-contain shrink-0"
               />
               <span className="text-base md:text-lg lg:text-xl font-bold tracking-tight text-app-heading hidden sm:block whitespace-nowrap">IT Election</span>
             </div>
