@@ -179,14 +179,14 @@ export default function GasDistribution() {
       )}
 
       <div ref={subSentinelRef} className="h-px" />
-      <div className={`flex gap-3 mb-6 pb-5 border-b border-app overflow-x-auto sticky top-[10rem] z-20 transition-all duration-200 ${subStuck ? "bg-app-background/80 backdrop-blur-sm" : "bg-transparent"} -mx-6 px-6`}>
+      <div className={`flex gap-1.5 sm:gap-3 mb-4 sm:mb-6 pb-3 sm:pb-5 border-b border-app overflow-x-auto sticky top-[10rem] z-20 transition-all duration-200 ${subStuck ? "bg-app-background/80 backdrop-blur-sm" : "bg-transparent"} -mx-4 sm:-mx-6 px-4 sm:px-6`}>
         {GAS_TABS.map(t => {
           const Icon = t.icon;
           return (
             <button
               key={t.id}
               onClick={() => setSubTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-base font-semibold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-base font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 subTab === t.id
                   ? "text-app-accent bg-app-accent-soft shadow-sm"
                   : "text-app-muted-text hover:text-app-heading hover:bg-app-muted/30"
