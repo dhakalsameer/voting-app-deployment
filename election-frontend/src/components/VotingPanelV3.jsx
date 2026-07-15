@@ -597,7 +597,7 @@ export default function VotingPanelV3() {
                         {selectedGMIds.map(id => (
                           <span key={id} className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg bg-app-surface border border-app-border/40 text-app-heading shadow-sm">
                             {selectedName(id)}
-                            <button type="button" onClick={() => toggleGM(id)} className="text-app-muted-text hover:text-rose-400 transition-colors cursor-pointer p-0.5 -mr-0.5">
+                            <button type="button" onClick={() => toggleGM(id)} className="text-app-muted-text hover:text-rose-400 transition-colors cursor-pointer p-2 -m-1">
                               <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                                 <path d="M18 6L6 18M6 6l12 12" />
                               </svg>
@@ -645,7 +645,7 @@ export default function VotingPanelV3() {
                 <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4">
                   <div className="rounded-2xl border border-app-border bg-app-surface-solid shadow-2xl overflow-hidden">
                     {/* Header */}
-                    <div className="relative px-6 pt-6 pb-4 text-center border-b border-app/50">
+                    <div className="relative px-4 sm:px-6 pt-4 sm:pt-6 pb-4 text-center border-b border-app/50">
                       <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10 mb-3">
                         <span className="text-2xl">🗳️</span>
                       </div>
@@ -654,7 +654,7 @@ export default function VotingPanelV3() {
                     </div>
 
                     {/* Body */}
-                    <div className="px-6 py-5 space-y-4 max-h-[50vh] overflow-y-auto">
+                    <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 max-h-[50vh] overflow-y-auto">
                       {/* President */}
                       <div className={`rounded-2xl border-2 p-5 ${selectedPresidentId ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
                         <div className="flex items-center justify-between mb-2">
@@ -753,7 +753,7 @@ export default function VotingPanelV3() {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-6 py-4 border-t border-app/50 bg-app-muted/20 flex items-center gap-3">
+                    <div className="px-4 sm:px-6 py-4 border-t border-app/50 bg-app-muted/20 flex items-center gap-3">
                       <button
                         onClick={() => setShowConfirm(false)}
                         className="flex-1 py-3.5 rounded-xl border-2 border-app-border bg-app-surface text-sm font-extrabold text-app-heading hover:bg-app-accent-soft hover:border-app-accent-border hover:text-app-accent transition-all cursor-pointer"

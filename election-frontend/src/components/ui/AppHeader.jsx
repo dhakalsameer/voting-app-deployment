@@ -140,7 +140,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
 
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="md:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-app text-app-muted-text hover:bg-app-elevated transition-all cursor-pointer"
+              className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg border border-app text-app-muted-text hover:bg-app-elevated transition-all cursor-pointer"
               aria-label="Menu"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

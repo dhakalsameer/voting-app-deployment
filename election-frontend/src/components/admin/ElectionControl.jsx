@@ -62,14 +62,14 @@ function PhaseTag({ phase, remaining }) {
 function ActionCard({ title, description, icon, children }) {
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-app/50 bg-app-muted/20">
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-app/50 bg-app-muted/20">
         <span className="text-2xl">{icon}</span>
         <div>
           <h3 className="text-base font-bold text-app-heading">{title}</h3>
           <p className="text-sm text-app-muted-text mt-0.5">{description}</p>
         </div>
       </div>
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-6">{children}</div>
     </div>
   );
 }

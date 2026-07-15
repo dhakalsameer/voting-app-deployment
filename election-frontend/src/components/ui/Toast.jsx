@@ -120,7 +120,7 @@ function ToastContainer({ toasts, onRemove }) {
             </div>
             <button
               onClick={() => onRemove(toast.id)}
-              className="ml-auto -mt-1 -mr-1 shrink-0 rounded-lg p-1 text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors cursor-pointer"
+              className="ml-auto -mt-1 -mr-1 shrink-0 rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-slate-200 transition-colors cursor-pointer"
               aria-label="Dismiss notification"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

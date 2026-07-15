@@ -114,7 +114,7 @@ export default function DataTable({
             <button
               onClick={() => setPage(Math.max(0, safePage - 1))}
               disabled={safePage === 0}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-2.5 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             >
               Prev
             </button>
@@ -122,7 +122,7 @@ export default function DataTable({
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                   p === safePage
                     ? "text-app-accent bg-app-accent-soft"
                     : "text-app-muted-text hover:text-app-heading hover:bg-app-elevated"
@@ -134,7 +134,7 @@ export default function DataTable({
             <button
               onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
               disabled={safePage === totalPages - 1}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-2.5 rounded-lg text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             >
               Next
             </button>

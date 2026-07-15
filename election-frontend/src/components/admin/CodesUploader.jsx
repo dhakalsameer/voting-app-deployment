@@ -155,7 +155,7 @@ export default function CodesUploader({ wallet, generatedCodes, generatedCount, 
               </p>
               <button
                 onClick={(e) => { e.stopPropagation(); setFile(null); setPreviewStudents([]); setPreviewError(""); fileInputRef.current.value = ""; }}
-                className="mt-3 text-sm text-rose-400 hover:text-rose-300 font-medium transition-colors cursor-pointer"
+                className="mt-3 px-3 py-2 text-sm text-rose-400 hover:text-rose-300 font-medium transition-colors cursor-pointer rounded-lg hover:bg-rose-500/10"
               >
                 Remove file
               </button>

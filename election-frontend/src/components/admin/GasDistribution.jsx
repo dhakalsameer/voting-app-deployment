@@ -212,7 +212,7 @@ function ConfirmModal({ open, onClose, onConfirm, selectedCount, totalEth, amoun
       <div className="w-full max-w-md rounded-2xl border border-app bg-app-surface p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-black uppercase tracking-wide text-app-heading">Confirm Distribution</h3>
-          <button onClick={onClose} className="p-1 rounded-lg text-app-muted hover:text-app-heading hover:bg-app-muted/30 transition-colors cursor-pointer">
+          <button onClick={onClose} className="p-2 rounded-lg text-app-muted hover:text-app-heading hover:bg-app-muted/30 transition-colors cursor-pointer">
             <CloseIcon />
           </button>
         </div>
@@ -516,7 +516,7 @@ function GasDistribute() {
                   <button
                     key={p}
                     onClick={() => { setAmount(p); setPreview(null); setResults(null); }}
-                    className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
                       amount === p
                         ? "bg-sky-400/20 text-sky-300 border border-sky-400/30"
                         : "bg-app-muted/20 text-app-muted border border-app/50 hover:border-sky-400/20 hover:text-app-heading"

@@ -188,7 +188,7 @@ export function AuthProvider({ children }) {
               <h3 className="text-lg font-black text-app-heading">Connect Wallet</h3>
               <button
                 onClick={() => setShowMobilePrompt(false)}
-                className="h-8 w-8 flex items-center justify-center rounded-lg text-app-muted-text hover:text-app-heading cursor-pointer"
+                className="h-10 w-10 flex items-center justify-center rounded-lg text-app-muted-text hover:text-app-heading cursor-pointer"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M6 6l12 12M18 6L6 18" />

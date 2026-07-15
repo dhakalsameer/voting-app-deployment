@@ -32,7 +32,7 @@ export default function WalletButton() {
             await disconnectWallet();
             showError("Wallet disconnected");
           }}
-          className="ml-2 p-1.5 rounded-md hover:bg-rose-400/20 transition-colors cursor-pointer text-rose-400"
+          className="ml-2 p-2.5 rounded-md hover:bg-rose-400/20 transition-colors cursor-pointer text-rose-400"
           title="Disconnect wallet"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -270,11 +270,11 @@ export default function AnalyticsDashboard() {
             <button
               key={tab.key}
               onClick={() => setSelectedElection(tab.key)}
-              className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                selectedElection === tab.key
-                  ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
-                  : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
-              }`}
+                className={`text-[11px] font-bold px-3 py-2 sm:py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  selectedElection === tab.key
+                    ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
+                    : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
+                }`}
             >
               {tab.label}
             </button>

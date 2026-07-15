@@ -836,7 +836,7 @@ function PasswordInput({ value, onChange, placeholder, label }) {
         <button
           type="button"
           onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-app-muted-text hover:text-app-heading cursor-pointer p-1"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-app-muted-text hover:text-app-heading cursor-pointer p-2"
         >
           {show ? (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
