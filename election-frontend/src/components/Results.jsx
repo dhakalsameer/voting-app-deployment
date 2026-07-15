@@ -286,6 +286,7 @@ function LiveResults() {
   const [animateId, setAnimateId] = useState(0);
   const [latestFinished, setLatestFinished] = useState(null);
   const [statsError, setStatsError] = useState(null);
+  const [showAllPositions, setShowAllPositions] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -436,7 +437,14 @@ function LiveResults() {
       {/* Position breakdown */}
       {stats.positions?.length > 0 && (
         <div className="rounded-xl border border-app bg-app-surface p-5 space-y-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-app-muted-text">By Position</h4>
+          <button
+            onClick={() => setShowAllPositions(!showAllPositions)}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-app-muted-text hover:text-app-heading transition-colors cursor-pointer w-full text-left"
+          >
+            <span className="text-base">{showAllPositions ? "▾" : "▸"}</span>
+            By Position
+          </button>
+          {showAllPositions && (
           <div className="space-y-3">
             {stats.positions.map((pos) => {
               const posVoteShare = stats.votesCast > 0 ? ((pos.votes / stats.votesCast) * 100).toFixed(1) : 0;
@@ -466,6 +474,7 @@ function LiveResults() {
               );
             })}
           </div>
+          )}
         </div>
       )}
 
