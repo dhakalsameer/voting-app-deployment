@@ -2,7 +2,9 @@ import { ethers } from "ethers";
 import { config } from "../config/env.js";
 import Election3ABI from "../abi/Election3.json" with { type: "json" };
 
-const provider = new ethers.JsonRpcProvider(config.rpc);
+const fetchRequest = new ethers.FetchRequest(config.rpc);
+fetchRequest.timeout = 180_000;
+const provider = new ethers.JsonRpcProvider(fetchRequest);
 
 export const adminSigner = new ethers.Wallet(
   config.privateKey,

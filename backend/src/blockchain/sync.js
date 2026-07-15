@@ -32,17 +32,26 @@ export function startBlockchainSync(io) {
     if (io) io.emit("blockchainEvent", event);
   }
 
-  async function queryLogsBatched(filter, fromBlock, toBlock) {
+  async function queryLogsBatched(filter, fromBlock, toBlock, retries = 2) {
     const allLogs = [];
     const step = MAX_BLOCK_RANGE;
     for (let start = fromBlock; start <= toBlock; start += step) {
       const end = Math.min(start + step - 1, toBlock);
-      try {
-        const logs = await electionContractV3.queryFilter(filter, start, end);
-        allLogs.push(...logs);
-      } catch (err) {
-        console.error(`  queryFilter [${start}, ${end}] failed: ${err.message}`);
+      let lastErr;
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const logs = await electionContractV3.queryFilter(filter, start, end);
+          allLogs.push(...logs);
+          lastErr = null;
+          break;
+        } catch (err) {
+          lastErr = err;
+          if (attempt < retries) {
+            await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+          }
+        }
       }
+      if (lastErr) console.error(`  queryFilter [${start}, ${end}] failed after ${retries} retries: ${lastErr.message}`);
     }
     return allLogs;
   }
