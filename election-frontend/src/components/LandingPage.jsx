@@ -94,7 +94,7 @@ export default function LandingPage({ onOpenPortal }) {
             </h2>
           </div>
         </div>
-        <p className="text-xl text-app-muted-text font-medium mb-10 text-center leading-relaxed max-w-md mx-auto">
+        <p className="text-base sm:text-xl text-app-muted-text font-medium mb-8 sm:mb-10 text-center leading-relaxed max-w-md mx-auto px-2">
           A decentralized on-chain voting system for the IT Club election
         </p>
 
@@ -111,30 +111,30 @@ export default function LandingPage({ onOpenPortal }) {
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-10 mt-12">
-          <div className="flex items-center gap-3">
-            <svg className="h-7 w-7 text-app-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-10 mt-8 sm:mt-12">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <svg className="h-5 w-5 sm:h-7 sm:w-7 text-app-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
-            <span className="text-xl text-app-muted-text">Onchain</span>
+            <span className="text-sm sm:text-xl text-app-muted-text whitespace-nowrap">Onchain</span>
           </div>
-          <span className="text-app-muted-text/30 text-lg">|</span>
-          <div className="flex items-center gap-3">
-            <svg className="h-7 w-7 text-app-trust" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <span className="text-app-muted-text/30 text-base sm:text-lg hidden sm:inline">|</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <svg className="h-5 w-5 sm:h-7 sm:w-7 text-app-trust" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
-            <span className="text-xl text-app-muted-text">Transparent</span>
+            <span className="text-sm sm:text-xl text-app-muted-text whitespace-nowrap">Transparent</span>
           </div>
-          <span className="text-app-muted-text/30 text-lg">|</span>
-          <div className="flex items-center gap-3">
-            <svg className="h-7 w-7 text-app-ballot" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <span className="text-app-muted-text/30 text-base sm:text-lg hidden sm:inline">|</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <svg className="h-5 w-5 sm:h-7 sm:w-7 text-app-ballot" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="4" y="3" width="16" height="18" rx="2" />
               <path d="M9 12l2 2 4-4" />
               <path d="M4 9h16" />
             </svg>
-            <span className="text-xl text-app-muted-text">Secure</span>
+            <span className="text-sm sm:text-xl text-app-muted-text whitespace-nowrap">Secure</span>
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export default function LandingPage({ onOpenPortal }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     variants={cardVariants}
-                    className={`group relative flex flex-col rounded-2xl border ${cc.border} overflow-hidden transition-all duration-500 hover:scale-[1.04] hover:shadow-xl ${cc.glow} bg-app-surface/30 backdrop-blur-sm w-full`}
+                    className={`group relative flex flex-col rounded-2xl border ${cc.border} overflow-hidden transition-all duration-500 hover:scale-[1.04] hover:shadow-xl ${cc.glow} bg-app-surface/60 sm:bg-app-surface/30 backdrop-blur-sm w-full`}
                   >
                     <div className={`h-1.5 w-full shrink-0 bg-gradient-to-r ${cc.from} ${cc.to} ${cc.bar}`} />
                     <div className="flex flex-col items-center justify-center gap-3 p-5 flex-1 min-h-0 relative">
