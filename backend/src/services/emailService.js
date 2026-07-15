@@ -13,28 +13,6 @@ const DEFAULT_FROM = "GU Election <onboarding@resend.dev>";
 let resend = null;
 let transporter = null;
 
-function getSender() {
-  if (RESEND_API_KEY) {
-    if (!resend) resend = new Resend(RESEND_API_KEY);
-    return { type: "resend", client: resend };
-  }
-  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
-    if (!transporter) {
-      transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: parseInt(SMTP_PORT, 10),
-        secure: parseInt(SMTP_PORT, 10) === 465,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-      });
-    }
-    return { type: "smtp", client: transporter };
-  }
-  return null;
-}
-
 function buildEmailHtml({ name, student_id, code, electionName }) {
   const displayName = name || student_id;
   const title = electionName || "University IT Election";
@@ -56,42 +34,60 @@ function buildEmailHtml({ name, student_id, code, electionName }) {
 
 /**
  * Send a registration code email to a single student.
- * Uses Resend if configured, falls back to Gmail SMTP, then console log.
+ * Tries Resend first, falls back to Gmail SMTP, then console log.
  */
 export async function sendRegistrationCode({ email, name, student_id, code, electionName }) {
-  const sender = getSender();
   const displayName = name || student_id;
   const title = electionName || "University IT Election";
 
-  if (!sender) {
-    console.log("─── EMAIL (no provider configured — printed instead) ───");
-    console.log("  Set RESEND_API_KEY or SMTP_* env vars to send real emails.");
-    console.log(`To: ${email}`);
-    console.log(`Subject: Your Registration Code for ${title}`);
-    console.log(`Student: ${displayName} (${student_id})`);
-    console.log(`Code: ${code}`);
-    console.log("───────────────────────────────────────────────────────");
-    return { devMode: true, email, student_id, code };
+  if (RESEND_API_KEY) {
+    try {
+      if (!resend) resend = new Resend(RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: DEFAULT_FROM,
+        to: email,
+        subject: `Your Registration Code for ${title}`,
+        html: buildEmailHtml({ name, student_id, code, electionName }),
+      });
+      if (error) throw new Error(error.message);
+      return { messageId: data?.id, email, student_id };
+    } catch (err) {
+      console.warn("Resend failed, falling back to SMTP:", err.message);
+    }
   }
 
-  if (sender.type === "resend") {
-    const { data, error } = await sender.client.emails.send({
-      from: DEFAULT_FROM,
-      to: email,
-      subject: `Your Registration Code for ${title}`,
-      html: buildEmailHtml({ name, student_id, code, electionName }),
-    });
-    if (error) throw new Error(error.message);
-    return { messageId: data?.id, email, student_id };
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    try {
+      if (!transporter) {
+        transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT, 10),
+          secure: parseInt(SMTP_PORT, 10) === 465,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        });
+      }
+      const info = await transporter.sendMail({
+        from: SMTP_FROM || SMTP_USER,
+        to: email,
+        subject: `Your Registration Code for ${title}`,
+        html: buildEmailHtml({ name, student_id, code, electionName }),
+      });
+      return { messageId: info.messageId, email, student_id };
+    } catch (err) {
+      console.warn("SMTP also failed:", err.message);
+    }
   }
 
-  const info = await sender.client.sendMail({
-    from: SMTP_FROM || SMTP_USER,
-    to: email,
-    subject: `Your Registration Code for ${title}`,
-    html: buildEmailHtml({ name, student_id, code, electionName }),
-  });
-  return { messageId: info.messageId, email, student_id };
+  console.log("─── EMAIL (no provider configured — printed instead) ───");
+  console.log(`To: ${email}`);
+  console.log(`Subject: Your Registration Code for ${title}`);
+  console.log(`Student: ${displayName} (${student_id})`);
+  console.log(`Code: ${code}`);
+  console.log("───────────────────────────────────────────────────────");
+  return { devMode: true, email, student_id, code };
 }
 
 /**
@@ -122,35 +118,53 @@ function buildWinnerEmailHtml({ name, position, voteCount, electionNumber }) {
 }
 
 export async function sendWinnerCongratulation({ email, name, position, voteCount, electionNumber }) {
-  const sender = getSender();
-
-  if (!sender) {
-    console.log("─── WINNER EMAIL (no provider configured) ───");
-    console.log(`To: ${email}`);
-    console.log(`Subject: 🎉 Congratulations ${name} — You Won Election #${electionNumber}!`);
-    console.log(`Position: ${position}, Votes: ${voteCount}`);
-    console.log("───────────────────────────────────────────────");
-    return { devMode: true, email };
+  if (RESEND_API_KEY) {
+    try {
+      if (!resend) resend = new Resend(RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: DEFAULT_FROM,
+        to: email,
+        subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
+        html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
+      });
+      if (error) throw new Error(error.message);
+      return { messageId: data?.id, email };
+    } catch (err) {
+      console.warn("Resend failed, falling back to SMTP:", err.message);
+    }
   }
 
-  if (sender.type === "resend") {
-    const { data, error } = await sender.client.emails.send({
-      from: DEFAULT_FROM,
-      to: email,
-      subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
-      html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
-    });
-    if (error) throw new Error(error.message);
-    return { messageId: data?.id, email };
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    try {
+      if (!transporter) {
+        transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT, 10),
+          secure: parseInt(SMTP_PORT, 10) === 465,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        });
+      }
+      const info = await transporter.sendMail({
+        from: SMTP_FROM || SMTP_USER,
+        to: email,
+        subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
+        html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
+      });
+      return { messageId: info.messageId, email };
+    } catch (err) {
+      console.warn("SMTP also failed:", err.message);
+    }
   }
 
-  const info = await sender.client.sendMail({
-    from: SMTP_FROM || SMTP_USER,
-    to: email,
-    subject: `🎉 Congratulations ${name} — You Won Election #${electionNumber}!`,
-    html: buildWinnerEmailHtml({ name, position, voteCount, electionNumber }),
-  });
-  return { messageId: info.messageId, email };
+  console.log("─── WINNER EMAIL (no provider configured) ───");
+  console.log(`To: ${email}`);
+  console.log(`Subject: 🎉 Congratulations ${name} — You Won Election #${electionNumber}!`);
+  console.log(`Position: ${position}, Votes: ${voteCount}`);
+  console.log("───────────────────────────────────────────────");
+  return { devMode: true, email };
 }
 
 export async function sendBatchRegistrationCodes(students, electionName) {
