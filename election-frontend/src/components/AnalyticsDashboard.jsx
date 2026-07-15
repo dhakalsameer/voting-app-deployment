@@ -13,8 +13,11 @@ const MAX_VISIBLE = 8;
 export default function AnalyticsDashboard() {
   const { error: showError, info } = useToast();
   const [data, setData] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dataError, setDataError] = useState(null);
+  const [historyError, setHistoryError] = useState(null);
+  const [selectedElection, setSelectedElection] = useState("live");
   const [showAllAnalytics, setShowAllAnalytics] = useState(false);
 
   const fetchData = async () => {
@@ -29,14 +32,40 @@ export default function AnalyticsDashboard() {
     }
   };
 
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/results/history`);
+      if (!res.ok) throw new Error(`API returned ${res.status}`);
+      const d = await res.json();
+      if (Array.isArray(d)) setHistory(d);
+      setHistoryError(null);
+    } catch (err) {
+      setHistoryError(err.message);
+    }
+  };
+
   useEffect(() => {
-    fetchData().finally(() => setLoading(false));
+    Promise.all([fetchData(), fetchHistory()]).finally(() => setLoading(false));
     const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+    const histInterval = setInterval(fetchHistory, 60000);
+    return () => { clearInterval(interval); clearInterval(histInterval); };
   }, []);
 
-  const displayData = data;
-  const isLive = true;
+  const tabs = useMemo(() => {
+    const t = [{ key: "live", label: "Live" }];
+    for (const h of history) {
+      t.push({ key: String(h.election_number), label: `Election ${h.election_number}`, data: h });
+    }
+    return t;
+  }, [history]);
+
+  const currentTab = tabs.find(t => t.key === selectedElection);
+  const isLive = selectedElection === "live";
+
+  const displayData = useMemo(() => {
+    if (isLive) return data;
+    return (currentTab?.data?.candidates || []).map((c, i) => ({ ...c, id: i }));
+  }, [isLive, data, currentTab]);
 
   const sortedData = useMemo(() => {
     return [...displayData].sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
@@ -79,7 +108,11 @@ export default function AnalyticsDashboard() {
     return y;
   }
 
-  const electionDate = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const electionDate = isLive
+    ? new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
+    : currentTab?.data?.snapshot_at
+      ? new Date(currentTab.data.snapshot_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
+      : null;
 
   const downloadPDF = () => {
     try {
@@ -90,7 +123,7 @@ export default function AnalyticsDashboard() {
   };
 
   function WinnersBanner() {
-    const title = "Current Leaders";
+    const title = isLive ? "Current Leaders" : `Election ${currentTab?.data?.election_number} Winners`;
     const hasAny = winners.president || winners.secretary || winners.gmWinners.length > 0;
     if (!hasAny) return null;
 
@@ -251,6 +284,24 @@ export default function AnalyticsDashboard() {
           Download Audit Report
         </button>
       </div>
+
+      {tabs.length > 1 && (
+        <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-3 mb-3 sm:mb-4 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => { setSelectedElection(tab.key); setShowAllAnalytics(false); }}
+                className={`text-[11px] font-bold px-3 py-2 sm:py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  selectedElection === tab.key
+                    ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
+                    : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div id="analytics-report" className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
         <WinnersBanner />
