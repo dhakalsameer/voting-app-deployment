@@ -292,7 +292,7 @@ function Countdown({ votingEnd }) {
   );
 }
 
-function LiveResults() {
+export function LiveResults() {
   const [stats, setStats] = useState(null);
   const [prevVotes, setPrevVotes] = useState(0);
   const [animateId, setAnimateId] = useState(0);

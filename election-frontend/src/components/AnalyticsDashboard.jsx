@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { API_URL } from "../config";
 import { useToast } from "./ui/Toast";
+import { LiveResults } from "./Results";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#0ea5e9"];
 
@@ -303,9 +304,11 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
+      {isLive ? (
+        <LiveResults />
+      ) : (
       <div id="analytics-report" className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
         <WinnersBanner />
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app">
              <p className="text-xs font-mono font-bold text-app-muted uppercase tracking-widest mb-1">Total Participation</p>
@@ -321,9 +324,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Bar Chart: Rankings */}
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app min-h-[320px] sm:min-h-[400px] flex flex-col">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="font-black text-sm text-app-heading uppercase tracking-widest">Candidate Performance Ranking</h3>
@@ -363,7 +364,6 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
 
-          {/* Pie Chart: Distribution by Position */}
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app min-h-[320px] sm:min-h-[400px] flex flex-col">
             <h3 className="font-black text-sm text-app-heading mb-4 sm:mb-6 uppercase tracking-widest">Vote Distribution by position</h3>
             <div className="flex-1 min-h-[240px] sm:min-h-[300px]">
@@ -453,6 +453,7 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
