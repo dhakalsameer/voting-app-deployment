@@ -459,7 +459,8 @@ function LiveResults() {
           {showAllPositions && (
           <div className="space-y-3">
             {stats.positions.map((pos) => {
-              const posVoteShare = stats.votesCast > 0 ? ((pos.votes / stats.votesCast) * 100).toFixed(1) : 0;
+              const maxVotes = pos.position === "General Member" ? stats.totalVoters * 5 : stats.totalVoters;
+              const posVoteShare = maxVotes > 0 ? ((pos.votes / maxVotes) * 100).toFixed(1) : 0;
               let barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-app-accent to-app-accent/70";
               if (pos.position === "President") barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-amber-500 to-amber-400";
               if (pos.position === "Secretary") barClass = "h-full rounded-full transition-all duration-700 bg-gradient-to-r from-sky-500 to-sky-400";
