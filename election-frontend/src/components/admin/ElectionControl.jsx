@@ -374,18 +374,10 @@ export default function ElectionControl() {
       {/* Sync Whitelist — always visible, needed after redeploy */}
       <ActionCard
         title="Sync Voter Whitelist"
-        description="Rebuild voter and identity Merkle roots on-chain from the latest student data. Required after contract redeploy or when students report 'Identity not verified'."
+        description="Push latest student wallet data on-chain so they can vote. Run this after adding/editing voters."
         icon="📡"
       >
         <div className="space-y-3">
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-4 text-sm text-sky-400">
-            <p className="font-bold">What this does:</p>
-            <ul className="list-disc list-inside mt-1 space-y-0.5 text-app-muted-text">
-              <li>Recomputes the voter whitelist and identity Merkle trees from the database</li>
-              <li>Submits the new roots on-chain (costs gas)</li>
-              <li>Restores candidate registration and voting eligibility</li>
-            </ul>
-          </div>
           <ActionButton
             variant="sky" icon="📡"
             onClick={async () => {
@@ -411,6 +403,7 @@ export default function ElectionControl() {
           >
             Sync Voter Whitelist
           </ActionButton>
+          <p className="text-xs text-app-muted-text text-center">⚠️ Costs gas — only works during Created or Registration phase</p>
         </div>
       </ActionCard>
 

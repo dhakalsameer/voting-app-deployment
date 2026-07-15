@@ -541,20 +541,20 @@ export default function StudentSpreadsheet() {
 
         </div>
 
-        {/* Advanced: manual on-chain sync */}
-        <details className="text-sm text-app-muted-text">
-          <summary className="cursor-pointer hover:text-app-heading select-none font-semibold">Advanced: On-Chain Sync</summary>
-          <div className="mt-2 flex flex-col sm:flex-row items-start gap-3">
-            <p className="text-xs text-app-muted-text">Secondary fallback — the main Sync button is in the <strong>Controls</strong> panel. Only use this if auto-sync failed.</p>
-            <button
-              onClick={handleRebuildMerkle}
-              disabled={rebuildingMerkle || !wallet}
-              className="rounded-lg border border-app bg-app-input px-4 py-2 text-sm font-medium text-app-muted-text hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-40 cursor-pointer shrink-0"
-            >
-              {rebuildingMerkle ? "Syncing…" : "Sync Voter Whitelist"}
-            </button>
+        {/* Sync whitelist */}
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-sky-400">Sync Voter Whitelist</p>
+            <p className="text-xs text-app-muted-text mt-0.5">Push updated wallets on-chain so students can vote</p>
           </div>
-        </details>
+          <button
+            onClick={handleRebuildMerkle}
+            disabled={rebuildingMerkle || !wallet}
+            className="shrink-0 rounded-xl bg-sky-500 px-5 py-3 text-sm font-black uppercase tracking-wider text-slate-950 hover:bg-sky-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+          >
+            {rebuildingMerkle ? "Syncing…" : "Sync"}
+          </button>
+        </div>
 
         {/* Generated codes result */}
         {generatedMeta && (
