@@ -144,6 +144,7 @@ export default function GenerateCodes() {
   };
 
   const handleRebuildRoot = async () => {
+    if (!window.confirm("Are you sure you want to rebuild the registration-code Merkle root on-chain? This costs gas.")) return;
     setRebuildingRoot(true);
     try {
       const res = await fetch(`${API_URL}/api/admin/rebuild-regcode-merkle-root`, {

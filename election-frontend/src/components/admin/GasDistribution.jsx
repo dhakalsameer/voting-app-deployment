@@ -375,6 +375,7 @@ function GasDistribute() {
 
   const handleRetryFailed = async () => {
     const failedEntries = results?.results?.filter(r => r.status === "failed") || [];
+    if (!window.confirm(`Retry sending Sepolia ETH to ${failedEntries.length} failed recipient(s)? This costs gas.`)) return;
     if (failedEntries.length === 0) return;
 
     const logIds = failedEntries.map(r => r.logId).filter(Boolean);
