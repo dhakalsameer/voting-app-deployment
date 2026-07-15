@@ -8,7 +8,7 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
 
-const DEFAULT_FROM = "GU Election <onboarding@resend.dev>";
+const DEFAULT_FROM = "GU Election <noreply@nishanpaudel.info.np>";
 
 let resend = null;
 let transporter = null;
