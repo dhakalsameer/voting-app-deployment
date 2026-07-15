@@ -93,9 +93,13 @@ const io = new Server(httpServer, {
   path: "/socket.io/",
   cors: {
     origin: origins,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true,
   },
-  transports: ["polling", "websocket"]
+  transports: ["polling", "websocket"],
+  allowEIO3: true,
+  pingInterval: 25000,
+  pingTimeout: 20000,
 });
 
 // Serve locally-stored profile photos (fallback when Pinata isn't configured).
