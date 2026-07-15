@@ -95,9 +95,15 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
-              {pShare && (
-                <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-trust)] bg-[var(--app-trust-soft)] px-1.5 py-0.5 rounded mt-0.5">{pShare}%</p>
+              {isLive ? (
+                <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">—</p>
+              ) : (
+                <>
+                  <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{Number(winners.president.vote_count)}</p>
+                  {pShare && (
+                    <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-trust)] bg-[var(--app-trust-soft)] px-1.5 py-0.5 rounded mt-0.5">{pShare}%</p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -118,9 +124,15 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
               </div>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
-              {sShare && (
-                <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-accent)] bg-[var(--app-accent-soft)] px-1.5 py-0.5 rounded mt-0.5">{sShare}%</p>
+              {isLive ? (
+                <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">—</p>
+              ) : (
+                <>
+                  <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{Number(winners.secretary.vote_count)}</p>
+                  {sShare && (
+                    <p className="text-[9px] sm:text-[10px] font-bold text-[var(--app-accent)] bg-[var(--app-accent-soft)] px-1.5 py-0.5 rounded mt-0.5">{sShare}%</p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -145,8 +157,8 @@ function WinnersDeclaration({ candidates, isLive, electionNumber }) {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-xs sm:text-sm font-mono font-bold text-[var(--app-ballot)]">{Number(gm.vote_count)}</span>
-                    {gmShare && (
+                    <span className="text-xs sm:text-sm font-mono font-bold text-[var(--app-ballot)]">{isLive ? "—" : Number(gm.vote_count)}</span>
+                    {!isLive && gmShare && (
                       <span className="text-[9px] sm:text-[10px] font-bold text-[var(--app-ballot)] bg-[var(--app-ballot-soft)] px-1 py-0.5 rounded">{gmShare}%</span>
                     )}
                   </div>

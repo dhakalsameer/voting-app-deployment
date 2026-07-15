@@ -172,8 +172,14 @@ export default function AnalyticsDashboard() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{winners.president.votes}</p>
-                  <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+                  {isLive ? (
+                    <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">—</p>
+                  ) : (
+                    <>
+                      <p className="text-xl sm:text-2xl font-black text-[var(--app-trust)]">{winners.president.votes}</p>
+                      <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -193,8 +199,14 @@ export default function AnalyticsDashboard() {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{winners.secretary.votes}</p>
-                  <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+                  {isLive ? (
+                    <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">—</p>
+                  ) : (
+                    <>
+                      <p className="text-xl sm:text-2xl font-black text-[var(--app-accent)]">{winners.secretary.votes}</p>
+                      <p className="text-[9px] sm:text-[10px] text-app-muted-text">votes</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -220,7 +232,7 @@ export default function AnalyticsDashboard() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm sm:text-base font-bold text-[var(--app-ballot)]">{gm.votes}</p>
+                      <p className="text-sm sm:text-base font-bold text-[var(--app-ballot)]">{isLive ? "—" : gm.votes}</p>
                     </div>
                   </div>
                 ))}
@@ -333,13 +345,14 @@ export default function AnalyticsDashboard() {
                       tickLine={false}
                     />
                     <YAxis 
-                      tick={{ fontSize: 11, fontWeight: 700, fill: "var(--app-muted-text)" }} 
+                      tick={isLive ? false : { fontSize: 11, fontWeight: 700, fill: "var(--app-muted-text)" }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <Tooltip 
                       contentStyle={{ backgroundColor: "var(--app-elevated)", border: "1px solid var(--app-border)", borderRadius: "12px", color: "var(--app-text)", fontSize: "13px", fontFamily: "var(--font-mono)" }}
                       cursor={{ fill: "var(--app-trust)", opacity: 0.12 }}
+                      {...(isLive ? { formatter: () => "—" } : {})}
                     />
                     <Bar dataKey="vote_count" fill="var(--app-trust)" radius={[4, 4, 0, 0]} barSize={36} />
                   </BarChart>
@@ -392,16 +405,19 @@ export default function AnalyticsDashboard() {
               <tr>
                 <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Candidate</th>
                 <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Position</th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Votes</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">{isLive ? "Rank" : "Votes"}</th>
+                {!isLive && (
                 <th className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-muted uppercase tracking-widest whitespace-nowrap">Ballot Share</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-app/40 bg-app-muted/30">
-              {visibleData.length > 0 ? visibleData.map(c => (
+              {visibleData.length > 0 ? visibleData.map((c, idx) => (
                 <tr key={c.id} className="hover:bg-app-trust-soft transition-colors">
                   <td className="px-4 sm:px-6 py-3 sm:py-4 min-w-0 font-bold text-app-heading text-xs sm:text-base whitespace-nowrap">{c.name}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-trust uppercase tracking-wider whitespace-nowrap">{c.position}</td>
-                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono font-black text-app-heading text-xs sm:text-base whitespace-nowrap">{c.vote_count}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono font-black text-app-heading text-xs sm:text-base whitespace-nowrap">{isLive ? `#${idx + 1}` : c.vote_count}</td>
+                  {!isLive && (
                   <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2 sm:gap-3">
                        <div className="h-1.5 w-12 sm:w-16 bg-app-muted border border-app rounded-full overflow-hidden shrink-0">
@@ -415,6 +431,7 @@ export default function AnalyticsDashboard() {
                        </span>
                     </div>
                   </td>
+                  )}
                 </tr>
               )) : (
                 <tr>
