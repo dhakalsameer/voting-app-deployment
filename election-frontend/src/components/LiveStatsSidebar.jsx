@@ -189,7 +189,7 @@ export default function LiveStatsSidebar() {
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-base font-bold text-app-heading">{pos.position}</span>
                         <span className="text-2xl font-black tabular-nums text-app-heading leading-none">
-                          —
+                          {pos.votes}
                         </span>
                       </div>
                       <p className="text-[11px] font-semibold text-app-muted-text/60 mb-2">
