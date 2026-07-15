@@ -8,6 +8,8 @@ import { useToast } from "./ui/Toast";
 
 const COLORS = ["#6366f1", "#f59e0b", "#10b981", "#ec4899", "#8b5cf6", "#0ea5e9"];
 
+const MAX_VISIBLE = 8;
+
 export default function AnalyticsDashboard() {
   const { error: showError, info } = useToast();
   const [data, setData] = useState([]);
@@ -16,6 +18,7 @@ export default function AnalyticsDashboard() {
   const [dataError, setDataError] = useState(null);
   const [historyError, setHistoryError] = useState(null);
   const [selectedElection, setSelectedElection] = useState("live");
+  const [showAllAnalytics, setShowAllAnalytics] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -63,6 +66,12 @@ export default function AnalyticsDashboard() {
     if (isLive) return data;
     return (currentTab?.data?.candidates || []).map((c, i) => ({ ...c, id: i }));
   }, [isLive, data, currentTab]);
+
+  const sortedData = useMemo(() => {
+    return [...displayData].sort((a, b) => Number(b.vote_count) - Number(a.vote_count));
+  }, [displayData]);
+
+  const visibleData = showAllAnalytics ? sortedData : sortedData.slice(0, MAX_VISIBLE);
 
   const totalVotes = displayData.reduce((acc, c) => acc + Number(c.vote_count), 0);
   const positions = [...new Set(displayData.map(c => c.position))].filter(Boolean);
@@ -269,7 +278,7 @@ export default function AnalyticsDashboard() {
           {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setSelectedElection(tab.key)}
+              onClick={() => { setSelectedElection(tab.key); setShowAllAnalytics(false); }}
                 className={`text-[11px] font-bold px-3 py-2 sm:py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   selectedElection === tab.key
                     ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
@@ -304,11 +313,18 @@ export default function AnalyticsDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Bar Chart: Rankings */}
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app min-h-[320px] sm:min-h-[400px] flex flex-col">
-            <h3 className="font-black text-sm text-app-heading mb-4 sm:mb-6 uppercase tracking-widest">Candidate Performance Ranking</h3>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 className="font-black text-sm text-app-heading uppercase tracking-widest">Candidate Performance Ranking</h3>
+              {!showAllAnalytics && sortedData.length > MAX_VISIBLE && (
+                <button onClick={() => setShowAllAnalytics(true)} className="text-[10px] font-semibold text-app-accent hover:text-app-accent/80 underline underline-offset-2 cursor-pointer whitespace-nowrap">
+                  Show all ({sortedData.length})
+                </button>
+              )}
+            </div>
             <div className="flex-1 min-h-[240px] sm:min-h-[300px]">
-              {displayData.length > 0 ? (
+              {visibleData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minHeight={240}>
-                  <BarChart data={displayData}>
+                  <BarChart data={visibleData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--app-border)" />
                     <XAxis 
                       dataKey="name" 
@@ -381,7 +397,7 @@ export default function AnalyticsDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-app/40 bg-app-muted/30">
-              {displayData.length > 0 ? displayData.map(c => (
+              {visibleData.length > 0 ? visibleData.map(c => (
                 <tr key={c.id} className="hover:bg-app-trust-soft transition-colors">
                   <td className="px-4 sm:px-6 py-3 sm:py-4 min-w-0 font-bold text-app-heading text-xs sm:text-base whitespace-nowrap">{c.name}</td>
                   <td className="px-4 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-mono font-bold text-app-trust uppercase tracking-wider whitespace-nowrap">{c.position}</td>
@@ -407,6 +423,16 @@ export default function AnalyticsDashboard() {
               )}
             </tbody>
           </table>
+          {!showAllAnalytics && sortedData.length > MAX_VISIBLE && (
+            <div className="border-t border-app/40 px-4 sm:px-6 py-3">
+              <button
+                onClick={() => setShowAllAnalytics(true)}
+                className="w-full text-center text-xs font-semibold text-app-accent hover:text-app-accent/80 underline underline-offset-2 cursor-pointer"
+              >
+                Show all {sortedData.length} candidates
+              </button>
+            </div>
+          )}
           </div>
         </div>
       </div>
