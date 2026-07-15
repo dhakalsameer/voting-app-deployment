@@ -121,7 +121,7 @@ export default function CodesUploader({ wallet, generatedCodes, generatedCount, 
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app bg-app-muted/20">
         <h3 className="text-base font-bold text-app-heading">Upload Student File</h3>
-        <p className="text-sm text-app-muted-text mt-1">
+        <p className="text-sm text-app-muted-text mt-1 break-words">
           Upload an Excel (.xlsx, .xls) or CSV file exported from the registrar. The system detects columns automatically.
         </p>
       </div>
@@ -149,7 +149,7 @@ export default function CodesUploader({ wallet, generatedCodes, generatedCount, 
           {file ? (
             <>
               <span className="text-3xl mb-3">📄</span>
-              <p className="text-base font-semibold text-app-heading">{file.name}</p>
+              <p className="text-base font-semibold text-app-heading break-all text-center">{file.name}</p>
               <p className="text-sm text-app-muted-text mt-1">
                 {(file.size / 1024).toFixed(1)} KB · {previewStudents.length} student(s) detected
               </p>

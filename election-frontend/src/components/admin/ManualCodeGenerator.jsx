@@ -33,7 +33,7 @@ export default function ManualCodeGenerator({ wallet, loading, generatedCodes, g
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app bg-app-muted/20">
         <h3 className="text-base font-bold text-app-heading">Generate New Codes</h3>
-        <p className="text-sm text-app-muted-text mt-1">
+        <p className="text-sm text-app-muted-text mt-1 break-words">
           Paste comma-separated student records below. Each student gets a unique one-time registration code.
         </p>
       </div>
