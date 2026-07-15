@@ -257,12 +257,15 @@ export default function ElectionControl() {
             />
             <ActionButton
               variant="green" icon="📝"
-              onClick={() => execute("Start Registration", async () => {
-                const endTime = toUnixSeconds(registrationEnd);
-                if (!Number.isFinite(endTime)) throw new Error("Invalid registration end time");
-                const contract = await getContractV3();
-                return contract.startRegistration(endTime);
-              })}
+              onClick={() => {
+                if (!window.confirm("Open registration and allow candidates to register? This will start the Registration phase and costs gas.")) return;
+                execute("Start Registration", async () => {
+                  const endTime = toUnixSeconds(registrationEnd);
+                  if (!Number.isFinite(endTime)) throw new Error("Invalid registration end time");
+                  const contract = await getContractV3();
+                  return contract.startRegistration(endTime);
+                });
+              }}
               disabled={loading}
               processing={loading && action === "Start Registration"}
             >
@@ -284,12 +287,15 @@ export default function ElectionControl() {
             />
             <ActionButton
               variant="sky" icon="🗳️"
-              onClick={() => execute("Start Voting", async () => {
-                const endTime = toUnixSeconds(votingEnd);
-                if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
-                const contract = await getContractV3();
-                return contract.startVoting(endTime);
-              })}
+              onClick={() => {
+                if (!window.confirm("Open voting for verified voters? Candidates will be locked and voting will begin. This costs gas.")) return;
+                execute("Start Voting", async () => {
+                  const endTime = toUnixSeconds(votingEnd);
+                  if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
+                  const contract = await getContractV3();
+                  return contract.startVoting(endTime);
+                });
+              }}
               disabled={loading}
               processing={loading && action === "Start Voting"}
             >
@@ -304,10 +310,13 @@ export default function ElectionControl() {
         <ActionCard title="End Election" description="Close voting and transition to the Ended phase. Votes can no longer be cast." icon="🏁">
           <ActionButton
             variant="rose" icon="🏁"
-            onClick={() => execute("End Election", async () => {
-              const contract = await getContractV3();
-              return contract.endElection();
-            })}
+            onClick={() => {
+              if (!window.confirm("Finalize the election? This ends voting and transitions to Ended phase. No more votes can be cast. This costs gas.")) return;
+              execute("End Election", async () => {
+                const contract = await getContractV3();
+                return contract.endElection();
+              });
+            }}
             disabled={loading}
             processing={loading && action === "End Election"}
           >
@@ -334,10 +343,13 @@ export default function ElectionControl() {
             </div>
             <ActionButton
               variant="amber" icon="🔄"
-              onClick={() => execute("Start New Election", async () => {
-                const contract = await getContractV3();
-                return contract.startNewElection();
-              })}
+              onClick={() => {
+                if (!window.confirm("Start a new election cycle? This records winners, resets candidates, and returns to Created phase. This costs gas.")) return;
+                execute("Start New Election", async () => {
+                  const contract = await getContractV3();
+                  return contract.startNewElection();
+                });
+              }}
               disabled={loading}
               processing={loading && action === "Start New Election"}
             >
