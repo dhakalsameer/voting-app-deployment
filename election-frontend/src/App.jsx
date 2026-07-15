@@ -241,9 +241,21 @@ function App() {
               )}
               {currentTab === "results" && isAdmin && (
                 <AnimatedPage key="results">
-                  <Suspense fallback={<LoadingSection />}>
-                    <AnalyticsDashboard />
-                  </Suspense>
+                  <div className="space-y-4">
+                    <Suspense fallback={<LoadingSection />}>
+                      <Results />
+                    </Suspense>
+                    <details className="rounded-xl border border-app bg-app-surface overflow-hidden">
+                      <summary className="px-4 sm:px-6 py-3 text-sm font-bold text-app-heading cursor-pointer hover:bg-app-muted/20 transition-colors select-none">
+                        Election Intelligence — Analytics & Charts
+                      </summary>
+                      <div className="border-t border-app">
+                        <Suspense fallback={<LoadingSection />}>
+                          <AnalyticsDashboard />
+                        </Suspense>
+                      </div>
+                    </details>
+                  </div>
                 </AnimatedPage>
               )}
 
