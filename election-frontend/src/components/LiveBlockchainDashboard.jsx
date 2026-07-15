@@ -212,6 +212,8 @@ function updateStatsFromAll(events) {
   return s;
 }
 
+const MAX_VISIBLE = 50;
+
 export default function LiveBlockchainDashboard() {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState("All");
@@ -220,6 +222,7 @@ export default function LiveBlockchainDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAll, setShowAll] = useState(false);
   const feedRef = useRef(null);
 
   useEffect(() => {
@@ -272,9 +275,10 @@ export default function LiveBlockchainDashboard() {
   }, [events.length]);
 
   const filtered = useMemo(() => {
-    if (filter === "All") return events;
-    return events.filter(e => e.eventName === filter);
-  }, [events, filter]);
+    let result = filter === "All" ? events : events.filter(e => e.eventName === filter);
+    if (!showAll) result = result.slice(0, MAX_VISIBLE);
+    return result;
+  }, [events, filter, showAll]);
 
   const tabCounts = useMemo(() => {
     const counts = { All: events.length };
@@ -396,7 +400,17 @@ export default function LiveBlockchainDashboard() {
               </p>
             </div>
           ) : (
-            filtered.map((ev, i) => <EventCard key={`${ev.txHash}-${ev.logIndex}-${i}`} event={ev} />)
+            <>
+              {filtered.map((ev, i) => <EventCard key={`${ev.txHash}-${ev.logIndex}-${i}`} event={ev} />)}
+              {!showAll && events.length > MAX_VISIBLE && (
+                <button
+                  onClick={() => setShowAll(true)}
+                  className="w-full rounded-xl border border-dashed border-app bg-app-muted/20 px-4 py-3 text-sm font-semibold text-app-muted-text hover:text-app-heading hover:bg-app-muted/40 transition-all cursor-pointer"
+                >
+                  Show all {events.length} events
+                </button>
+              )}
+            </>
           )}
         </div>
 
