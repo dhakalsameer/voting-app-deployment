@@ -1,4 +1,4 @@
-import { useContext, useState, lazy, Suspense } from "react";
+import { useContext, useState, lazy, Suspense, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
@@ -56,7 +56,21 @@ function App() {
   const { wallet, isAdmin, voterStatus } = useContext(AuthContext);
   const { balance } = useBalance(wallet);
   const [portalOpen, setPortalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    return hash || null;
+  });
+  useEffect(() => {
+    window.location.hash = activeTab || "";
+  }, [activeTab]);
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      setActiveTab(hash || null);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [docsSubTab, setDocsSubTab] = useState("guide");
 
