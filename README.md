@@ -95,6 +95,12 @@ npm install
 npm run dev            # starts on port 5173
 ```
 
+## Supabase Database URL (temp — remove after copying)
+
+```
+postgresql://postgres:ilSiwmS%401234@db.oxtlmevokehmhndnfwhi.supabase.co:5432/postgres
+```
+
 ## Environment Variables
 
 ### Backend
