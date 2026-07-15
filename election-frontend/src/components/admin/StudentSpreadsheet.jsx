@@ -361,16 +361,16 @@ export default function StudentSpreadsheet() {
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-app bg-app-muted/20">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app bg-app-muted/20">
         <h3 className="text-base font-bold text-app-heading">Student Spreadsheet</h3>
         <p className="text-sm text-app-muted-text mt-1">
           Edit student data directly in the table. Changes are tracked until saved.
         </p>
       </div>
 
-      <div className="p-6 space-y-4">
+      <div className="p-4 sm:p-6 space-y-4">
         {/* Year filter tabs */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setYearTab("all")}
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${yearTab === "all" ? "text-app-accent bg-app-accent-soft" : "text-app-muted-text hover:text-app-heading bg-app-muted/20 hover:bg-app-elevated"}`}
@@ -470,7 +470,7 @@ export default function StudentSpreadsheet() {
         </div>
 
         {/* Add row + stats */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               onClick={addRow}
@@ -544,7 +544,7 @@ export default function StudentSpreadsheet() {
         {/* Advanced: manual on-chain sync */}
         <details className="text-sm text-app-muted-text">
           <summary className="cursor-pointer hover:text-app-heading select-none font-semibold">Advanced: On-Chain Sync</summary>
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-col sm:flex-row items-start gap-3">
             <p className="text-xs text-app-muted-text">Secondary fallback — the main Sync button is in the <strong>Controls</strong> panel. Only use this if auto-sync failed.</p>
             <button
               onClick={handleRebuildMerkle}

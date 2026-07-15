@@ -31,13 +31,13 @@ export default function ManualCodeGenerator({ wallet, loading, generatedCodes, g
 
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
-      <div className="px-6 py-5 border-b border-app bg-app-muted/20">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-app bg-app-muted/20">
         <h3 className="text-base font-bold text-app-heading">Generate New Codes</h3>
         <p className="text-sm text-app-muted-text mt-1">
           Paste comma-separated student records below. Each student gets a unique one-time registration code.
         </p>
       </div>
-      <div className="p-6 space-y-4">
+      <div className="p-4 sm:p-6 space-y-4">
         <div>
           <label className="flex items-center gap-2 text-sm font-semibold text-app-heading mb-2">
             Student Records
@@ -55,7 +55,7 @@ export default function ManualCodeGenerator({ wallet, loading, generatedCodes, g
           {error && <p className="mt-2 text-sm font-medium text-rose-400">{error}</p>}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={handleGenerate}
             disabled={loading || !wallet}
