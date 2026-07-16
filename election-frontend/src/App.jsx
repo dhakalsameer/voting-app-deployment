@@ -202,12 +202,12 @@ function App() {
               {currentTab === "vote" && !isAdmin && wallet && (
                 <AnimatedPage key="vote">
                   <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-6 items-start">
-                    <div className="order-2 lg:order-1 space-y-3 lg:sticky lg:top-4 lg:self-start">
+                    <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
                       <Suspense fallback={null}>
                         <LiveStatsSidebar />
                       </Suspense>
                     </div>
-                    <div className="order-1 lg:order-2 space-y-4 min-w-0">
+                    <div className="space-y-4 min-w-0">
                       <WinnerBanner />
                       <VoterStatusCard voterStatus={voterStatus} balance={balance} />
                       <MainRegistrationBanner />
