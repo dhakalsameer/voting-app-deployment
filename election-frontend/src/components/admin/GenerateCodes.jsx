@@ -8,6 +8,7 @@ import EmptyState from "../ui/EmptyState";
 import DataTable from "../ui/DataTable";
 import StudentSpreadsheet from "./StudentSpreadsheet";
 import ManualCodeGenerator from "./ManualCodeGenerator";
+import ConfirmModal from "../ui/ConfirmModal";
 import CodesUploader from "./CodesUploader";
 
 const INPUT_TABS = [
@@ -27,6 +28,7 @@ export default function GenerateCodes() {
   const [fetching, setFetching] = useState(false);
   const [rebuildingRoot, setRebuildingRoot] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [confirm, setConfirm] = useState(null);
   const [filter, setFilter] = useState("");
   const [showUsed, setShowUsed] = useState(false);
   const [sort, setSort] = useState("recent");
@@ -144,23 +146,29 @@ export default function GenerateCodes() {
   };
 
   const handleRebuildRoot = async () => {
-    if (!window.confirm("Are you sure you want to rebuild the registration-code Merkle root on-chain? This costs gas.")) return;
-    setRebuildingRoot(true);
-    try {
-      const res = await fetch(`${API_URL}/api/admin/rebuild-regcode-merkle-root`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminWallet: wallet }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Rebuild failed");
-      setMerkleRoot(data.merkleRoot);
-      success("Merkle root rebuilt on-chain");
-    } catch (err) {
-      showError(err.message);
-    } finally {
-      setRebuildingRoot(false);
-    }
+    setConfirm({
+      title: "Rebuild Merkle Root",
+      message: "Are you sure you want to rebuild the registration-code Merkle root on-chain? This costs gas.",
+      onConfirm: async () => {
+        setConfirm(null);
+        setRebuildingRoot(true);
+        try {
+          const res = await fetch(`${API_URL}/api/admin/rebuild-regcode-merkle-root`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ adminWallet: wallet }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Rebuild failed");
+          setMerkleRoot(data.merkleRoot);
+          success("Merkle root rebuilt on-chain");
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          setRebuildingRoot(false);
+        }
+      }
+    });
   };
 
   const handleToggleReminder = async () => {
@@ -516,6 +524,17 @@ export default function GenerateCodes() {
           ]}
         />
       )}
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }

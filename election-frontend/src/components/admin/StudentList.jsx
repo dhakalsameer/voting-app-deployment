@@ -7,6 +7,7 @@ import SectionHeader from "../ui/SectionHeader";
 import StatCard from "../ui/StatCard";
 import EmptyState from "../ui/EmptyState";
 import DataTable from "../ui/DataTable";
+import ConfirmModal from "../ui/ConfirmModal";
 
 function StatusBadge({ eligibleToVote, registered }) {
   if (eligibleToVote) {
@@ -42,6 +43,7 @@ export default function StudentList() {
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("recent");
   const [yearFilter, setYearFilter] = useState("all");
+  const [confirm, setConfirm] = useState(null);
 
   const handleLoadData = useCallback(async () => {
     if (!wallet) return;
@@ -61,22 +63,27 @@ export default function StudentList() {
 
   const handleDelete = async (studentId) => {
     if (!studentId) return;
-    const ok = window.confirm(`Permanently delete student ${studentId}? This will remove them from the database.`);
-    if (!ok) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/students/${studentId}?adminWallet=${wallet}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Delete failed");
+    setConfirm({
+      title: "Delete Student",
+      message: `Permanently delete student ${studentId}? This will remove them from the database.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        setLoading(true);
+        try {
+          const res = await fetch(`${API_URL}/api/students/${studentId}?adminWallet=${wallet}`, { method: "DELETE" });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Delete failed");
+          }
+          setStudents((prev) => prev.filter((s) => s.student_id !== studentId));
+          success(`Deleted student ${studentId}`);
+        } catch (err) {
+          showError(err.message || "Delete failed");
+        } finally {
+          setLoading(false);
+        }
       }
-      setStudents((prev) => prev.filter((s) => s.student_id !== studentId));
-      success(`Deleted student ${studentId}`);
-    } catch (err) {
-      showError(err.message || "Delete failed");
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleExportExcel = () => {
@@ -308,6 +315,17 @@ export default function StudentList() {
           ]}
         />
       )}
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }

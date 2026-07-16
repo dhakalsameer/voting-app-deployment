@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { API_URL } from "../../config";
 import { AuthContext } from "../../context/AuthContextValue";
 import { useToast } from "../ui/Toast";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const YEARS = ["1st", "2nd", "3rd", "4th"];
 const GENDERS = ["male", "female", "other"];
@@ -31,6 +32,7 @@ export default function StudentSpreadsheet() {
 
   const [generatedCodes, setGeneratedCodes] = useState([]);
   const [generatedMeta, setGeneratedMeta] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
   const loadStudents = useCallback(async () => {
     if (!wallet) return;
@@ -137,20 +139,29 @@ export default function StudentSpreadsheet() {
   const deleteRow = async (rowIndex) => {
     const row = students[rowIndex];
     if (row.student_id && originalMap[row.student_id]) {
-      const ok = window.confirm(`Permanently delete ${row.student_id}? This removes them from the database, including registration codes and candidate applications.`);
-      if (!ok) return;
-      setDeleting(true);
-      try {
-        const res = await fetch(`${API_URL}/api/students/${row.student_id}?adminWallet=${wallet}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Delete failed");
-        success(`Deleted ${row.student_id}`);
-      } catch (err) {
-        showError(err.message || "Delete failed");
-        setDeleting(false);
-        return;
-      }
-      setDeleting(false);
+      const studentId = row.student_id;
+      setConfirm({
+        title: "Delete Student",
+        message: `Permanently delete ${studentId}? This removes them from the database, including registration codes and candidate applications.`,
+        onConfirm: async () => {
+          setConfirm(null);
+          setDeleting(true);
+          try {
+            const res = await fetch(`${API_URL}/api/students/${studentId}?adminWallet=${wallet}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Delete failed");
+            success(`Deleted ${studentId}`);
+          } catch (err) {
+            showError(err.message || "Delete failed");
+            setDeleting(false);
+            return;
+          }
+          setDeleting(false);
+          setStudents((prev) => prev.filter((_, i) => i !== rowIndex));
+          if (editing && editing.rowIndex === rowIndex) cancelEdit();
+        }
+      });
+      return;
     }
     setStudents((prev) => prev.filter((_, i) => i !== rowIndex));
     if (editing && editing.rowIndex === rowIndex) cancelEdit();
@@ -225,21 +236,24 @@ export default function StudentSpreadsheet() {
 
   const handleRebuildMerkle = async () => {
     if (!wallet) return;
-    const ok = window.confirm(
-      "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?"
-    );
-    if (!ok) return;
-    setRebuildingMerkle(true);
-    try {
-      const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Rebuild failed");
-      success(`Merkle roots updated on-chain`, { txHash: data.txHash, duration: 8000 });
-    } catch (err) {
-      showError(err.message || "Rebuild failed");
-    } finally {
-      setRebuildingMerkle(false);
-    }
+    setConfirm({
+      title: "Rebuild Merkle Root",
+      message: "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?",
+      onConfirm: async () => {
+        setConfirm(null);
+        setRebuildingMerkle(true);
+        try {
+          const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Rebuild failed");
+          success(`Merkle roots updated on-chain`, { txHash: data.txHash, duration: 8000 });
+        } catch (err) {
+          showError(err.message || "Rebuild failed");
+        } finally {
+          setRebuildingMerkle(false);
+        }
+      }
+    });
   };
 
   const handleDownloadExcel = () => {
@@ -581,6 +595,17 @@ export default function StudentSpreadsheet() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }

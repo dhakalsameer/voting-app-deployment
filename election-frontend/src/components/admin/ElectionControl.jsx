@@ -5,6 +5,7 @@ import { formatContractError } from "../../utils/errors";
 import SectionHeader from "../ui/SectionHeader";
 import { AuthContext } from "../../context/AuthContextValue";
 import { API_URL } from "../../config";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
 
@@ -140,6 +141,7 @@ export default function ElectionControl() {
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   const [syncingWhitelist, setSyncingWhitelist] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -257,15 +259,19 @@ export default function ElectionControl() {
             />
             <ActionButton
               variant="green" icon="📝"
-              onClick={() => {
-                if (!window.confirm("Open registration and allow candidates to register? This will start the Registration phase and costs gas.")) return;
-                execute("Start Registration", async () => {
-                  const endTime = toUnixSeconds(registrationEnd);
-                  if (!Number.isFinite(endTime)) throw new Error("Invalid registration end time");
-                  const contract = await getContractV3();
-                  return contract.startRegistration(endTime);
-                });
-              }}
+              onClick={() => setConfirm({
+                title: "Start Registration Phase",
+                message: "Open registration and allow candidates to register? This will start the Registration phase and costs gas.",
+                onConfirm: async () => {
+                  setConfirm(null);
+                  execute("Start Registration", async () => {
+                    const endTime = toUnixSeconds(registrationEnd);
+                    if (!Number.isFinite(endTime)) throw new Error("Invalid registration end time");
+                    const contract = await getContractV3();
+                    return contract.startRegistration(endTime);
+                  });
+                }
+              })}
               disabled={loading}
               processing={loading && action === "Start Registration"}
             >
@@ -287,15 +293,19 @@ export default function ElectionControl() {
             />
             <ActionButton
               variant="sky" icon="🗳️"
-              onClick={() => {
-                if (!window.confirm("Open voting for verified voters? Candidates will be locked and voting will begin. This costs gas.")) return;
-                execute("Start Voting", async () => {
-                  const endTime = toUnixSeconds(votingEnd);
-                  if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
-                  const contract = await getContractV3();
-                  return contract.startVoting(endTime);
-                });
-              }}
+              onClick={() => setConfirm({
+                title: "Start Voting Phase",
+                message: "Open voting for verified voters? Candidates will be locked and voting will begin. This costs gas.",
+                onConfirm: async () => {
+                  setConfirm(null);
+                  execute("Start Voting", async () => {
+                    const endTime = toUnixSeconds(votingEnd);
+                    if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
+                    const contract = await getContractV3();
+                    return contract.startVoting(endTime);
+                  });
+                }
+              })}
               disabled={loading}
               processing={loading && action === "Start Voting"}
             >
@@ -310,17 +320,21 @@ export default function ElectionControl() {
         <ActionCard title="End Election" description="Close voting and transition to the Ended phase. Votes can no longer be cast." icon="🏁">
           <ActionButton
             variant="rose" icon="🏁"
-            onClick={() => {
-              if (!window.confirm("Finalize the election? This ends voting and transitions to Ended phase. No more votes can be cast. This costs gas.")) return;
-              execute("End Election", async () => {
-                const contract = await getContractV3();
-                return contract.endElection();
-              });
-            }}
-            disabled={loading}
-            processing={loading && action === "End Election"}
-          >
-            Finalize Election
+              onClick={() => setConfirm({
+                title: "End Election",
+                message: "Finalize the election? This ends voting and transitions to Ended phase. No more votes can be cast. This costs gas.",
+                onConfirm: async () => {
+                  setConfirm(null);
+                  execute("End Election", async () => {
+                    const contract = await getContractV3();
+                    return contract.endElection();
+                  });
+                }
+              })}
+              disabled={loading}
+              processing={loading && action === "End Election"}
+            >
+              Finalize Election
           </ActionButton>
         </ActionCard>
       )}
@@ -343,13 +357,17 @@ export default function ElectionControl() {
             </div>
             <ActionButton
               variant="amber" icon="🔄"
-              onClick={() => {
-                if (!window.confirm("Start a new election cycle? This records winners, resets candidates, and returns to Created phase. This costs gas.")) return;
-                execute("Start New Election", async () => {
-                  const contract = await getContractV3();
-                  return contract.startNewElection();
-                });
-              }}
+              onClick={() => setConfirm({
+                title: "Start New Election",
+                message: "Start a new election cycle? This records winners, resets candidates, and returns to Created phase. This costs gas.",
+                onConfirm: async () => {
+                  setConfirm(null);
+                  execute("Start New Election", async () => {
+                    const contract = await getContractV3();
+                    return contract.startNewElection();
+                  });
+                }
+              })}
               disabled={loading}
               processing={loading && action === "Start New Election"}
             >
@@ -380,24 +398,27 @@ export default function ElectionControl() {
         <div className="space-y-3">
           <ActionButton
             variant="sky" icon="📡"
-            onClick={async () => {
-              if (!wallet) return;
-              const ok = window.confirm(
-                "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?"
-              );
-              if (!ok) return;
-              setSyncingWhitelist(true);
-              try {
-                const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Rebuild failed");
-                success(`Merkle roots updated on-chain`, { txHash: data.txHash, duration: 8000 });
-              } catch (err) {
-                showError(err.message || "Rebuild failed");
-              } finally {
-                setSyncingWhitelist(false);
-              }
-            }}
+              onClick={() => {
+                if (!wallet) return;
+                setConfirm({
+                  title: "Sync Voter Whitelist",
+                  message: "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?",
+                  onConfirm: async () => {
+                    setConfirm(null);
+                    setSyncingWhitelist(true);
+                    try {
+                      const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Rebuild failed");
+                      success(`Merkle roots updated on-chain`, { txHash: data.txHash, duration: 8000 });
+                    } catch (err) {
+                      showError(err.message || "Rebuild failed");
+                    } finally {
+                      setSyncingWhitelist(false);
+                    }
+                  }
+                });
+              }}
             disabled={syncingWhitelist}
             processing={syncingWhitelist}
           >
@@ -460,6 +481,17 @@ export default function ElectionControl() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }

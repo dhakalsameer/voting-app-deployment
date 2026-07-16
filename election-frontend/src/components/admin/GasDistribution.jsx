@@ -5,6 +5,7 @@ import { useToast } from "../ui/Toast";
 import { useBalance } from "../../hooks/useBalance";
 import StatCard from "../ui/StatCard";
 import GasHistory from "./GasHistory";
+import ConfirmModal from "../ui/ConfirmModal";
 
 function GasIcon() {
   return (
@@ -205,7 +206,7 @@ export default function GasDistribution() {
   );
 }
 
-function ConfirmModal({ open, onClose, onConfirm, selectedCount, totalEth, amount }) {
+function DistributionConfirmModal({ open, onClose, onConfirm, selectedCount, totalEth, amount }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -269,6 +270,7 @@ function GasDistribute() {
   const [results, setResults] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [sendProgress, setSendProgress] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
   const loadStats = async () => {
     setLoadingStats(true);
@@ -375,32 +377,37 @@ function GasDistribute() {
 
   const handleRetryFailed = async () => {
     const failedEntries = results?.results?.filter(r => r.status === "failed") || [];
-    if (!window.confirm(`Retry sending Sepolia ETH to ${failedEntries.length} failed recipient(s)? This costs gas.`)) return;
     if (failedEntries.length === 0) return;
+    setConfirm({
+      title: "Retry Failed Distributions",
+      message: `Retry sending Sepolia ETH to ${failedEntries.length} failed recipient(s)? This costs gas.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        const logIds = failedEntries.map(r => r.logId).filter(Boolean);
+        if (logIds.length === 0) {
+          showError("No failed entries with log IDs to retry.");
+          return;
+        }
 
-    const logIds = failedEntries.map(r => r.logId).filter(Boolean);
-    if (logIds.length === 0) {
-      showError("No failed entries with log IDs to retry.");
-      return;
-    }
-
-    setDistributing(true);
-    try {
-      const res = await fetch(`${API_URL}/api/distribution/retry`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ logIds, amount, adminWallet: wallet }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Retry failed");
-      success(`Retry sent ${data.sent} successfully, ${data.failed} still failed.`);
-      // Re-run dry run to refresh results
-      runDistribution(true);
-    } catch (err) {
-      showError(err.message || "Retry request failed");
-    } finally {
-      setDistributing(false);
-    }
+        setDistributing(true);
+        try {
+          const res = await fetch(`${API_URL}/api/distribution/retry`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ logIds, amount, adminWallet: wallet }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Retry failed");
+          success(`Retry sent ${data.sent} successfully, ${data.failed} still failed.`);
+          // Re-run dry run to refresh results
+          runDistribution(true);
+        } catch (err) {
+          showError(err.message || "Retry request failed");
+        } finally {
+          setDistributing(false);
+        }
+      }
+    });
   };
 
   const handleSendClick = () => {
@@ -598,7 +605,7 @@ function GasDistribute() {
       )}
 
       {/* Confirmation Modal */}
-      <ConfirmModal
+      <DistributionConfirmModal
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={() => { setShowConfirm(false); runDistribution(false); }}
@@ -756,6 +763,17 @@ function GasDistribute() {
           )}
         </div>
       )}
+
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }

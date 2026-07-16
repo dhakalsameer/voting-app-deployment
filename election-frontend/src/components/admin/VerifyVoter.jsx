@@ -7,6 +7,7 @@ import StatCard from "../ui/StatCard";
 import EmptyState from "../ui/EmptyState";
 import DataTable from "../ui/DataTable";
 import BlockExplorerLink from "../ui/BlockExplorerLink";
+import ConfirmModal from "../ui/ConfirmModal";
 import { socket } from "../../socket";
 
 export default function VerifyVoter({ onWhitelisted }) {
@@ -17,6 +18,7 @@ export default function VerifyVoter({ onWhitelisted }) {
   const [loading, setLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [revokeLoading, setRevokeLoading] = useState(false);
+  const [confirm, setConfirm] = useState(null);
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("recent");
   const [yearFilter, setYearFilter] = useState("all");
@@ -125,24 +127,29 @@ export default function VerifyVoter({ onWhitelisted }) {
   };
 
   const revokeStudent = async (studentId) => {
-    const ok = window.confirm(`Permanently revoke ${studentId}? This cannot be undone.`);
-    if (!ok) return;
-    setRevokeLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/voters/revoke`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: studentId, adminWallet: wallet }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Revoke failed");
-      success(`Revoked ${studentId}`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
-      await handleLoadData();
-    } catch (err) {
-      showError(err.message || "Revoke failed");
-    } finally {
-      setRevokeLoading(false);
-    }
+    setConfirm({
+      title: "Revoke Voter",
+      message: `Permanently revoke ${studentId}? This cannot be undone.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        setRevokeLoading(true);
+        try {
+          const res = await fetch(`${API_URL}/api/voters/revoke`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_id: studentId, adminWallet: wallet }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Revoke failed");
+          success(`Revoked ${studentId}`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
+          await handleLoadData();
+        } catch (err) {
+          showError(err.message || "Revoke failed");
+        } finally {
+          setRevokeLoading(false);
+        }
+      }
+    });
   };
 
   const filtered = students.filter((s) => {
@@ -388,6 +395,16 @@ export default function VerifyVoter({ onWhitelisted }) {
           )}
         </>
       )}
+      <ConfirmModal
+        open={confirm !== null}
+        title={confirm?.title}
+        message={confirm?.message}
+        warning={confirm?.warning}
+        confirmLabel={confirm?.confirmLabel}
+        confirmClass={confirm?.confirmClass}
+        onClose={() => setConfirm(null)}
+        onConfirm={confirm?.onConfirm || (() => {})}
+      />
     </div>
   );
 }
