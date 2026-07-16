@@ -1,12 +1,6 @@
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContextValue";
 import { API_URL } from "../config";
-
-const POSITION_LABELS = {
-  President: "President",
-  Secretary: "Secretary",
-  General: "General Member",
-};
 
 function getImageUrl(cid) {
   if (!cid) return null;
@@ -94,34 +88,49 @@ export default function WinnerBanner() {
   if (loading || !winnerInfo) return null;
 
   const imgSrc = getImageUrl(winnerInfo.photo);
-  const posLabel = POSITION_LABELS[winnerInfo.position] || winnerInfo.position;
   const isFemale = winnerInfo.gender === "female";
 
+  const posIcon = winnerInfo.position === "President" ? "🏛️" : winnerInfo.position === "Secretary" ? "📜" : "👥";
+
   return (
-    <div className="rounded-xl border border-[var(--app-trust-border)] bg-gradient-to-br from-[var(--app-trust-soft)] via-[var(--app-accent-soft)] to-[var(--app-ballot-soft)] p-5 shadow-sm">
-      <div className="flex items-center gap-3 mb-5">
-        <span className="text-3xl">🎉</span>
-        <div>
-          <h3 className="text-base font-bold text-app-heading">You Did It, {winnerInfo.name}!</h3>
-          <p className="text-xs text-app-muted-text">Your peers trust you to lead. Make them proud.</p>
+    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-yellow-500/10 p-6 shadow-lg">
+      <div className="absolute top-0 right-0 text-7xl opacity-10 select-none pointer-events-none">🏆</div>
+      <div className="absolute bottom-0 left-0 text-6xl opacity-10 select-none pointer-events-none rotate-12">⭐</div>
+      <div className="flex items-start gap-4">
+        <div className="text-4xl shrink-0 mt-1">{posIcon}</div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">🎉</span>
+            <span className="text-xs font-black uppercase tracking-widest text-amber-400">Winner</span>
+          </div>
+          <h3 className="text-xl font-black text-app-heading mt-1">
+            Congratulations, {winnerInfo.name}!
+          </h3>
+          <p className="text-sm text-app-muted-text mt-1 leading-relaxed">
+            The votes are in — and your vision won. Time to deliver.
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-4 rounded-xl border border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] px-5 py-4">
+      <div className="mt-5 flex items-center gap-4 rounded-xl border border-app bg-app-surface/60 px-5 py-4">
         {imgSrc ? (
-          <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-[var(--app-accent)] shrink-0">
+          <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-amber-400/50 shrink-0">
             <img src={imgSrc} alt="" className="h-full w-full object-cover" />
           </div>
         ) : (
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[var(--app-trust-soft)] to-[var(--app-accent-soft)] border-2 border-[var(--app-accent-border)] flex items-center justify-center shrink-0">
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/10 border-2 border-amber-400/30 flex items-center justify-center shrink-0">
             <span className="text-2xl">🏆</span>
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--app-accent)] mb-1">{posLabel}</p>
-          <p className="text-lg font-bold text-app-heading break-words">{winnerInfo.name}</p>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</p>
+            <span className="text-amber-400/40">·</span>
+            <p className="text-[10px] font-bold text-app-muted-text">{Number(winnerInfo.voteCount)} votes</p>
+          </div>
+          <p className="text-base font-bold text-app-heading mt-0.5">{winnerInfo.name}</p>
+          <div className="flex items-center gap-2 mt-1">
             {winnerInfo.year && (
-              <span className="text-xs text-app-muted-text whitespace-nowrap">{fmtYear(winnerInfo.year)}</span>
+              <span className="text-xs text-app-muted-text">{fmtYear(winnerInfo.year)}</span>
             )}
             {winnerInfo.gender && (
               <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
@@ -130,13 +139,9 @@ export default function WinnerBanner() {
             )}
           </div>
         </div>
-        <div className="text-right shrink-0">
-          <p className="text-2xl font-black text-[var(--app-accent)]">{Number(winnerInfo.voteCount)}</p>
-          <p className="text-[10px] text-app-muted-text">votes</p>
-        </div>
       </div>
-      <p className="text-[11px] text-app-muted-text mt-3 text-center italic">
-        Your leadership will shape the future of the IT Club. Lead with integrity.
+      <p className="text-xs text-app-muted-text mt-4 text-center border-t border-app/50 pt-4">
+        The IT Club is yours to shape. Lead with purpose. ✨
       </p>
     </div>
   );
