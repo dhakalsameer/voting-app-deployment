@@ -208,7 +208,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
                     Portal
                   </button>
                 )}
-                <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-3 px-1">
                   <span className="text-lg text-app-muted-text">Theme</span>
                   <ThemeToggle />
                 </div>
