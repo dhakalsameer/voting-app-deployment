@@ -32,6 +32,7 @@ export const config = {
   port: process.env.PORT || 5000,
   db: process.env.DATABASE_URL,
   rpc: process.env.RPC_URL,
+  rpcFallback: process.env.RPC_URL_FALLBACK || "https://ethereum-sepolia.publicnode.com",
   contractV3: process.env.CONTRACT_ADDRESS_V3,
   oldContractV3: process.env.OLD_CONTRACT_ADDRESS_V3,
   privateKey: process.env.PRIVATE_KEY,
