@@ -111,33 +111,33 @@ export default function WinnerBanner() {
           </p>
         </div>
       </div>
-      <div className="mt-5 flex items-center gap-4 rounded-xl border border-app bg-app-surface/60 px-5 py-4">
-        {imgSrc ? (
-          <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-amber-400/50 shrink-0">
-            <img src={imgSrc} alt="" className="h-full w-full object-cover" />
+      <div className="mt-5 grid grid-cols-[auto_1fr] gap-4 rounded-xl border border-amber-400/20 bg-app-surface/80 px-5 py-4">
+        <div className="row-span-2 flex flex-col items-center gap-2">
+          {imgSrc ? (
+            <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-amber-400/50 shrink-0">
+              <img src={imgSrc} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : (
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/10 border-2 border-amber-400/30 flex items-center justify-center shrink-0">
+              <span className="text-2xl">🏆</span>
+            </div>
+          )}
+          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
+            isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+          }`}>{winnerInfo.gender || "—"}</span>
+        </div>
+        <div className="min-w-0 self-end">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</span>
+            <span className="w-1 h-1 rounded-full bg-amber-400/30" />
+            <span className="text-[11px] font-bold text-app-muted-text">{Number(winnerInfo.voteCount)} vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span>
           </div>
-        ) : (
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/10 border-2 border-amber-400/30 flex items-center justify-center shrink-0">
-            <span className="text-2xl">🏆</span>
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</p>
-            <span className="text-amber-400/40">·</span>
-            <p className="text-[10px] font-bold text-app-muted-text">{Number(winnerInfo.voteCount)} votes</p>
-          </div>
-          <p className="text-base font-bold text-app-heading mt-0.5">{winnerInfo.name}</p>
-          <div className="flex items-center gap-2 mt-1">
-            {winnerInfo.year && (
-              <span className="text-xs text-app-muted-text">{fmtYear(winnerInfo.year)}</span>
-            )}
-            {winnerInfo.gender && (
-              <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 ${
-                isFemale ? "text-pink-500 bg-pink-500/10" : "text-app-accent bg-app-accent/10"
-              }`}>{winnerInfo.gender}</span>
-            )}
-          </div>
+          <p className="text-lg font-black text-app-heading mt-0.5">{winnerInfo.name}</p>
+        </div>
+        <div className="col-start-2 self-start">
+          {winnerInfo.year && (
+            <span className="text-xs font-mono font-bold text-app-muted-text bg-app-muted/20 px-2.5 py-1 rounded-md">{fmtYear(winnerInfo.year)}</span>
+          )}
         </div>
       </div>
       <p className="text-xs text-app-muted-text mt-4 text-center border-t border-app/50 pt-4">
