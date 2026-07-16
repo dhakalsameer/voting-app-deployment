@@ -74,7 +74,7 @@ export default function AppHeader({ onOpenPortal, activeTab, setActiveTab }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
+      <header className="sticky top-0 z-[60] border-b border-app bg-app-surface-solid/80 backdrop-blur-md">
         <div className="page-container flex items-center justify-between h-20">
           <div className="flex items-center gap-3 lg:gap-5 min-w-0">
             <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("home")}>
