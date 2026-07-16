@@ -191,7 +191,6 @@ function App() {
 
         <main className="relative z-10 page-container py-8">
           <div className={`mx-auto ${currentTab === "home" ? "max-w-3xl" : "max-w-6xl"}`}>
-            <AnimatePresence mode="wait">
               {currentTab === "home" && (
                 <AnimatedPage key="home">
                   <LandingPage onOpenPortal={() => setPortalOpen(true)} />
@@ -283,8 +282,7 @@ function App() {
                   </div>
                 </AnimatedPage>
               )}
-            </AnimatePresence>
-          </div>
+            </div>
         </main>
       </div>
 
