@@ -1,5 +1,8 @@
 // Runs every *.sql file in backend/schema/ in alphabetical order.
 // Usage: node scripts/migrate.js
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -29,7 +32,7 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, family: 4 });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 (async () => {
   const client = await pool.connect();
