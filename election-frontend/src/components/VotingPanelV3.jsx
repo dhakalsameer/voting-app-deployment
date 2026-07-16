@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext, useMemo } from "react";
 import { AuthContext } from "../context/AuthContextValue";
 import { getContractV3 } from "../contract";
-import { API_URL } from "../config";
+import { API_URL, SEPOLIA_CHAIN_HEX, SEPOLIA_CHAIN_ID, SEPOLIA_NETWORK } from "../config";
 import { getProof } from "../utils/merkle";
 import { useBalance } from "../hooks/useBalance";
 import { useToast } from "./ui/Toast";
@@ -145,6 +145,7 @@ export default function VotingPanelV3() {
   const [votingEnd, setVotingEnd] = useState(null);
   const [regEnd, setRegEnd] = useState(null);
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
+  const [wrongNetwork, setWrongNetwork] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -152,11 +153,42 @@ export default function VotingPanelV3() {
   }, []);
 
   useEffect(() => {
+    const handleChainChanged = () => { window.location.reload(); };
+    if (window.ethereum) {
+      window.ethereum.on("chainChanged", handleChainChanged);
+    }
+    return () => {
+      if (window.ethereum && window.ethereum.removeListener) {
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
+
+    const checkNetwork = async () => {
+      if (!window.ethereum) return false;
+      try {
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== SEPOLIA_CHAIN_HEX) {
+          setWrongNetwork(true);
+          return false;
+        }
+        setWrongNetwork(false);
+        return true;
+      } catch {
+        setWrongNetwork(true);
+        return false;
+      }
+    };
 
     async function load() {
       setLoading(true);
       try {
+        const ok = await checkNetwork();
+        if (!ok || cancelled) { if (!cancelled) setLoading(false); return; }
+
         const contract = await getContractV3();
         const p = Number(await contract.getPhase());
         if (cancelled) return;
@@ -362,16 +394,77 @@ export default function VotingPanelV3() {
       </div>
 
       <div className="p-6 space-y-8">
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Skeleton /><Skeleton /><Skeleton /><Skeleton />
-          </div>
-        ) : totalCandidates === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-base text-app-muted-text">No candidates registered</p>
+        {wrongNetwork ? (
+          <div className="rounded-xl border border-rose-500/30 bg-gradient-to-br from-rose-500/[0.08] to-rose-500/[0.03] p-6 sm:p-8 text-center">
+            <div className="mx-auto h-14 w-14 rounded-full bg-rose-500/10 border-2 border-rose-500/20 flex items-center justify-center mb-4">
+              <span className="text-rose-400 text-2xl font-bold">!</span>
+            </div>
+            <p className="text-lg font-extrabold text-rose-400 mb-1">Wrong Network</p>
+            <p className="text-sm text-app-muted-text mb-5 max-w-md mx-auto">
+              Please switch your wallet to <strong className="text-app-heading">{SEPOLIA_NETWORK}</strong> (Chain ID {SEPOLIA_CHAIN_ID}) to view candidates and vote.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: SEPOLIA_CHAIN_HEX }],
+                  });
+                } catch (e) {
+                  if (e.code === 4902) {
+                    try {
+                      await window.ethereum.request({
+                        method: "wallet_addEthereumChain",
+                        params: [{
+                          chainId: SEPOLIA_CHAIN_HEX,
+                          chainName: "Sepolia",
+                          rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"],
+                          nativeCurrency: { name: "Sepolia ETH", symbol: "ETH", decimals: 18 },
+                          blockExplorerUrls: ["https://sepolia.etherscan.io"],
+                        }],
+                      });
+                    } catch {}
+                  }
+                }
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-sm font-extrabold hover:bg-rose-500/25 transition-all cursor-pointer"
+            >
+              Switch to Sepolia
+            </button>
+
+            <details className="mt-6 text-left max-w-md mx-auto">
+              <summary className="text-xs text-app-muted-text/60 hover:text-app-muted-text cursor-pointer font-medium">
+                Manual setup &mdash; MetaMask mobile
+              </summary>
+              <div className="mt-3 p-3 rounded-lg bg-app-surface/50 border border-app-border/30 text-xs space-y-2 text-app-muted-text">
+                <p className="font-semibold text-app-heading">Sepolia is already in MetaMask &mdash; just unhide it:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs pl-1">
+                  <li>Open MetaMask app</li>
+                  <li>Tap the network selector at the top</li>
+                  <li>Tap the <strong className="text-app-heading">gear icon</strong> (Settings)</li>
+                  <li>Scroll down → <strong className="text-app-heading">Show test networks</strong> → toggle <strong className="text-app-heading">ON</strong></li>
+                  <li>Go back → tap <strong className="text-app-heading">Sepolia</strong></li>
+                </ol>
+                <p className="pt-1.5 text-[11px] border-t border-app-border/20 text-app-muted-text/70">
+                  If you&apos;re in the MetaMask in-app browser, the Switch button above should work directly.
+                </p>
+              </div>
+            </details>
           </div>
         ) : (
           <>
+
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Skeleton /><Skeleton /><Skeleton /><Skeleton />
+              </div>
+            ) : totalCandidates === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-base text-app-muted-text">No candidates registered</p>
+              </div>
+            ) : (
+              <>
+
             {!voterStatus.hasVoted && !votingPhaseActive && phase !== null && phase !== 2 && (
               <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.06] to-amber-500/[0.02] p-5 text-center">
                 <p className="text-sm font-bold text-amber-400">
@@ -773,7 +866,9 @@ export default function VotingPanelV3() {
             )}
           </div>
         )}
-      </div>
+      </>
+      )}
     </div>
+  </div>
   );
 }

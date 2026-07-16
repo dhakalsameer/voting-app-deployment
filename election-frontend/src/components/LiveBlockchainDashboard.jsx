@@ -7,11 +7,11 @@ const POSITION_NAMES = ["President", "Secretary", "General Member"];
 
 const EVENT_META = {
   VoteCast:                { label: "Vote Cast",        color: "emerald", icon: "🗳" },
-  CandidateRegistered:     { label: "Candidate Reg",    color: "blue",    icon: "📝" },
-  PhaseChanged:            { label: "Phase Changed",    color: "amber",   icon: "🔄" },
-  MerkleRootUpdated:       { label: "Merkle Root",      color: "violet",  icon: "🌳" },
-  IdentityMerkleRootUpdated: { label: "Identity Root",  color: "cyan",    icon: "🆔" },
-  NewElectionStarted:      { label: "New Election",     color: "rose",    icon: "🏁" },
+  CandidateRegistered:     { label: "Cand. Reg",        color: "blue",    icon: "📝" },
+  PhaseChanged:            { label: "Phase",            color: "amber",   icon: "🔄" },
+  MerkleRootUpdated:       { label: "Merkle",           color: "violet",  icon: "🌳" },
+  IdentityMerkleRootUpdated: { label: "Identity",       color: "cyan",    icon: "🆔" },
+  NewElectionStarted:      { label: "Election",         color: "rose",    icon: "🏁" },
 };
 
 function timeAgo(ts) {
@@ -379,8 +379,8 @@ export default function LiveBlockchainDashboard() {
             All <span className="text-[10px] opacity-60">({tabCounts.All})</span>
           </FilterTab>
           {EVENT_NAMES.map(name => (
-            <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)}>
-              {EVENT_META[name].icon} {EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
+            <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)} title={EVENT_META[name].label}>
+              {EVENT_META[name].icon}{EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
             </FilterTab>
           ))}
         </div>
@@ -442,9 +442,10 @@ function StatCard({ label, value, color }) {
   );
 }
 
-function FilterTab({ active, onClick, children }) {
+function FilterTab({ active, onClick, title, children }) {
   return (
     <button
+      title={title}
       onClick={onClick}
       className={`text-[11px] sm:text-sm font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
         active
