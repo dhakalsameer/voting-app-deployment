@@ -203,7 +203,7 @@
   .text-glow-emerald { text-shadow: 0 0 8px color-mix(in srgb, var(--app-trust) 50%, transparent); }
 
   .animate-fade-in-up {
-    animation: fadeInUp 0.25s ease-out both;
+    animation: fadeInUp 0.3s ease-out both;
   }
 
   @keyframes fadeInUp {
