@@ -219,18 +219,34 @@ function App() {
               {currentTab === "vote" && !isAdmin && wallet && (
                 <AnimatedPage key="vote">
                   <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-6 items-start">
-                    <div className={`space-y-3 lg:sticky lg:top-4 lg:self-start ${isPhase3 ? "order-3 lg:order-1" : "order-1 lg:order-1"}`}>
+                    {/* Desktop sidebar */}
+                    <div className="hidden lg:block space-y-3 lg:sticky lg:top-4 lg:self-start">
                       <Suspense fallback={null}>
                         <LiveStatsSidebar />
                       </Suspense>
                     </div>
-                    <div className={`space-y-4 min-w-0 ${isPhase3 ? "order-2 lg:order-2" : "order-2 lg:order-2"}`}>
+                    <div className="space-y-4 min-w-0">
                       <WinnerBanner />
+                      {/* Mobile sidebar: bottom on phase 3, top otherwise */}
+                      {!isPhase3 && (
+                        <div className="lg:hidden">
+                          <Suspense fallback={null}>
+                            <LiveStatsSidebar />
+                          </Suspense>
+                        </div>
+                      )}
                       <VoterStatusCard voterStatus={voterStatus} balance={balance} />
                       <MainRegistrationBanner />
                       <Suspense fallback={<LoadingSection />}>
                         <VotingPanelV3 />
                       </Suspense>
+                      {isPhase3 && (
+                        <div className="lg:hidden">
+                          <Suspense fallback={null}>
+                            <LiveStatsSidebar />
+                          </Suspense>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </AnimatedPage>
