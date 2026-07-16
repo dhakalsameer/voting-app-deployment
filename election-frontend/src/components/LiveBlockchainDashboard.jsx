@@ -79,30 +79,30 @@ function EventCard({ event }) {
   const args = event.args || {};
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 px-2 sm:px-5 py-1.5 sm:py-3 border-b border-app/50 bg-app-muted/20">
-        <div className="flex items-center gap-1 sm:gap-3 flex-wrap">
-          <span className="text-xs sm:text-base">{meta.icon}</span>
+    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 px-1.5 sm:px-5 py-1 sm:py-3 border-b border-app/50 bg-app-muted/20">
+        <div className="flex items-center gap-0.5 sm:gap-3 flex-wrap">
+          <span className="text-[10px] sm:text-base">{meta.icon}</span>
           <Badge variant={meta.color}>{meta.label}</Badge>
           {event.fromAddress && (
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
               <button
                 onClick={() => handleCopy(event.fromAddress, setFromCopied)}
-                className="text-[11px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy wallet address"
               >
                 {truncate(event.fromAddress)}
               </button>
-              {fromCopied && <span className="text-[10px] text-emerald-400 font-semibold">Copied</span>}
+              {fromCopied && <span className="text-[8px] sm:text-[10px] text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
           {event.txHash && (
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
               <button
                 onClick={() => handleCopy(event.txHash, setCopied)}
-                className="text-[11px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
                 title="Copy tx hash"
               >
                 {truncate(event.txHash)}
@@ -111,16 +111,16 @@ function EventCard({ event }) {
                 href={`${SEPOLIA_EXPLORER}/tx/${event.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm sm:text-base text-app-heading hover:text-app-accent transition-colors font-bold"
+                className="text-[10px] sm:text-base text-app-heading hover:text-app-accent transition-colors font-bold"
                 title="View on Etherscan"
               >
                 ↗
               </a>
-              {copied && <span className="text-[10px] text-emerald-400 font-semibold">Copied</span>}
+              {copied && <span className="text-[8px] sm:text-[10px] text-emerald-400 font-semibold">Copied</span>}
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-mono text-app-muted-text">
+        <div className="flex items-center gap-1 sm:gap-3 text-[9px] sm:text-xs font-mono text-app-muted-text">
           {event.blockNumber && (
             <a
               href={`${SEPOLIA_EXPLORER}/block/${event.blockNumber}`}
@@ -138,9 +138,9 @@ function EventCard({ event }) {
           )}
         </div>
       </div>
-      <div className="px-2 sm:px-5 py-2 sm:py-4">
+      <div className="px-1.5 sm:px-5 py-1.5 sm:py-4">
         {event.eventName === "CandidateRegistered" && (
-          <div className="grid grid-cols-2 gap-x-3 sm:gap-x-8 gap-y-1 sm:gap-y-2 text-xs sm:text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">Candidate ID</span>
             <span className="text-app-heading font-mono font-bold">{args.id?.toString()}</span>
             <span className="text-app-muted-text">Wallet</span>
@@ -334,22 +334,22 @@ export default function LiveBlockchainDashboard() {
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
       {/* Window Title Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500/80" />
-            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500/80" />
-            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500/80" />
+      <div className="flex items-center justify-between px-2 sm:px-6 py-2 sm:py-4 border-b border-app bg-app-muted/30">
+        <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-0.5 sm:gap-1.5">
+            <span className="h-2 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500/80" />
+            <span className="h-2 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500/80" />
+            <span className="h-2 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500/80" />
           </div>
-          <span className="text-xs sm:text-sm font-mono text-app-muted-text hidden sm:block">activity_feed.log</span>
+          <span className="text-[10px] sm:text-sm font-mono text-app-muted-text hidden sm:block">activity_feed.log</span>
         </div>
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="relative flex h-2 w-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-emerald-500" />
           </span>
-          <h3 className="text-xs sm:text-sm font-bold text-emerald-400 uppercase tracking-wider truncate min-w-0">Blockchain Activity Feed</h3>
-          <span className="text-[9px] sm:text-[10px] font-mono text-emerald-500/80 bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
+          <h3 className="text-[10px] sm:text-sm font-bold text-emerald-400 uppercase tracking-wider truncate min-w-0">Activity Feed</h3>
+          <span className="text-[8px] sm:text-[10px] font-mono text-emerald-500/80 bg-emerald-500/10 px-1 sm:px-2 py-0.5 rounded border border-emerald-500/20 uppercase shrink-0">Sepolia</span>
         </div>
         <a
           href={`${SEPOLIA_EXPLORER}/address/${CONTRACT_ADDRESS_V3}`}
