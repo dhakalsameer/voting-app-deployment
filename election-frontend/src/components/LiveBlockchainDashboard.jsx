@@ -79,7 +79,7 @@ function EventCard({ event }) {
   const args = event.args || {};
 
   return (
-    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
+    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden transition-all hover:border-app-accent/30">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 px-1.5 sm:px-5 py-1 sm:py-3 border-b border-app/50 bg-app-muted/20">
         <div className="flex items-center gap-0.5 sm:gap-3 flex-wrap">
           <span className="text-[10px] sm:text-base">{meta.icon}</span>
@@ -152,43 +152,43 @@ function EventCard({ event }) {
           </div>
         )}
         {event.eventName === "VoteCast" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">Voter</span>
-            <span className="text-app-heading font-mono text-xs">{args.voter || "Unknown"}</span>
+            <span className="text-app-heading font-mono text-[9px] sm:text-xs">{args.voter || "Unknown"}</span>
             <span className="text-app-muted-text">Candidate ID</span>
             <span className="text-app-heading font-mono font-bold">#{args.candidateId?.toString()}</span>
           </div>
         )}
         {event.eventName === "PhaseChanged" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">New Phase</span>
             <span className="text-app-heading font-bold">{PHASE_NAMES[Number(args.newPhase)] || `Unknown (${args.newPhase})`}</span>
           </div>
         )}
         {event.eventName === "MerkleRootUpdated" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">New Root</span>
-            <span className="text-app-heading font-mono text-xs break-all">{args.newRoot}</span>
+            <span className="text-app-heading font-mono text-[9px] sm:text-xs break-all">{args.newRoot}</span>
           </div>
         )}
         {event.eventName === "IdentityMerkleRootUpdated" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">New Identity Root</span>
-            <span className="text-app-heading font-mono text-xs break-all">{args.newRoot}</span>
+            <span className="text-app-heading font-mono text-[9px] sm:text-xs break-all">{args.newRoot}</span>
           </div>
         )}
         {event.eventName === "NewElectionStarted" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">Election ID</span>
             <span className="text-app-heading font-mono font-bold">#{args.electionId?.toString()}</span>
           </div>
         )}
         {!["CandidateRegistered", "VoteCast", "PhaseChanged", "MerkleRootUpdated", "IdentityMerkleRootUpdated", "NewElectionStarted"].includes(event.eventName) && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             {Object.entries(args).filter(([k]) => isNaN(Number(k))).map(([k, v]) => (
               <div key={k} className="contents">
                 <span className="text-app-muted-text capitalize">{k}</span>
-                <span className="text-app-heading font-mono">{valueDisplay(k, v)}</span>
+                <span className="text-app-heading font-mono text-[9px] sm:text-xs">{valueDisplay(k, v)}</span>
               </div>
             ))}
           </div>
@@ -293,12 +293,12 @@ export default function LiveBlockchainDashboard() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
-        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
+      <div className="rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden shadow-card">
+        <div className="flex items-center gap-2 px-3 sm:px-6 py-2 sm:py-4 border-b border-app bg-app-muted/30">
           <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500/80" />
           </div>
           <span className="text-xs sm:text-sm font-mono text-app-muted-text shrink-0">activity_feed.log</span>
           <span className="text-xs font-mono text-emerald-400 shrink-0">— Loading</span>
@@ -313,12 +313,12 @@ export default function LiveBlockchainDashboard() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
-        <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-app bg-app-muted/30">
+      <div className="rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden shadow-card">
+        <div className="flex items-center gap-2 px-3 sm:px-6 py-2 sm:py-4 border-b border-app bg-app-muted/30">
           <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-rose-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-amber-500/80" />
+            <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500/80" />
           </div>
           <span className="text-xs sm:text-sm font-mono text-app-muted-text shrink-0">activity_feed.log</span>
           <span className="text-xs font-mono text-rose-400 shrink-0">— Error</span>
@@ -332,7 +332,7 @@ export default function LiveBlockchainDashboard() {
   }
 
   return (
-    <div className="rounded-xl border border-app bg-app-surface overflow-hidden shadow-card">
+    <div className="rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden shadow-card">
       {/* Window Title Bar */}
       <div className="flex items-center justify-between px-2 sm:px-6 py-2 sm:py-4 border-b border-app bg-app-muted/30">
         <div className="flex items-center gap-1 sm:gap-3 min-w-0">
