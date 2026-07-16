@@ -127,10 +127,10 @@ export default function WinnerBanner() {
           }`}>{winnerInfo.gender || "—"}</span>
         </div>
         <div className="min-w-0 self-end">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[11px] font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</span>
             <span className="w-1 h-1 rounded-full bg-amber-400/30" />
-            <span className="text-[11px] font-bold text-app-muted-text">{Number(winnerInfo.voteCount)} vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span>
+            <span className="text-sm font-black text-app-heading">{Number(winnerInfo.voteCount)} <span className="text-xs font-bold text-app-muted-text font-sans">vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span></span>
           </div>
           <p className="text-lg font-black text-app-heading mt-0.5">{winnerInfo.name}</p>
         </div>
