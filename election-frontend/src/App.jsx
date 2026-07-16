@@ -1,4 +1,5 @@
 import { useContext, useState, lazy, Suspense, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useBalance } from "./hooks/useBalance";
 import { AuthContext } from "./context/AuthContextValue";
 import { ToastProvider } from "./components/ui/Toast";
@@ -23,6 +24,13 @@ const StudentPortal = lazy(() => import("./components/StudentPortal"));
 
 const TAB_ORDER = ["vote", "results", "activity", "docs"];
 
+const pageVariants = {
+  enter: { opacity: 0, y: 12 },
+  center: { opacity: 1, y: 0 },
+};
+
+const pageTransition = { duration: 0.2, ease: "easeOut" };
+
 function LoadingSection() {
   return (
     <div className="flex items-center justify-center py-20">
@@ -32,7 +40,16 @@ function LoadingSection() {
 }
 
 function AnimatedPage({ children }) {
-  return <div className="animate-fade-in-up">{children}</div>;
+  return (
+    <motion.div
+      variants={pageVariants}
+      initial="enter"
+      animate="center"
+      transition={pageTransition}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 function App() {
