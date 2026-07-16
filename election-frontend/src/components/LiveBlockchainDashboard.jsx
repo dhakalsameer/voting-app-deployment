@@ -6,8 +6,8 @@ const PHASE_NAMES = ["Created", "Registration", "Voting", "Ended"];
 const POSITION_NAMES = ["President", "Secretary", "General Member"];
 
 const EVENT_META = {
-  VoteCast:                { label: "Vote Cast",        color: "emerald", icon: "🗳" },
-  CandidateRegistered:     { label: "Cand. Reg",        color: "blue",    icon: "📝" },
+  VoteCast:                { label: "Vote",             color: "emerald", icon: "🗳" },
+  CandidateRegistered:     { label: "Candidate",        color: "blue",    icon: "📝" },
   PhaseChanged:            { label: "Phase",            color: "amber",   icon: "🔄" },
   MerkleRootUpdated:       { label: "Merkle",           color: "violet",  icon: "🌳" },
   IdentityMerkleRootUpdated: { label: "Identity",       color: "cyan",    icon: "🆔" },
@@ -39,7 +39,7 @@ function Badge({ variant, children }) {
     rose:    "bg-rose-500/10   text-rose-400   border-rose-500/20",
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-lg border ${colors[variant] || colors.emerald}`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-lg border whitespace-nowrap ${colors[variant] || colors.emerald}`}>
       {children}
     </span>
   );
@@ -380,7 +380,7 @@ export default function LiveBlockchainDashboard() {
           </FilterTab>
           {EVENT_NAMES.map(name => (
             <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)} title={EVENT_META[name].label}>
-              {EVENT_META[name].icon}{EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
+              {EVENT_META[name].icon}&nbsp;{EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
             </FilterTab>
           ))}
         </div>
