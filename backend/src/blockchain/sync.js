@@ -7,9 +7,21 @@ import { rebuildMerkleTrees } from "../controllers/voterController.js";
 import { sendWinnerCongratulation } from "../services/emailService.js";
 
 const POLL_MS = 10000;
-const MAX_BLOCK_RANGE = 10; // Alchemy free tier limit for eth_getLogs
+const MAX_BLOCK_RANGE = 10;
 const processedKeys = new Set();
 let lastProcessedBlock = 0;
+
+async function withRetry(fn, retries = 3) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= retries) throw err;
+      const delay = Math.min(1000 * 2 ** attempt, 8000);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+}
 
 export function startBlockchainSync(io) {
   console.log("🔄 Blockchain sync engine running (Poll-based)...");
@@ -512,64 +524,63 @@ export function startBlockchainSync(io) {
 
   async function checkPhase() {
     try {
-      const phase = Number(await electionContractV3.getPhase());
-      const eid = Number(await electionContractV3.currentElectionId());
+      await withRetry(async () => {
+        const phase = Number(await electionContractV3.getPhase());
+        const eid = Number(await electionContractV3.currentElectionId());
 
-      const newElectionDetected =
-        (prevPhase !== null && prevPhase === 3 && phase === 0) ||
-        (prevElectionId > 0 && eid > prevElectionId);
+        const newElectionDetected =
+          (prevPhase !== null && prevPhase === 3 && phase === 0) ||
+          (prevElectionId > 0 && eid > prevElectionId);
 
-      if (newElectionDetected) {
-        const prevElectionNum = eid - 1;
-        if (lastSnapshotElectionNum !== prevElectionNum) {
-          lastSnapshotElectionNum = prevElectionNum;
-          console.log(`🏁 New election detected (ID: ${eid}), snapshotting election #${prevElectionNum}`);
-          snapshotInProgress = true;
-          await snapshotResults(prevElectionNum);
-          const totalCandidates = Number(await electionContractV3.candidateCount());
-          await db.query("DELETE FROM candidates");
-          minCandidateId = totalCandidates + 1;
-          prevVotes = {};
-          prevCandidateCount = 0;
-          snapshotInProgress = false;
-          // Emit NewElectionStarted since queryFilter may have failed or blocks were already past
-          prevElectionId = eid;
+        if (newElectionDetected) {
+          const prevElectionNum = eid - 1;
+          if (lastSnapshotElectionNum !== prevElectionNum) {
+            lastSnapshotElectionNum = prevElectionNum;
+            console.log(`🏁 New election detected (ID: ${eid}), snapshotting election #${prevElectionNum}`);
+            snapshotInProgress = true;
+            await snapshotResults(prevElectionNum);
+            const totalCandidates = Number(await electionContractV3.candidateCount());
+            await db.query("DELETE FROM candidates");
+            minCandidateId = totalCandidates + 1;
+            prevVotes = {};
+            prevCandidateCount = 0;
+            snapshotInProgress = false;
+            prevElectionId = eid;
+            await emitEvent({
+              eventName: "NewElectionStarted",
+              txHash: null,
+              blockNumber: null,
+              fromAddress: null,
+              args: { electionId: eid },
+            });
+          }
+        }
+        if (lastPolledPhase !== phase) {
+          if (phase === 3 && prevElectionId > 0 && !snapshotInProgress) {
+            snapshotInProgress = true;
+            await snapshotResults(prevElectionId);
+            snapshotInProgress = false;
+          }
+          if (phase === 2) {
+            try {
+              console.log("🌳 Auto-rebuilding Merkle trees for voting phase");
+              await rebuildMerkleTrees();
+            } catch (err) {
+              console.error("Auto-rebuild Merkle trees failed:", err.message);
+            }
+          }
           await emitEvent({
-            eventName: "NewElectionStarted",
+            eventName: "PhaseChanged",
             txHash: null,
             blockNumber: null,
             fromAddress: null,
-            args: { electionId: eid },
+            args: { newPhase: phase },
           });
+          lastPolledPhase = phase;
         }
-      }
-      if (lastPolledPhase !== phase) {
-        // Snapshot from candidates table when election ends (phase 3)
-        if (phase === 3 && prevElectionId > 0 && !snapshotInProgress) {
-          snapshotInProgress = true;
-          await snapshotResults(prevElectionId);
-          snapshotInProgress = false;
-        }
-        // Auto-rebuild Merkle tree when entering Voting phase
-        if (phase === 2) {
-          try {
-            console.log("🌳 Auto-rebuilding Merkle trees for voting phase");
-            await rebuildMerkleTrees();
-          } catch (err) {
-            console.error("Auto-rebuild Merkle trees failed:", err.message);
-          }
-        }
-        await emitEvent({
-          eventName: "PhaseChanged",
-          txHash: null,
-          blockNumber: null,
-          fromAddress: null,
-          args: { newPhase: phase },
-        });
-        lastPolledPhase = phase;
-      }
-      prevPhase = phase;
-      prevElectionId = eid;
+        prevPhase = phase;
+        prevElectionId = eid;
+      });
     } catch (err) {
       console.error("Phase check error:", err.message);
     }
@@ -577,21 +588,20 @@ export function startBlockchainSync(io) {
 
   async function syncAll() {
     try {
-      if (snapshotInProgress) return;
+      await withRetry(async () => {
+        if (snapshotInProgress) return;
 
-      // 1. Fetch real on-chain events (includes wallet addresses)
-      await fetchAndEmitOnChainEvents();
+        await fetchAndEmitOnChainEvents();
 
-      // 2. Poll-based candidate/vote detection as fallback
-      const provider = electionContractV3.runner?.provider;
-      if (!provider) return;
+        const provider = electionContractV3.runner?.provider;
+        if (!provider) return;
 
-      const cc = Number(await electionContractV3.candidateCount());
-      let anyChange = false;
+        const cc = Number(await electionContractV3.candidateCount());
+        let anyChange = false;
 
-      for (let i = minCandidateId; i <= cc; i++) {
-        const cand = await electionContractV3.getCandidate(i);
-        if (!cand.exists) continue;
+        for (let i = minCandidateId; i <= cc; i++) {
+          const cand = await electionContractV3.getCandidate(i);
+          if (!cand.exists) continue;
 
         const id = Number(cand.id);
         const onChainVotes = Number(cand.voteCount);
@@ -630,6 +640,7 @@ export function startBlockchainSync(io) {
       if (anyChange) {
         broadcastResults();
       }
+      });
     } catch (err) {
       console.error("Sync error:", err.message);
     }
@@ -641,15 +652,17 @@ export function startBlockchainSync(io) {
   ) {
     (async () => {
       try {
-        prevPhase = Number(await electionContractV3.getPhase());
-        lastPolledPhase = prevPhase;
-        prevElectionId = Number(await electionContractV3.currentElectionId());
-        prevCandidateCount = Number(await electionContractV3.candidateCount());
+        await withRetry(async () => {
+          prevPhase = Number(await electionContractV3.getPhase());
+          lastPolledPhase = prevPhase;
+          prevElectionId = Number(await electionContractV3.currentElectionId());
+          prevCandidateCount = Number(await electionContractV3.candidateCount());
 
-        const provider = electionContractV3.runner?.provider;
-        if (provider) {
-          lastProcessedBlock = await provider.getBlockNumber();
-        }
+          const provider = electionContractV3.runner?.provider;
+          if (provider) {
+            lastProcessedBlock = await provider.getBlockNumber();
+          }
+        });
 
         if (prevPhase === 0 && prevCandidateCount === 0) {
           // First election ever — nothing to restore
