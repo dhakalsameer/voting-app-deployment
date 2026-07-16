@@ -35,7 +35,21 @@ if (files.length === 0) {
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 (async () => {
-  const client = await pool.connect();
+  let client;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      client = await pool.connect();
+      break;
+    } catch (err) {
+      console.error(`DB connect attempt ${attempt + 1}/3 failed: ${err.message}`);
+      if (attempt < 2) await new Promise(r => setTimeout(r, 3000 * (attempt + 1)));
+      else {
+        console.error("Could not connect to database. Skipping migrations.");
+        process.exit(0);
+      }
+    }
+  }
+  if (!client) process.exit(0);
   try {
     for (const file of files) {
       const sql = fs.readFileSync(path.join(SCHEMA_DIR, file), "utf8");

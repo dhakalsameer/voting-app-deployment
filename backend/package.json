@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node scripts/migrate.js && node src/server.js",
+    "start": "node scripts/migrate.js 2>&1 || echo '⚠️ Migration skipped — server starting anyway'; node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "node scripts/migrate.js",
     "db:export": "pg_dump --no-owner --no-acl \"$DATABASE_URL\" > dump.sql",
