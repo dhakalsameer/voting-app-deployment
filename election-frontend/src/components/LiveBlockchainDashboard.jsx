@@ -80,9 +80,9 @@ function EventCard({ event }) {
 
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 sm:px-5 py-2 sm:py-3 border-b border-app/50 bg-app-muted/20">
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="text-sm sm:text-base">{meta.icon}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 px-2 sm:px-5 py-1.5 sm:py-3 border-b border-app/50 bg-app-muted/20">
+        <div className="flex items-center gap-1 sm:gap-3 flex-wrap">
+          <span className="text-xs sm:text-base">{meta.icon}</span>
           <Badge variant={meta.color}>{meta.label}</Badge>
           {event.fromAddress && (
             <div className="flex items-center gap-1">
@@ -138,9 +138,9 @@ function EventCard({ event }) {
           )}
         </div>
       </div>
-      <div className="px-3 sm:px-5 py-3 sm:py-4">
+      <div className="px-2 sm:px-5 py-2 sm:py-4">
         {event.eventName === "CandidateRegistered" && (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-x-3 sm:gap-x-8 gap-y-1 sm:gap-y-2 text-xs sm:text-sm">
             <span className="text-app-muted-text">Candidate ID</span>
             <span className="text-app-heading font-mono font-bold">{args.id?.toString()}</span>
             <span className="text-app-muted-text">Wallet</span>
@@ -361,9 +361,9 @@ export default function LiveBlockchainDashboard() {
         </a>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+      <div className="p-3 sm:p-6 space-y-3 sm:space-y-5">
         {/* Stats Row */}
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-3">
           <StatCard label="Total" value={stats.total} color="emerald" />
           <StatCard label="Votes" value={stats.votes} color="emerald" />
           <StatCard label="Candidates" value={stats.candidates} color="blue" />
@@ -374,7 +374,7 @@ export default function LiveBlockchainDashboard() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2">
           <FilterTab active={filter === "All"} onClick={() => setFilter("All")}>
             All <span className="text-[10px] opacity-60">({tabCounts.All})</span>
           </FilterTab>
@@ -447,7 +447,7 @@ function FilterTab({ active, onClick, title, children }) {
     <button
       title={title}
       onClick={onClick}
-      className={`text-[11px] sm:text-sm font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+      className={`text-[10px] sm:text-sm font-bold px-1.5 sm:px-3.5 py-1 sm:py-2 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
         active
           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
           : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
