@@ -380,7 +380,7 @@ function GasDistribute() {
     if (failedEntries.length === 0) return;
     setConfirm({
       title: "Retry Failed Distributions",
-      message: `Retry sending Sepolia ETH to ${failedEntries.length} failed recipient(s)? This costs gas.`,
+      message: `Resend ETH to ${failedEntries.length} failed recipient(s)? Costs gas.`,
       onConfirm: async () => {
         setConfirm(null);
         const logIds = failedEntries.map(r => r.logId).filter(Boolean);

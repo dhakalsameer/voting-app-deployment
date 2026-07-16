@@ -142,7 +142,7 @@ export default function StudentSpreadsheet() {
       const studentId = row.student_id;
       setConfirm({
         title: "Delete Student",
-        message: `Permanently delete ${studentId}? This removes them from the database, including registration codes and candidate applications.`,
+        message: `Delete ${studentId}? Removes all codes & applications. Cannot be undone.`,
         onConfirm: async () => {
           setConfirm(null);
           setDeleting(true);
@@ -238,7 +238,7 @@ export default function StudentSpreadsheet() {
     if (!wallet) return;
     setConfirm({
       title: "Rebuild Merkle Root",
-      message: "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?",
+      message: "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
       onConfirm: async () => {
         setConfirm(null);
         setRebuildingMerkle(true);

@@ -148,7 +148,7 @@ export default function GenerateCodes() {
   const handleRebuildRoot = async () => {
     setConfirm({
       title: "Rebuild Merkle Root",
-      message: "Are you sure you want to rebuild the registration-code Merkle root on-chain? This costs gas.",
+      message: "Rebuild reg-code Merkle root on-chain? Costs gas.",
       onConfirm: async () => {
         setConfirm(null);
         setRebuildingRoot(true);

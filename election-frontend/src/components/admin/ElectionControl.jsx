@@ -261,7 +261,7 @@ export default function ElectionControl() {
               variant="green" icon="📝"
               onClick={() => setConfirm({
                 title: "Start Registration Phase",
-                message: "Open registration and allow candidates to register? This will start the Registration phase and costs gas.",
+                message: "Start Registration phase? Candidates can register. Costs gas.",
                 onConfirm: async () => {
                   setConfirm(null);
                   execute("Start Registration", async () => {
@@ -295,7 +295,7 @@ export default function ElectionControl() {
               variant="sky" icon="🗳️"
               onClick={() => setConfirm({
                 title: "Start Voting Phase",
-                message: "Open voting for verified voters? Candidates will be locked and voting will begin. This costs gas.",
+                message: "Start Voting phase? Candidates locked, voting begins. Costs gas.",
                 onConfirm: async () => {
                   setConfirm(null);
                   execute("Start Voting", async () => {
@@ -322,7 +322,7 @@ export default function ElectionControl() {
             variant="rose" icon="🏁"
               onClick={() => setConfirm({
                 title: "End Election",
-                message: "Finalize the election? This ends voting and transitions to Ended phase. No more votes can be cast. This costs gas.",
+                message: "Finalize election? No more votes accepted. Costs gas.",
                 onConfirm: async () => {
                   setConfirm(null);
                   execute("End Election", async () => {
@@ -359,7 +359,7 @@ export default function ElectionControl() {
               variant="amber" icon="🔄"
               onClick={() => setConfirm({
                 title: "Start New Election",
-                message: "Start a new election cycle? This records winners, resets candidates, and returns to Created phase. This costs gas.",
+                message: "Start new cycle? Winners recorded, candidates reset. Costs gas.",
                 onConfirm: async () => {
                   setConfirm(null);
                   execute("Start New Election", async () => {
@@ -402,7 +402,7 @@ export default function ElectionControl() {
                 if (!wallet) return;
                 setConfirm({
                   title: "Sync Voter Whitelist",
-                  message: "This rebuilds the voter whitelist and identity Merkle roots on-chain. This costs gas in ETH. Continue?",
+                  message: "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
                   onConfirm: async () => {
                     setConfirm(null);
                     setSyncingWhitelist(true);

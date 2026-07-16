@@ -129,7 +129,7 @@ export default function VerifyVoter({ onWhitelisted }) {
   const revokeStudent = async (studentId) => {
     setConfirm({
       title: "Revoke Voter",
-      message: `Permanently revoke ${studentId}? This cannot be undone.`,
+      message: `Revoke ${studentId}? This cannot be undone.`,
       onConfirm: async () => {
         setConfirm(null);
         setRevokeLoading(true);

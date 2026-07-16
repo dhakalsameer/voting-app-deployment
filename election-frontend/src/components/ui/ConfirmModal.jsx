@@ -36,7 +36,7 @@ export default function ConfirmModal({ open, title, message, warning, confirmLab
             <CloseIcon />
           </button>
         </div>
-        <div className="text-sm text-app-body leading-relaxed whitespace-pre-wrap">{message}</div>
+        <div className="text-base text-app-body leading-relaxed whitespace-pre-wrap">{message}</div>
         {warning && (
           <p className="mt-4 text-sm text-rose-400 flex items-start gap-2">
             <WarningIcon />

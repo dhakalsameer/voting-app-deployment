@@ -65,7 +65,7 @@ export default function StudentList() {
     if (!studentId) return;
     setConfirm({
       title: "Delete Student",
-      message: `Permanently delete student ${studentId}? This will remove them from the database.`,
+      message: `Delete ${studentId}? This cannot be undone.`,
       onConfirm: async () => {
         setConfirm(null);
         setLoading(true);
