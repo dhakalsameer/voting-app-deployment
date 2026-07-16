@@ -92,6 +92,10 @@ app.use("/api/auth/register", authLimiter);
 app.use(cors({ origin: origins, credentials: true }));
 app.use(express.json({ limit: "10mb" }));
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", uptime: process.uptime() });
+});
+
 const io = new Server(httpServer, {
   path: "/socket.io/",
   cors: {

@@ -24,7 +24,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: CORS_ORIGIN
-        value: https://gu-it-voting.vercel.app
+        value: https://gu-voting.vercel.app,https://dvoting-six.vercel.app
       - key: BACKEND_PUBLIC_URL
         sync: false
       - key: SMTP_HOST
