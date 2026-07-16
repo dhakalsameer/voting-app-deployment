@@ -167,6 +167,79 @@ export async function sendWinnerCongratulation({ email, name, position, voteCoun
   return { devMode: true, email };
 }
 
+function buildPhaseEmailHtml({ phaseLabel, electionNumber }) {
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+      <div style="text-align:center;font-size:36px;margin-bottom:12px;">📢</div>
+      <h2 style="color:#10b981;text-align:center;">Election Update</h2>
+      <p style="text-align:center;font-size:16px;color:#374151;">
+        Election #${electionNumber} is now in the <strong>${phaseLabel}</strong> phase.
+      </p>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+        <p style="font-size:14px;color:#166534;margin:0;">
+          Please check the voting platform for details and your next steps.
+        </p>
+      </div>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+      <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>
+    </div>
+  `;
+}
+
+const PHASE_LABELS = ["Setup", "Registration", "Voting", "Completed"];
+
+export async function sendPhaseChangeNotification({ email, name, newPhase, electionNumber }) {
+  const phaseLabel = PHASE_LABELS[newPhase] || `Phase ${newPhase}`;
+  const subject = `📢 Election #${electionNumber} — ${phaseLabel} Phase Started`;
+
+  if (RESEND_API_KEY) {
+    try {
+      if (!resend) resend = new Resend(RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: DEFAULT_FROM,
+        to: email,
+        subject,
+        html: buildPhaseEmailHtml({ phaseLabel, electionNumber }),
+      });
+      if (error) throw new Error(error.message);
+      return { messageId: data?.id, email };
+    } catch (err) {
+      console.warn("Resend failed, falling back to SMTP:", err.message);
+    }
+  }
+
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    try {
+      if (!transporter) {
+        transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT, 10),
+          secure: parseInt(SMTP_PORT, 10) === 465,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        });
+      }
+      const info = await transporter.sendMail({
+        from: SMTP_FROM || SMTP_USER,
+        to: email,
+        subject,
+        html: buildPhaseEmailHtml({ phaseLabel, electionNumber }),
+      });
+      return { messageId: info.messageId, email };
+    } catch (err) {
+      console.warn("SMTP also failed:", err.message);
+    }
+  }
+
+  console.log("─── PHASE EMAIL (no provider configured) ───");
+  console.log(`To: ${email}`);
+  console.log(`Subject: ${subject}`);
+  console.log("────────────────────────────────────────────");
+  return { devMode: true, email };
+}
+
 export async function sendBatchRegistrationCodes(students, electionName) {
   const sent = [];
   const failed = [];
