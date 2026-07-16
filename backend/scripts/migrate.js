@@ -29,7 +29,7 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, family: 4 });
 
 (async () => {
   const client = await pool.connect();
