@@ -28,7 +28,7 @@ export default function ConfirmModal({ open, title, message, warning, confirmLab
   if (!open) return null;
 
   const dialog = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed top-20 right-0 bottom-0 left-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-app bg-app-surface p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-black uppercase tracking-wide text-app-heading">{title || "Confirm"}</h3>
