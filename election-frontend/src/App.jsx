@@ -10,6 +10,7 @@ import ScrollToTop from "./components/ui/ScrollToTop";
 import Cube3D from "./components/ui/Cube3D";
 import LandingPage from "./components/LandingPage";
 import WinnerBanner from "./components/WinnerBanner";
+import { API_URL } from "./config";
 
 const VotingPanelV3 = lazy(() => import("./components/VotingPanelV3"));
 const LiveStatsSidebar = lazy(() => import("./components/LiveStatsSidebar"));
@@ -57,6 +58,22 @@ function App() {
   }, []);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [docsSubTab, setDocsSubTab] = useState("guide");
+  const [phase, setPhase] = useState(null);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/contract/phase`);
+        const data = await res.json();
+        setPhase(data.phase);
+      } catch { /* ignore */ }
+    };
+    check();
+    const id = setInterval(check, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  const isPhase3 = phase === 3;
 
 
   const currentTab = activeTab || (!wallet ? "home" : isAdmin ? "admin" : "vote");
@@ -202,12 +219,12 @@ function App() {
               {currentTab === "vote" && !isAdmin && wallet && (
                 <AnimatedPage key="vote">
                   <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-6 items-start">
-                    <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
+                    <div className={`space-y-3 lg:sticky lg:top-4 lg:self-start ${isPhase3 ? "order-3 lg:order-1" : "order-1 lg:order-1"}`}>
                       <Suspense fallback={null}>
                         <LiveStatsSidebar />
                       </Suspense>
                     </div>
-                    <div className="space-y-4 min-w-0">
+                    <div className={`space-y-4 min-w-0 ${isPhase3 ? "order-2 lg:order-2" : "order-2 lg:order-2"}`}>
                       <WinnerBanner />
                       <VoterStatusCard voterStatus={voterStatus} balance={balance} />
                       <MainRegistrationBanner />
