@@ -122,7 +122,7 @@ export default function WinnerBanner() {
               <span className="text-2xl">🏆</span>
             </div>
           )}
-          <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
+          <span className={`text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider ${
             isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
           }`}>{winnerInfo.gender || "—"}</span>
         </div>
@@ -130,13 +130,13 @@ export default function WinnerBanner() {
           <div className="flex items-center gap-3">
             <span className="text-sm font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</span>
             <span className="w-1 h-1 rounded-full bg-amber-400/30" />
-            <span className="text-sm font-black text-app-heading">{Number(winnerInfo.voteCount)} <span className="text-xs font-bold text-app-muted-text font-sans">vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span></span>
+            <span className="text-xl font-black text-app-heading">{Number(winnerInfo.voteCount)} <span className="text-sm font-bold text-app-muted-text font-sans">vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span></span>
           </div>
           <p className="text-lg font-black text-app-heading mt-0.5">{winnerInfo.name}</p>
         </div>
         <div className="col-start-2 self-start">
           {winnerInfo.year && (
-            <span className="text-xs font-mono font-bold text-app-muted-text bg-app-muted/20 px-2.5 py-1 rounded-md">{fmtYear(winnerInfo.year)}</span>
+            <span className="text-sm font-mono font-bold text-app-muted-text bg-app-muted/20 px-3 py-1.5 rounded-md">{fmtYear(winnerInfo.year)}</span>
           )}
         </div>
       </div>
