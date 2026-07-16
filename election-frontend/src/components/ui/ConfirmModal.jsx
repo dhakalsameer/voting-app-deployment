@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 function CloseIcon() {
   return (
@@ -17,8 +18,16 @@ function WarningIcon() {
 }
 
 export default function ConfirmModal({ open, title, message, warning, confirmLabel, confirmClass, onClose, onConfirm }) {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [open]);
+
   if (!open) return null;
-  return (
+
+  const dialog = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-md rounded-2xl border border-app bg-app-surface p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
@@ -51,4 +60,6 @@ export default function ConfirmModal({ open, title, message, warning, confirmLab
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 }
