@@ -280,17 +280,6 @@ export default function LiveBlockchainDashboard() {
     return result;
   }, [events, filter, showAll]);
 
-  const tabCounts = useMemo(() => {
-    const counts = { All: events.length };
-    const EVENT_NAMES = Object.keys(EVENT_META);
-    for (const name of EVENT_NAMES) {
-      counts[name] = events.filter(e => e.eventName === name).length;
-    }
-    return counts;
-  }, [events]);
-
-  const EVENT_NAMES = useMemo(() => Object.keys(EVENT_META), []);
-
   if (loading) {
     return (
       <div className="rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden shadow-card">
@@ -362,27 +351,15 @@ export default function LiveBlockchainDashboard() {
       </div>
 
       <div className="p-3 sm:p-6 space-y-3 sm:space-y-5">
-        {/* Stats Row */}
+        {/* Clickable Stats + Filters */}
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 sm:gap-3">
-          <StatCard label="Total" value={stats.total} color="emerald" />
-          <StatCard label="Votes" value={stats.votes} color="emerald" />
-          <StatCard label="Candidates" value={stats.candidates} color="blue" />
-          <StatCard label="Phases" value={stats.phaseChanges} color="amber" />
-          <StatCard label="Merkle" value={stats.merkleUpdates} color="violet" />
-          <StatCard label="Identity" value={stats.identityUpdates} color="cyan" />
-          <StatCard label="Elections" value={stats.elections} color="rose" />
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-1 sm:gap-2">
-          <FilterTab active={filter === "All"} onClick={() => setFilter("All")}>
-            All <span className="text-[10px] opacity-60">({tabCounts.All})</span>
-          </FilterTab>
-          {EVENT_NAMES.map(name => (
-            <FilterTab key={name} active={filter === name} onClick={() => setFilter(name)} title={EVENT_META[name].label}>
-              {EVENT_META[name].icon}&nbsp;{EVENT_META[name].label} <span className="text-[10px] opacity-60">({tabCounts[name] || 0})</span>
-            </FilterTab>
-          ))}
+          <StatCard label="All" value={events.length} color="emerald" active={filter === "All"} onClick={() => setFilter("All")} />
+          <StatCard label="Votes" value={stats.votes} color="emerald" active={filter === "VoteCast"} onClick={() => setFilter("VoteCast")} />
+          <StatCard label="Candidates" value={stats.candidates} color="blue" active={filter === "CandidateRegistered"} onClick={() => setFilter("CandidateRegistered")} />
+          <StatCard label="Phases" value={stats.phaseChanges} color="amber" active={filter === "PhaseChanged"} onClick={() => setFilter("PhaseChanged")} />
+          <StatCard label="Merkle" value={stats.merkleUpdates} color="violet" active={filter === "MerkleRootUpdated"} onClick={() => setFilter("MerkleRootUpdated")} />
+          <StatCard label="Identity" value={stats.identityUpdates} color="cyan" active={filter === "IdentityMerkleRootUpdated"} onClick={() => setFilter("IdentityMerkleRootUpdated")} />
+          <StatCard label="Elections" value={stats.elections} color="rose" active={filter === "NewElectionStarted"} onClick={() => setFilter("NewElectionStarted")} />
         </div>
 
         {/* Events Feed */}
@@ -422,7 +399,7 @@ export default function LiveBlockchainDashboard() {
   );
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, active, onClick }) {
   const dotColors = {
     emerald: "bg-emerald-400",
     blue:    "bg-sky-400",
@@ -432,28 +409,20 @@ function StatCard({ label, value, color }) {
     rose:    "bg-rose-400",
   };
   return (
-    <div className="rounded-lg sm:rounded-xl border border-app bg-app-elevated/30 px-1.5 sm:px-3 py-1.5 sm:py-3 text-center">
+    <button
+      onClick={onClick}
+      className={`rounded-lg sm:rounded-xl border px-1.5 sm:px-3 py-1.5 sm:py-3 text-center transition-all cursor-pointer ${
+        active
+          ? "bg-emerald-500/10 border-emerald-500/20"
+          : "border-app bg-app-elevated/30 hover:border-app-accent/30"
+      }`}
+    >
       <p className="text-sm sm:text-2xl font-black text-app-heading">{value}</p>
       <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
         <span className={`h-1 w-1 sm:h-2 sm:w-2 rounded-full ${dotColors[color] || "bg-emerald-400"}`} />
-        <p className="text-[8px] sm:text-xs font-bold uppercase tracking-wider text-app-muted-text">{label}</p>
+        <p className={`text-[8px] sm:text-xs font-bold uppercase tracking-wider ${active ? "text-emerald-400" : "text-app-muted-text"}`}>{label}</p>
       </div>
-    </div>
-  );
-}
-
-function FilterTab({ active, onClick, title, children }) {
-  return (
-    <button
-      title={title}
-      onClick={onClick}
-      className={`text-[10px] sm:text-sm font-bold px-1.5 sm:px-3.5 py-1 sm:py-2 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-        active
-          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
-      }`}
-    >
-      {children}
     </button>
   );
 }
+
