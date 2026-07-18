@@ -25,7 +25,7 @@ function buildEmailHtml({ name, student_id, code, electionName }) {
       <div style="background:#f3f4f6;border-radius:8px;padding:16px;text-align:center;font-size:20px;letter-spacing:4px;font-family:monospace;margin:16px 0;">
         <strong>${code}</strong>
       </div>
-      <p><strong>Student ID:</strong> ${student_id}</p>
+      <p style="font-size:16px;"><strong>Student ID:</strong> ${student_id}</p>
       <p>Use this code to complete your registration on the student portal.</p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
       <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>
