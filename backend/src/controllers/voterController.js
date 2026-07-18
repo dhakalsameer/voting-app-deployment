@@ -7,6 +7,7 @@ import {
   generateIdentityMerkleProof,
 } from "../services/merkleService.js";
 import { emitEvent } from "../socket.js";
+import { sendVoterVerifiedEmail } from "../services/emailService.js";
 
 function parseYear(year) {
   if (year == null) return 0;
@@ -159,6 +160,18 @@ export const bulkVerifyVoters = async (req, res) => {
        WHERE student_id = ANY($1::text[])`,
       [result.rows.map((row) => row.student_id)]
     );
+
+    const emailResult = await db.query(
+      `SELECT student_id, name, email FROM students
+       WHERE student_id = ANY($1::text[]) AND email IS NOT NULL`,
+      [result.rows.map((row) => row.student_id)]
+    );
+    for (const student of emailResult.rows) {
+      sendVoterVerifiedEmail({
+        email: student.email,
+        name: student.name || student.student_id,
+      }).catch(() => {});
+    }
 
     const txHash = await rebuildMerkleTrees();
 

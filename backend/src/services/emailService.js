@@ -189,6 +189,63 @@ function buildPhaseEmailHtml({ phaseLabel, electionNumber }) {
 
 const PHASE_LABELS = ["Setup", "Registration", "Voting", "Completed"];
 
+function buildVerifiedHtml({ name }) {
+  return `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+      <h2 style="color:#10b981;text-align:center;">You Are Verified ✓</h2>
+      <p>Dear ${name},</p>
+      <p>Congratulations! The election commission has verified your identity. You are now eligible to vote in the Gandaki University IT Club Election.</p>
+      <p style="margin-top:20px;">When voting opens, connect your wallet and cast your vote on the student portal.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+      <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>
+    </div>
+  `;
+}
+
+export async function sendVoterVerifiedEmail({ email, name }) {
+  if (!email) return { devMode: true };
+
+  const subject = `✅ You're Verified — Eligible to Vote`;
+
+  if (RESEND_API_KEY) {
+    try {
+      if (!resend) resend = new Resend(RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: DEFAULT_FROM,
+        to: email,
+        subject,
+        html: buildVerifiedHtml({ name }),
+      });
+      if (error) throw new Error(error.message);
+      return { messageId: data?.id, email };
+    } catch (err) {
+      console.warn("Resend failed, falling back to SMTP:", err.message);
+    }
+  }
+
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    try {
+      if (!transporter) {
+        transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT, 10),
+          secure: parseInt(SMTP_PORT, 10) === 465,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+        });
+      }
+      await transporter.sendMail({ from: SMTP_FROM || SMTP_USER, to: email, subject, html: buildVerifiedHtml({ name }) });
+    } catch (err) {
+      console.warn("SMTP failed:", err.message);
+    }
+  } else {
+    console.log("─── VERIFIED EMAIL ───");
+    console.log(`To: ${email}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Name: ${name}`);
+    console.log("─────────────────────");
+  }
+}
+
 export async function sendPhaseChangeNotification({ email, name, newPhase, electionNumber }) {
   const phaseLabel = PHASE_LABELS[newPhase] || `Phase ${newPhase}`;
   const subject = `📢 Election #${electionNumber} — ${phaseLabel} Phase Started`;
