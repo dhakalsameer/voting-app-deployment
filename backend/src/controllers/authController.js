@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { db } from "../db.js";
 import { signToken } from "../config/env.js";
 import { rebuildMerkleTrees } from "./voterController.js";
+import { sendNewRegistrationAlert } from "../services/emailService.js";
 
 const WALLET_MESSAGE = "Gandaki University Election Wallet Verification";
 
@@ -130,6 +131,12 @@ export const registerStudent = async (req, res) => {
 
     const student = result.rows[0];
     const token = signToken({ student_id: student.student_id, name: student.name });
+
+    sendNewRegistrationAlert({
+      name: student.name,
+      studentId: student.student_id,
+      wallet: student.wallet_address,
+    }).catch(() => {});
 
     return res.status(201).json({
       token,

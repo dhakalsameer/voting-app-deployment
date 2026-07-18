@@ -7,6 +7,7 @@ const SMTP_PORT = process.env.SMTP_PORT;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 const DEFAULT_FROM = "GU Election <noreply@nishanpaudel.info.np>";
 
@@ -238,6 +239,68 @@ export async function sendPhaseChangeNotification({ email, name, newPhase, elect
   console.log(`Subject: ${subject}`);
   console.log("────────────────────────────────────────────");
   return { devMode: true, email };
+}
+
+export async function sendNewRegistrationAlert({ name, studentId, wallet }) {
+  if (!ADMIN_EMAIL) {
+    console.log("─── ADMIN ALERT (ADMIN_EMAIL not set) ───");
+    console.log(`Student: ${name} (${studentId}) registered with wallet ${wallet}`);
+    return { devMode: true };
+  }
+
+  const subject = `🔔 New Voter Registered — ${name} (${studentId})`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
+      <h2 style="color:#10b981;text-align:center;">New Voter Registration</h2>
+      <p>A new student has completed registration:</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Name</td><td style="padding:8px;border:1px solid #e5e7eb;">${name}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Student ID</td><td style="padding:8px;border:1px solid #e5e7eb;">${studentId}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:bold;">Wallet</td><td style="padding:8px;border:1px solid #e5e7eb;font-family:monospace;font-size:12px;">${wallet}</td></tr>
+      </table>
+      <p style="color:#6b7280;font-size:13px;">Verify this voter on the admin dashboard if needed.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+      <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>
+    </div>
+  `;
+
+  if (RESEND_API_KEY) {
+    try {
+      if (!resend) resend = new Resend(RESEND_API_KEY);
+      const { data, error } = await resend.emails.send({
+        from: DEFAULT_FROM,
+        to: ADMIN_EMAIL,
+        subject,
+        html,
+      });
+      if (error) throw new Error(error.message);
+      return { messageId: data?.id };
+    } catch (err) {
+      console.warn("Resend failed, falling back to SMTP:", err.message);
+    }
+  }
+
+  if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS) {
+    try {
+      if (!transporter) {
+        transporter = nodemailer.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(SMTP_PORT, 10),
+          secure: parseInt(SMTP_PORT, 10) === 465,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+        });
+      }
+      await transporter.sendMail({ from: SMTP_FROM || SMTP_USER, to: ADMIN_EMAIL, subject, html });
+    } catch (err) {
+      console.warn("SMTP also failed:", err.message);
+    }
+  } else {
+    console.log("─── ADMIN ALERT ───");
+    console.log(`To: ${ADMIN_EMAIL}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Student: ${name} (${studentId}) — Wallet: ${wallet}`);
+    console.log("───────────────────");
+  }
 }
 
 export async function sendBatchRegistrationCodes(students, electionName) {
