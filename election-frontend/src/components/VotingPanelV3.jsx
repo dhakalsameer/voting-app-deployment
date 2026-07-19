@@ -712,6 +712,7 @@ export default function VotingPanelV3() {
             )}
 
             {phase === 2 && (
+              <div className="sticky bottom-0 bg-app-surface pb-1">
               <button
                 onClick={() => setShowConfirm(true)}
                 disabled={casting || !canSubmit}
@@ -737,6 +738,7 @@ export default function VotingPanelV3() {
                   "Select candidates above"
                 )}
               </button>
+              </div>
             )}
 
             {showConfirm && (
