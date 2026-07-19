@@ -592,6 +592,28 @@ export function startBlockchainSync(io) {
               console.error("Auto-rebuild Merkle trees failed:", err.message);
             }
           }
+
+          try {
+            const phaseResult = await db.query(
+              `SELECT s.email, s.name FROM students s WHERE s.email IS NOT NULL`
+            );
+            if (phaseResult.rows.length > 0) {
+              const currentElection = await electionContractV3.historyCount();
+              const promises = phaseResult.rows.map(row =>
+                sendPhaseChangeNotification({
+                  email: row.email,
+                  name: row.name,
+                  newPhase: phase,
+                  electionNumber: Number(currentElection),
+                }).catch(err => console.error(`   → Phase email failed for ${row.email}: ${err.message}`))
+              );
+              await Promise.all(promises);
+              console.log(`   → Phase ${phase} notifications sent to ${phaseResult.rows.length} students`);
+            }
+          } catch (err) {
+            console.error("   → Phase notification error:", err.message);
+          }
+
           await emitEvent({
             eventName: "PhaseChanged",
             txHash: null,
