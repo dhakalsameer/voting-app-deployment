@@ -246,6 +246,38 @@ export const revokeVoter = async (req, res) => {
   }
 };
 
+export const bulkRevokeVoters = async (req, res) => {
+  try {
+    const { student_ids } = req.body;
+
+    if (!Array.isArray(student_ids) || student_ids.length === 0) {
+      return res.status(400).json({ error: "student_ids array is required" });
+    }
+
+    const result = await db.query(
+      `UPDATE students
+       SET eligible_to_vote = false
+       WHERE student_id = ANY($1::text[])
+         AND eligible_to_vote = true
+       RETURNING student_id`,
+      [student_ids]
+    );
+
+    const txHash = await rebuildMerkleTrees();
+    return res.json({
+      success: true,
+      revokedCount: result.rows.length,
+      students: result.rows,
+      txHash,
+    });
+  } catch (error) {
+    console.error("bulkRevokeVoters error:", error);
+    return res.status(500).json({
+      error: error.reason || error.message || "Bulk revoke failed",
+    });
+  }
+};
+
 export const getIdentityProof = async (req, res) => {
   try {
     const { wallet } = req.query;

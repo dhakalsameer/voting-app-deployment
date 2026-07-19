@@ -1,5 +1,5 @@
 import express from "express";
-import { bulkVerifyVoters, getMe, getPendingVoters, revokeVoter, getProof, getIdentityProof, adminRebuildMerkle, checkMerkleSyncStatus } from "../controllers/voterController.js";
+import { bulkVerifyVoters, getMe, getPendingVoters, revokeVoter, bulkRevokeVoters, getProof, getIdentityProof, adminRebuildMerkle, checkMerkleSyncStatus } from "../controllers/voterController.js";
 import { verifyAdmin } from "../middleware/admin.js";
 import { db } from "../db.js";
 
@@ -11,6 +11,7 @@ router.get("/proof", getProof);
 router.get("/identity-proof", getIdentityProof);
 router.post("/verify-bulk", verifyAdmin, bulkVerifyVoters);
 router.post("/revoke", verifyAdmin, revokeVoter);
+router.post("/revoke-bulk", verifyAdmin, bulkRevokeVoters);
 router.post("/rebuild-merkle", verifyAdmin, adminRebuildMerkle);
 router.get("/merkle-sync-status", verifyAdmin, checkMerkleSyncStatus);
 router.get("/verification-status", verifyAdmin, async (req, res) => {

@@ -18,6 +18,7 @@ export default function VerifyVoter({ onWhitelisted }) {
   const [loading, setLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [revokeLoading, setRevokeLoading] = useState(false);
+  const [bulkRevokeLoading, setBulkRevokeLoading] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("recent");
@@ -152,6 +153,38 @@ export default function VerifyVoter({ onWhitelisted }) {
     });
   };
 
+  const bulkRevokeSelected = async () => {
+    const ids = Array.from(selected);
+    if (ids.length === 0) {
+      showError("Select at least one student to revoke");
+      return;
+    }
+    setConfirm({
+      title: "Revoke Selected Voters",
+      message: `Revoke ${ids.length} student(s)? They will lose voting access. This cannot be undone.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        setBulkRevokeLoading(true);
+        try {
+          const res = await fetch(`${API_URL}/api/voters/revoke-bulk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_ids: ids, adminWallet: wallet }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Bulk revoke failed");
+          success(`Revoked ${data.revokedCount || ids.length} student(s)`, data.txHash ? { txHash: data.txHash, duration: 8000 } : undefined);
+          setSelected(new Set());
+          await handleLoadData();
+        } catch (err) {
+          showError(err.message || "Bulk revoke failed");
+        } finally {
+          setBulkRevokeLoading(false);
+        }
+      }
+    });
+  };
+
   const filtered = students.filter((s) => {
     if (yearFilter !== "all") {
       const syear = parseInt(s.registration_year || s.year || "0");
@@ -260,6 +293,21 @@ export default function VerifyVoter({ onWhitelisted }) {
               className="rounded-xl border border-app bg-app-input px-5 py-3 text-base font-bold text-app-muted hover:text-app-heading hover:bg-app-elevated transition-all disabled:opacity-40 cursor-pointer"
             >
               Clear Selection
+            </button>
+
+            <button
+              onClick={bulkRevokeSelected}
+              disabled={bulkRevokeLoading || selected.size === 0}
+              className="rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 px-5 py-3 text-base font-black uppercase tracking-wider hover:bg-rose-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {bulkRevokeLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 border-2 border-rose-400/30 border-t-rose-400 rounded-full animate-spin inline-block" />
+                  Revoking…
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">🗑️ Revoke Selected ({selected.size})</span>
+              )}
             </button>
           </div>
 
