@@ -744,8 +744,8 @@ export default function VotingPanelV3() {
             {showConfirm && (
               <>
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md" onClick={() => setShowConfirm(false)} />
-                <div className="fixed inset-x-0 bottom-0 z-50 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:inset-auto w-full max-w-lg mx-auto max-h-[90vh] sm:max-h-[85vh]">
-                  <div className="rounded-t-2xl sm:rounded-2xl border border-app-border bg-app-surface-solid shadow-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col">
+                <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-lg max-h-[90vh]">
+                  <div className="rounded-t-2xl border border-app-border bg-app-surface-solid shadow-2xl max-h-[90vh] flex flex-col">
                     {/* Header */}
                     <div className="relative px-4 sm:px-6 pt-4 sm:pt-6 pb-4 text-center border-b border-app/50">
                       <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10 mb-3">
