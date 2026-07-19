@@ -2,7 +2,6 @@ import { useState, useContext, useRef, useEffect } from "react";
 import ElectionControl from "./ElectionControl";
 import VerifyVoter from "./VerifyVoter";
 import GenerateCodes from "./GenerateCodes";
-import StudentList from "./StudentList";
 import GasDistribution from "./GasDistribution";
 
 import { AuthContext } from "../../context/AuthContextValue";
@@ -119,7 +118,6 @@ function VoterSection() {
   const subTabs = [
     { id: "verify", label: "Verify Voters", icon: "✓" },
     { id: "codes", label: "Registration Codes", icon: "🔑" },
-    { id: "students", label: "Student Registry", icon: "🎓" },
   ];
 
   return (
@@ -142,9 +140,8 @@ function VoterSection() {
         ))}
       </div>
 
-      {subTab === "verify" && <VerifyVoter onWhitelisted={() => setSubTab("students")} />}
+      {subTab === "verify" && <VerifyVoter />}
       {subTab === "codes" && <GenerateCodes />}
-      {subTab === "students" && <StudentList />}
     </div>
   );
 }
