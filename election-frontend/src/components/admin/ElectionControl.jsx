@@ -140,6 +140,7 @@ export default function ElectionControl() {
   const [candidateCount, setCandidateCount] = useState(0);
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   const [syncingWhitelist, setSyncingWhitelist] = useState(false);
+  const [syncStatus, setSyncStatus] = useState({});
   const [expandedId, setExpandedId] = useState(null);
   const [confirm, setConfirm] = useState(null);
 
@@ -163,7 +164,18 @@ export default function ElectionControl() {
     }
   };
 
+  const loadSyncStatus = async () => {
+    if (!wallet) return;
+    try {
+      const res = await fetch(`${API_URL}/api/voters/merkle-sync-status?adminWallet=${wallet}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setSyncStatus(data);
+    } catch {}
+  };
+
   useEffect(() => { loadChainState(); }, []);
+  useEffect(() => { loadSyncStatus(); }, [wallet]);
 
   const loadHistory = async () => {
     setHistoryLoading(true);
@@ -421,18 +433,32 @@ export default function ElectionControl() {
         icon="📡"
       >
         <div className="space-y-3">
+          <div className="flex items-center justify-center gap-3 text-sm">
+            <div className="text-center">
+              <p className="text-2xl font-black text-app-heading">{syncStatus.eligibleCount ?? "—"}</p>
+              <p className="text-[10px] uppercase tracking-wider text-app-muted-text mt-0.5">Eligible voters</p>
+            </div>
+            <div className="ml-2">
+              {syncStatus.needsSync === true && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1 text-xs font-bold">⚠️ Out of sync</span>
+              )}
+              {syncStatus.needsSync === false && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 text-xs font-bold">✅ Synced</span>
+              )}
+            </div>
+          </div>
           <ActionButton
             variant="sky" icon="📡"
               onClick={() => {
                 if (!wallet) return;
                 setConfirm({
                   title: "Sync Voter Whitelist",
-                  message: phase >= 2
+                  message: phase !== null && phase >= 2
                     ? "Merkle roots are locked during Voting/Ended phase. The on-chain update will be skipped. DB changes are saved, but students won't be able to vote."
                     : "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
                   onConfirm: async () => {
                     setConfirm(null);
-                    if (phase >= 2) {
+                    if (phase !== null && phase >= 2) {
                       showError("Roots locked — on-chain update skipped (phase >= 2)");
                       return;
                     }
@@ -455,8 +481,8 @@ export default function ElectionControl() {
           >
             Sync Voter Whitelist
           </ActionButton>
-          <p className={`text-xs text-center ${phase >= 2 ? "text-rose-400" : "text-app-muted-text"}`}>
-            {phase >= 2
+          <p className={`text-xs text-center ${phase !== null && phase >= 2 ? "text-rose-400" : "text-app-muted-text"}`}>
+            {phase !== null && phase >= 2
               ? "⚠️ Roots locked — DB updates only, no on-chain change"
               : "⚠️ Costs gas — only works during Created or Registration phase"}
           </p>
