@@ -434,11 +434,9 @@ export default function ElectionControl() {
       >
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 rounded-xl border border-app-border bg-app-muted/20 px-5 py-4 text-center sm:text-left sm:flex sm:items-center sm:gap-4">
-              <div className="sm:flex sm:items-baseline sm:gap-2">
-                <span className="text-3xl sm:text-4xl font-black text-app-heading tracking-tight">{syncStatus.eligibleCount ?? "—"}</span>
-                <span className="text-xs sm:text-sm font-semibold text-app-muted-text uppercase tracking-wider">Eligible voters</span>
-              </div>
+            <div className="rounded-xl border border-app-border bg-app-muted/20 px-4 py-3 sm:px-5 sm:py-3 text-center sm:text-left sm:inline-flex sm:items-center sm:gap-3">
+              <span className="text-2xl sm:text-3xl font-black text-app-heading tracking-tight">{syncStatus.eligibleCount ?? "—"}</span>
+              <span className="block sm:inline text-[10px] sm:text-xs font-bold text-app-muted-text uppercase tracking-wider sm:leading-none">Eligible voters</span>
             </div>
             <div className="flex items-center justify-center">
               {syncStatus.needsSync === true && (
