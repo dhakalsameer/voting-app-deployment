@@ -432,6 +432,10 @@ export default function ElectionControl() {
                     : "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
                   onConfirm: async () => {
                     setConfirm(null);
+                    if (phase >= 2) {
+                      showError("Roots locked — on-chain update skipped (phase >= 2)");
+                      return;
+                    }
                     setSyncingWhitelist(true);
                     try {
                       const res = await fetch(`${API_URL}/api/voters/rebuild-merkle?adminWallet=${wallet}`, { method: "POST" });
