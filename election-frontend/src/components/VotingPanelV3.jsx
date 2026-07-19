@@ -400,7 +400,7 @@ export default function VotingPanelV3() {
               <span className="text-rose-400 text-2xl font-bold">!</span>
             </div>
             <p className="text-lg font-extrabold text-rose-400 mb-1">Wrong Network</p>
-            <p className="text-sm text-app-muted-text mb-5 max-w-md mx-auto">
+            <p className="text-sm text-app-muted-text mb-5">
               Please switch your wallet to <strong className="text-app-heading">{SEPOLIA_NETWORK}</strong> (Chain ID {SEPOLIA_CHAIN_ID}) to view candidates and vote.
             </p>
             <button
@@ -432,11 +432,11 @@ export default function VotingPanelV3() {
               Switch to Sepolia
             </button>
 
-            <div className="mt-6 space-y-3 max-w-md mx-auto">
+            <div className="mt-6 space-y-3">
               <p className="text-[11px] font-semibold text-app-muted-text text-center uppercase tracking-wider">
                 Watch: MetaMask Mobile Setup
               </p>
-              <div className="rounded-lg overflow-hidden border border-app-border/30">
+              <div className="rounded-lg overflow-hidden border border-app-border/30 max-w-lg mx-auto">
                 <iframe
                   src="https://www.youtube.com/embed/u29lPmfJOEA"
                   title="MetaMask Sepolia Mobile Setup"
