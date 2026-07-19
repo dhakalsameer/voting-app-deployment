@@ -162,6 +162,28 @@ export function AuthProvider({ children }) {
     return () => window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
   }, [checkVoterStatus]);
 
+  // Auto-restore MetaMask connection on page load
+  useEffect(() => {
+    if (!window.ethereum) return;
+    const restore = async () => {
+      try {
+        const p = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await p.send("eth_accounts", []);
+        if (accounts.length > 0) {
+          setWallet(accounts[0]);
+          setProvider(p);
+          const contract = new ethers.Contract(CONTRACT_ADDRESS_V3, ABI.abi, p);
+          const adminAddr = await contract.admin();
+          setIsAdmin(accounts[0].toLowerCase() === adminAddr.toLowerCase());
+          checkVoterStatus(accounts[0]);
+        }
+      } catch (e) {
+        console.error("Auto-restore wallet error:", e);
+      }
+    };
+    restore();
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
