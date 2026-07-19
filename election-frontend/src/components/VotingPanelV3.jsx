@@ -393,7 +393,7 @@ export default function VotingPanelV3() {
         </div>
       </div>
 
-      <div className="p-6 space-y-8">
+      <div className="p-6 space-y-8 pb-20 lg:pb-8">
         {wrongNetwork ? (
           <div className="rounded-xl border border-rose-500/30 bg-gradient-to-br from-rose-500/[0.08] to-rose-500/[0.03] p-6 sm:p-8 text-center">
             <div className="mx-auto h-14 w-14 rounded-full bg-rose-500/10 border-2 border-rose-500/20 flex items-center justify-center mb-4">
@@ -712,7 +712,7 @@ export default function VotingPanelV3() {
             )}
 
             {phase === 2 && (
-              <div className="sticky bottom-0 bg-app-surface pb-1">
+              <div className="fixed bottom-0 left-0 right-0 z-40 bg-app-surface border-t border-app/50 px-4 py-3 shadow-2xl shadow-black/20 lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:shadow-none lg:bg-transparent">
               <button
                 onClick={() => setShowConfirm(true)}
                 disabled={casting || !canSubmit}
