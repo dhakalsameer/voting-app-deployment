@@ -321,6 +321,23 @@ export const adminRebuildMerkle = async (_req, res) => {
   }
 };
 
+export const checkMerkleSyncStatus = async (_req, res) => {
+  try {
+    const allEligibleResult = await db.query(
+      `SELECT wallet_address FROM students WHERE eligible_to_vote = true AND wallet_address IS NOT NULL`
+    );
+    const allWallets = allEligibleResult.rows.map(r => r.wallet_address);
+    const dbRoot = generateMerkleRoot(allWallets);
+
+    const chainRoot = await electionContractV3.voterMerkleRoot();
+
+    const needsSync = dbRoot !== chainRoot;
+    res.json({ needsSync, dbRoot, chainRoot, eligibleCount: allWallets.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const getPendingVoters = async (_req, res) => {
   try {
     const result = await db.query(

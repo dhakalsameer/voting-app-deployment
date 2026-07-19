@@ -295,14 +295,27 @@ export default function ElectionControl() {
               variant="sky" icon="🗳️"
               onClick={async () => {
                 let warningMsg = "";
+                let blocking = false;
                 try {
-                  const res = await fetch(`${API_URL}/api/voters/verification-status`);
-                  const data = await res.json();
-                  if (data.unverified > 0) {
-                    warningMsg = `⚠️ ${data.unverified} student(s) have linked wallets but are NOT verified. ` +
-                      "They won't be able to vote after you advance. Verify them first in the Voter Management panel.";
+                  const [verStatus, syncStatus] = await Promise.all([
+                    fetch(`${API_URL}/api/voters/verification-status`).then(r => r.json()),
+                    fetch(`${API_URL}/api/voters/merkle-sync-status`).then(r => r.json()),
+                  ]);
+                  if (verStatus.unverified > 0) {
+                    warningMsg = `⚠️ ${verStatus.unverified} student(s) have linked wallets but are NOT verified. ` +
+                      "They won't be able to vote after you advance. Verify them first.";
+                  }
+                  if (syncStatus.needsSync) {
+                    blocking = true;
+                    warningMsg = `🚫 Merkle roots are out of sync. ` +
+                      `${syncStatus.eligibleCount} eligible voters in DB but on-chain root is stale. ` +
+                      `Click "Sync Voter Whitelist" first, then try again.`;
                   }
                 } catch {}
+                if (blocking) {
+                  showError(warningMsg);
+                  return;
+                }
                 setConfirm({
                   title: "Start Voting Phase",
                   message: "Start Voting phase? Candidates locked, voting begins. Costs gas.",
