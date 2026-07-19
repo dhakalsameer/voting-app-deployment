@@ -1,5 +1,6 @@
 import { db } from "../db.js";
 import { rebuildMerkleTrees } from "./voterController.js";
+import { electionContractV3 } from "../blockchain/electionContract.js";
 
 export const getCandidates = async (req, res) => {
   try {
@@ -92,6 +93,14 @@ export const approveCandidate = async (req, res) => {
     }
 
     const candidate = result.rows[0];
+
+    const phase = Number(await electionContractV3.getPhase());
+    if (phase >= 2) {
+      return res.status(400).json({
+        error: "Cannot approve candidate during Voting or later. Merkle roots are locked on-chain.",
+      });
+    }
+
     await db.query(
       `UPDATE students SET eligible_to_vote = true WHERE student_id = $1`,
       [candidate.applied_by]

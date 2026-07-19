@@ -154,6 +154,13 @@ export const bulkVerifyVoters = async (req, res) => {
       });
     }
 
+    const phase = Number(await electionContractV3.getPhase());
+    if (phase >= 2) {
+      return res.status(400).json({
+        error: "Cannot verify voters during Voting or later. Merkle roots are locked on-chain. Verify all voters before advancing to phase 2.",
+      });
+    }
+
     await db.query(
       `UPDATE students
        SET eligible_to_vote = true
