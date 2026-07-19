@@ -20,6 +20,7 @@ export default function StudentSpreadsheet() {
   const [students, setStudents] = useState([]);
   const [originalMap, setOriginalMap] = useState({});
   const [yearTab, setYearTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -372,6 +373,13 @@ export default function StudentSpreadsheet() {
   const totalCount = students.filter((s) => !isRowEmpty(s)).length;
   const dirtyCount = students.filter((s, i) => isDirty(s, i) && !isRowEmpty(s)).length;
 
+  const q = searchQuery.toLowerCase().trim();
+  const displayStudents = q
+    ? students.filter((s) =>
+        (s.student_id?.toLowerCase().includes(q) || s.name?.toLowerCase().includes(q))
+      )
+    : students;
+
   return (
     <div className="rounded-xl border border-app bg-app-surface overflow-hidden">
       {/* Header */}
@@ -383,7 +391,7 @@ export default function StudentSpreadsheet() {
       </div>
 
       <div className="p-4 sm:p-6 space-y-4">
-        {/* Year filter tabs */}
+        {/* Year filter tabs + search */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setYearTab("all")}
@@ -400,6 +408,17 @@ export default function StudentSpreadsheet() {
               {y}
             </button>
           ))}
+          <div className="flex-1" />
+          <div className="relative w-full sm:w-64">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-muted-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input
+              type="text"
+              placeholder="Search by ID or name…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-app-border bg-app-input text-sm text-app-heading placeholder:text-app-muted-text/50 focus:outline-none focus:border-emerald-500/50 transition-all"
+            />
+          </div>
         </div>
 
         {error && (
@@ -429,14 +448,14 @@ export default function StudentSpreadsheet() {
                       Loading students…
                     </td>
                   </tr>
-                ) : students.length === 0 ? (
+                ) :                   displayStudents.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-3 py-12 text-center text-sm text-app-muted-text">
-                      No students found. Click "Add Row" to get started.
+                      {q ? `No students match "${q}".` : 'No students found. Click "Add Row" to get started.'}
                     </td>
                   </tr>
                 ) : (
-                  students.map((row, rowIndex) => (
+                  displayStudents.map((row, rowIndex) => (
                     <tr
                       key={row.student_id || `new-${rowIndex}`}
                       className={`hover:bg-app-accent-soft/30 transition-colors ${isDirty(row, rowIndex) ? "bg-amber-500/5" : ""} ${isRowEmpty(row) ? "opacity-50" : ""}`}
