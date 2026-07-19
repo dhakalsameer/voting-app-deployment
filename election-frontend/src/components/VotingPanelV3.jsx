@@ -744,8 +744,8 @@ export default function VotingPanelV3() {
             {showConfirm && (
               <>
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md" onClick={() => setShowConfirm(false)} />
-                <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4">
-                  <div className="rounded-2xl border border-app-border bg-app-surface-solid shadow-2xl overflow-hidden">
+                <div className="fixed inset-x-0 bottom-0 z-50 sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:inset-auto w-full max-w-lg mx-auto max-h-[90vh] sm:max-h-[85vh]">
+                  <div className="rounded-t-2xl sm:rounded-2xl border border-app-border bg-app-surface-solid shadow-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col">
                     {/* Header */}
                     <div className="relative px-4 sm:px-6 pt-4 sm:pt-6 pb-4 text-center border-b border-app/50">
                       <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/5 border border-sky-500/20 flex items-center justify-center shadow-lg shadow-sky-500/10 mb-3">
@@ -756,7 +756,7 @@ export default function VotingPanelV3() {
                     </div>
 
                     {/* Body */}
-                    <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 max-h-[50vh] overflow-y-auto">
+                    <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 overflow-y-auto min-h-0">
                       {/* President */}
                       <div className={`rounded-2xl border-2 p-5 ${selectedPresidentId ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
                         <div className="flex items-center justify-between mb-2">
