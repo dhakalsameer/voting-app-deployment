@@ -432,36 +432,31 @@ export default function VotingPanelV3() {
               Switch to Sepolia
             </button>
 
-            <details className="mt-6 text-left max-w-md mx-auto">
-              <summary className="text-xs text-app-muted-text/60 hover:text-app-muted-text cursor-pointer font-medium">
-                Video guide &mdash; MetaMask mobile setup
-              </summary>
-              <div className="mt-3 space-y-3">
-                <div className="rounded-lg overflow-hidden">
-                  <iframe
-                    src="https://www.youtube.com/embed/GADDViyEeME"
-                    title="MetaMask Sepolia Mobile Setup"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full aspect-video"
-                  />
-                </div>
-                <div className="p-3 rounded-lg bg-app-surface/50 border border-app-border/30 text-xs space-y-2 text-app-muted-text">
-                  <p className="font-semibold text-app-heading">Sepolia is already in MetaMask &mdash; just unhide it:</p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs pl-1">
-                    <li>Open MetaMask app</li>
-                    <li>Tap the network selector at the top</li>
-                    <li>Tap the <strong className="text-app-heading">gear icon</strong> (Settings)</li>
-                    <li>Scroll down → <strong className="text-app-heading">Show test networks</strong> → toggle <strong className="text-app-heading">ON</strong></li>
-                    <li>Go back → tap <strong className="text-app-heading">Sepolia</strong></li>
-                  </ol>
-                  <p className="pt-1.5 text-[11px] border-t border-app-border/20 text-app-muted-text/70">
-                    If you&apos;re in the MetaMask in-app browser, the Switch button above should work directly.
-                  </p>
-                </div>
+            <div className="mt-6 space-y-3 max-w-md mx-auto">
+              <p className="text-[11px] font-semibold text-app-muted-text text-center uppercase tracking-wider">
+                Watch: MetaMask Mobile Setup
+              </p>
+              <div className="rounded-lg overflow-hidden border border-app-border/30">
+                <iframe
+                  src="https://www.youtube.com/embed/u29lPmfJOEA"
+                  title="MetaMask Sepolia Mobile Setup"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full aspect-video"
+                />
               </div>
-            </details>
+              <div className="p-3 rounded-lg bg-app-surface/50 border border-app-border/30 text-xs space-y-2 text-app-muted-text">
+                <p className="font-semibold text-app-heading">Sepolia is already in MetaMask &mdash; just unhide it:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs pl-1">
+                  <li>Open MetaMask app</li>
+                  <li>Tap the network selector at the top</li>
+                  <li>Tap the <strong className="text-app-heading">gear icon</strong> (Settings)</li>
+                  <li>Scroll down → <strong className="text-app-heading">Show test networks</strong> → toggle <strong className="text-app-heading">ON</strong></li>
+                  <li>Go back → tap <strong className="text-app-heading">Sepolia</strong></li>
+                </ol>
+              </div>
+            </div>
           </div>
         ) : (
           <>

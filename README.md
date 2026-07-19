@@ -33,6 +33,7 @@ The smart contract enforces voting rules; the backend syncs on-chain events into
 | Frontend | React (Vite), Tailwind CSS, Recharts |
 | Storage | IPFS (via Pinata), local file fallback |
 | Auth | MetaMask signatures, JWT, Merkle proofs |
+| 📹 **Setup Guide** | [MetaMask Mobile — Sepolia Setup](https://www.youtube.com/shorts/u29lPmfJOEA) |
 
 ## Key Features
 
