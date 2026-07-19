@@ -38,7 +38,7 @@ function AnimatedPage({ children }) {
 }
 
 function App() {
-  const { wallet, isAdmin, voterStatus } = useContext(AuthContext);
+  const { wallet, isAdmin, voterStatus, loading: authLoading } = useContext(AuthContext);
   const { balance } = useBalance(wallet);
   const [portalOpen, setPortalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
@@ -210,7 +210,15 @@ function App() {
         <main className="relative z-10 page-container py-8">
           <div className={`mx-auto ${currentTab === "home" ? "max-w-3xl" : "max-w-6xl"}`}>
             <AnimatePresence mode="wait">
-              {currentTab === "home" && (
+              {authLoading && currentTab === "admin" && (
+                <AnimatedPage key="admin-loading">
+                  <div className="flex items-center justify-center py-32">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-app-accent border-t-transparent" />
+                  </div>
+                </AnimatedPage>
+              )}
+
+              {!authLoading && currentTab === "home" && (
                 <AnimatedPage key="home">
                   <LandingPage onOpenPortal={() => setPortalOpen(true)} />
                 </AnimatedPage>
