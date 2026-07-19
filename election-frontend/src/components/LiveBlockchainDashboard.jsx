@@ -79,30 +79,30 @@ function EventCard({ event }) {
   const args = event.args || {};
 
   return (
-    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface overflow-visible sm:overflow-hidden transition-all hover:border-app-accent/30">
+    <div className="rounded-lg sm:rounded-xl border border-app bg-app-surface overflow-hidden transition-all hover:border-app-accent/30">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2 px-1.5 sm:px-5 py-1 sm:py-3 border-b border-app/50 bg-app-muted/20">
-        <div className="flex items-center gap-0.5 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-0.5 sm:gap-3 flex-wrap min-w-0">
           <span className="text-[10px] sm:text-base">{meta.icon}</span>
           <Badge variant={meta.color}>{meta.label}</Badge>
           {event.fromAddress && (
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">From</span>
+            <div className="flex items-center gap-0.5 sm:gap-1 min-w-0">
+              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold shrink-0">From</span>
               <button
                 onClick={() => handleCopy(event.fromAddress, setFromCopied)}
-                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium truncate"
                 title="Copy wallet address"
               >
                 {truncate(event.fromAddress)}
               </button>
-              {fromCopied && <span className="text-[8px] sm:text-[10px] text-emerald-400 font-semibold">Copied</span>}
+              {fromCopied && <span className="text-[8px] sm:text-[10px] text-emerald-400 font-semibold shrink-0">Copied</span>}
             </div>
           )}
           {event.txHash && (
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold">Tx</span>
+            <div className="flex items-center gap-0.5 sm:gap-1 min-w-0">
+              <span className="text-[8px] sm:text-xs text-app-muted-text uppercase tracking-wider font-bold shrink-0">Tx</span>
               <button
                 onClick={() => handleCopy(event.txHash, setCopied)}
-                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium"
+                className="text-[9px] sm:text-sm font-mono text-app-muted-text hover:text-app-accent transition-colors cursor-pointer font-medium truncate"
                 title="Copy tx hash"
               >
                 {truncate(event.txHash)}
@@ -144,7 +144,7 @@ function EventCard({ event }) {
             <span className="text-app-muted-text">Candidate ID</span>
             <span className="text-app-heading font-mono font-bold">{args.id?.toString()}</span>
             <span className="text-app-muted-text">Wallet</span>
-            <span className="text-app-heading font-mono text-xs">{args.candidate || "Unknown"}</span>
+            <span className="text-app-heading font-mono text-[9px] sm:text-xs break-all">{args.candidate || "Unknown"}</span>
             <span className="text-app-muted-text">Name</span>
             <span className="text-app-heading font-medium">{args.name}</span>
             <span className="text-app-muted-text">Position</span>
@@ -154,7 +154,7 @@ function EventCard({ event }) {
         {event.eventName === "VoteCast" && (
           <div className="grid grid-cols-2 gap-x-2 sm:gap-x-8 gap-y-0.5 sm:gap-y-2 text-[10px] sm:text-sm">
             <span className="text-app-muted-text">Voter</span>
-            <span className="text-app-heading font-mono text-[9px] sm:text-xs">{args.voter || "Unknown"}</span>
+            <span className="text-app-heading font-mono text-[9px] sm:text-xs break-all">{args.voter || "Unknown"}</span>
             <span className="text-app-muted-text">Candidate ID</span>
             <span className="text-app-heading font-mono font-bold">#{args.candidateId?.toString()}</span>
           </div>
@@ -188,7 +188,7 @@ function EventCard({ event }) {
             {Object.entries(args).filter(([k]) => isNaN(Number(k))).map(([k, v]) => (
               <div key={k} className="contents">
                 <span className="text-app-muted-text capitalize">{k}</span>
-                <span className="text-app-heading font-mono text-[9px] sm:text-xs">{valueDisplay(k, v)}</span>
+                <span className="text-app-heading font-mono text-[9px] sm:text-xs break-all">{valueDisplay(k, v)}</span>
               </div>
             ))}
           </div>
