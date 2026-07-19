@@ -440,13 +440,13 @@ export default function ElectionControl() {
             </div>
             <div className="flex items-center justify-center">
               {syncStatus.needsSync === true && (
-                <span className="inline-flex items-center gap-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/25 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider shadow-sm">
+                <span className="inline-flex items-center gap-2 rounded-xl bg-rose-100 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-500/25 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider shadow-sm">
                   <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                   Out of Sync
                 </span>
               )}
               {syncStatus.needsSync === false && (
-                <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider shadow-sm">
+                <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/25 px-4 py-2.5 text-sm font-extrabold uppercase tracking-wider shadow-sm">
                   <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   Synced
                 </span>
