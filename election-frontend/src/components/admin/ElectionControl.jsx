@@ -142,6 +142,8 @@ export default function ElectionControl() {
   const [syncingWhitelist, setSyncingWhitelist] = useState(false);
   const [syncStatus, setSyncStatus] = useState({});
   const [expandedId, setExpandedId] = useState(null);
+  const [historyPage, setHistoryPage] = useState(1);
+  const HISTORY_PER_PAGE = 6;
   const [confirm, setConfirm] = useState(null);
 
   useEffect(() => {
@@ -206,6 +208,7 @@ export default function ElectionControl() {
         };
       });
       setHistory(items);
+      setHistoryPage(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -503,9 +506,10 @@ export default function ElectionControl() {
         ) : history.length === 0 ? (
           <p className="text-base text-app-muted-text mt-2">No past election results yet.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
-            {[...history].reverse().map((r) => {
-              const isOpen = expandedId === r.id;
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+              {[...history].reverse().slice((historyPage - 1) * HISTORY_PER_PAGE, historyPage * HISTORY_PER_PAGE).map((r) => {
+                const isOpen = expandedId === r.id;
               return (
                 <div
                   key={r.id}
@@ -546,6 +550,36 @@ export default function ElectionControl() {
               );
             })}
           </div>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <button
+              onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+              disabled={historyPage === 1}
+              className="px-3 py-1.5 rounded-lg border border-app/70 bg-app-surface text-sm font-bold text-app-muted-text hover:text-app-heading hover:border-app transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: Math.ceil(history.length / HISTORY_PER_PAGE) }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setHistoryPage(page)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  page === historyPage
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : "border border-app/70 bg-app-surface text-app-muted-text hover:text-app-heading hover:border-app"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setHistoryPage(p => Math.min(Math.ceil(history.length / HISTORY_PER_PAGE), p + 1))}
+              disabled={historyPage === Math.ceil(history.length / HISTORY_PER_PAGE)}
+              className="px-3 py-1.5 rounded-lg border border-app/70 bg-app-surface text-sm font-bold text-app-muted-text hover:text-app-heading hover:border-app transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
+              Next →
+            </button>
+          </div>
+          </>
         )}
       </div>
 
