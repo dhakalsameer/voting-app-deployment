@@ -756,7 +756,7 @@ export default function VotingPanelV3() {
                     </div>
 
                     {/* Body */}
-                    <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 overflow-y-auto min-h-0">
+                    <div className="px-4 sm:px-6 py-4 sm:py-5 space-y-4 overflow-y-auto min-h-0 flex-1">
                       {/* President */}
                       <div className={`rounded-2xl border-2 p-5 ${selectedPresidentId ? "border-app-trust-border bg-gradient-to-br from-app-trust-soft to-transparent" : "border-app-ballot-border bg-gradient-to-br from-app-ballot-soft to-transparent"}`}>
                         <div className="flex items-center justify-between mb-2">
