@@ -404,7 +404,7 @@ export default function ElectionControl() {
       {/* Sync Whitelist — always visible, needed after redeploy */}
       <ActionCard
         title="Sync Voter Whitelist"
-        description="Push latest student wallet data on-chain so they can vote. Run this after adding/editing voters."
+        description="Push latest student wallet data on-chain so they can vote."
         icon="📡"
       >
         <div className="space-y-3">
@@ -414,7 +414,9 @@ export default function ElectionControl() {
                 if (!wallet) return;
                 setConfirm({
                   title: "Sync Voter Whitelist",
-                  message: "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
+                  message: phase >= 2
+                    ? "Merkle roots are locked during Voting/Ended phase. The on-chain update will be skipped. DB changes are saved, but students won't be able to vote."
+                    : "Sync voter whitelist on-chain? Rebuilds Merkle roots. Costs gas.",
                   onConfirm: async () => {
                     setConfirm(null);
                     setSyncingWhitelist(true);
@@ -436,7 +438,11 @@ export default function ElectionControl() {
           >
             Sync Voter Whitelist
           </ActionButton>
-          <p className="text-xs text-app-muted-text text-center">⚠️ Costs gas — only works during Created or Registration phase</p>
+          <p className={`text-xs text-center ${phase >= 2 ? "text-rose-400" : "text-app-muted-text"}`}>
+            {phase >= 2
+              ? "⚠️ Roots locked — DB updates only, no on-chain change"
+              : "⚠️ Costs gas — only works during Created or Registration phase"}
+          </p>
         </div>
       </ActionCard>
 

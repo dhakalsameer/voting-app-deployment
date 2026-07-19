@@ -308,6 +308,12 @@ export const getIdentityProof = async (req, res) => {
 export const adminRebuildMerkle = async (_req, res) => {
   try {
     const txHash = await rebuildMerkleTrees();
+    if (!txHash) {
+      return res.status(400).json({
+        success: false,
+        error: "Merkle roots are locked on-chain (phase >= 2). On-chain update skipped.",
+      });
+    }
     return res.json({ success: true, txHash });
   } catch (error) {
     console.error("adminRebuildMerkle error:", error);
