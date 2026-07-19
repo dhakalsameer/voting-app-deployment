@@ -293,19 +293,31 @@ export default function ElectionControl() {
             />
             <ActionButton
               variant="sky" icon="🗳️"
-              onClick={() => setConfirm({
-                title: "Start Voting Phase",
-                message: "Start Voting phase? Candidates locked, voting begins. Costs gas.",
-                onConfirm: async () => {
-                  setConfirm(null);
-                  execute("Start Voting", async () => {
-                    const endTime = toUnixSeconds(votingEnd);
-                    if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
-                    const contract = await getContractV3();
-                    return contract.startVoting(endTime);
-                  });
-                }
-              })}
+              onClick={async () => {
+                let warningMsg = "";
+                try {
+                  const res = await fetch(`${API_URL}/api/voters/verification-status`);
+                  const data = await res.json();
+                  if (data.unverified > 0) {
+                    warningMsg = `⚠️ ${data.unverified} student(s) have linked wallets but are NOT verified. ` +
+                      "They won't be able to vote after you advance. Verify them first in the Voter Management panel.";
+                  }
+                } catch {}
+                setConfirm({
+                  title: "Start Voting Phase",
+                  message: "Start Voting phase? Candidates locked, voting begins. Costs gas.",
+                  warning: warningMsg,
+                  onConfirm: async () => {
+                    setConfirm(null);
+                    execute("Start Voting", async () => {
+                      const endTime = toUnixSeconds(votingEnd);
+                      if (!Number.isFinite(endTime)) throw new Error("Invalid voting end time");
+                      const contract = await getContractV3();
+                      return contract.startVoting(endTime);
+                    });
+                  }
+                });
+              }}
               disabled={loading}
               processing={loading && action === "Start Voting"}
             >

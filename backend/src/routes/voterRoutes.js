@@ -1,6 +1,7 @@
 import express from "express";
 import { bulkVerifyVoters, getMe, getPendingVoters, revokeVoter, getProof, getIdentityProof, adminRebuildMerkle } from "../controllers/voterController.js";
 import { verifyAdmin } from "../middleware/admin.js";
+import { db } from "../db.js";
 
 const router = express.Router();
 
@@ -11,5 +12,22 @@ router.get("/identity-proof", getIdentityProof);
 router.post("/verify-bulk", verifyAdmin, bulkVerifyVoters);
 router.post("/revoke", verifyAdmin, revokeVoter);
 router.post("/rebuild-merkle", verifyAdmin, adminRebuildMerkle);
+router.get("/verification-status", verifyAdmin, async (req, res) => {
+  try {
+    const [total, linked, verified] = await Promise.all([
+      db.query("SELECT COUNT(*)::int AS c FROM students"),
+      db.query("SELECT COUNT(*)::int AS c FROM students WHERE wallet_address IS NOT NULL AND wallet_verified = true"),
+      db.query("SELECT COUNT(*)::int AS c FROM students WHERE eligible_to_vote = true"),
+    ]);
+    res.json({
+      total: total.rows[0].c,
+      walletLinked: linked.rows[0].c,
+      verified: verified.rows[0].c,
+      unverified: linked.rows[0].c - verified.rows[0].c,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;
