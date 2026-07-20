@@ -17,7 +17,7 @@ function fmtYear(y) {
   return y;
 }
 
-const WINNER_EMOJIS = ["🏆", "🌟", "💫", "✨", "🎊", "🎉", "⭐", "💎", "🔥"];
+const WINNER_EMOJIS = ["🏆", "🌟", "💫", "✨", "🎊", "🎉", "⭐", "💎", "🔥", "🎯"];
 
 export default function WinnerBanner() {
   const { wallet } = useContext(AuthContext);
