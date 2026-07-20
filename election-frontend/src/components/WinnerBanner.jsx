@@ -18,11 +18,15 @@ function fmtYear(y) {
 
 export default function WinnerBanner() {
   const { wallet } = useContext(AuthContext);
-  const [winnerInfo, setWinnerInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [electionOver, setElectionOver] = useState(false);
+  const [winners, setWinners] = useState([]);
+  const [isWinner, setIsWinner] = useState(false);
+
+  const myWallet = wallet?.toLowerCase();
 
   useEffect(() => {
-    if (!wallet) {
+    if (!myWallet) {
       setLoading(false);
       return;
     }
@@ -35,44 +39,35 @@ export default function WinnerBanner() {
         const phaseData = await res.json();
         if (cancelled) return;
 
-        const isOver = phaseData.phase === 3 || phaseData.phase === 0;
+        const over = phaseData.phase === 3 || phaseData.phase === 0;
+        setElectionOver(over);
 
-        if (!isOver) {
-          setWinnerInfo(null);
+        if (!over) {
+          setWinners([]);
+          setIsWinner(false);
           setLoading(false);
           return;
         }
 
-        const [candRes, resultsRes] = await Promise.all([
-          fetch(`${API_URL}/api/candidates/by-wallet/${wallet}`),
-          fetch(`${API_URL}/api/results/history`),
-        ]);
-
+        const historyRes = await fetch(`${API_URL}/api/results/history`);
+        const history = await historyRes.json();
         if (cancelled) return;
 
-        const candidate = await candRes.json();
-        const history = await resultsRes.json();
-
-        if (!candidate || !history || history.length === 0) {
+        if (!history || history.length === 0) {
           setLoading(false);
           return;
         }
 
         const latest = history[0];
-        const winner = latest.candidates?.find(
-          (c) => c.is_winner && c.name === candidate.name
-        );
+        const allWinners = (latest.candidates || []).filter((c) => c.is_winner);
+        setWinners(allWinners);
 
-        if (winner) {
-          setWinnerInfo({
-            name: candidate.name,
-            position: candidate.position,
-            voteCount: winner.vote_count,
-            year: winner.year,
-            gender: winner.gender,
-            photo: winner.photo,
-          });
-        }
+        const matched = allWinners.some((w) => {
+          const wWallet = (w.wallet_address || "").toLowerCase();
+          if (wWallet && wWallet === myWallet) return true;
+          return false;
+        });
+        setIsWinner(matched);
       } catch (err) {
         console.error("Winner check failed:", err);
       } finally {
@@ -83,62 +78,59 @@ export default function WinnerBanner() {
     check();
     const interval = setInterval(check, 30000);
     return () => { cancelled = true; clearInterval(interval); };
-  }, [wallet]);
+  }, [myWallet]);
 
-  if (loading || !winnerInfo) return null;
-
-  const imgSrc = getImageUrl(winnerInfo.photo);
-  const isFemale = winnerInfo.gender === "female";
-
-  const posIcon = winnerInfo.position === "President" ? "🏛️" : winnerInfo.position === "Secretary" ? "📜" : "👥";
+  if (loading || !electionOver || winners.length === 0) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-yellow-500/10 p-4 sm:p-6 shadow-lg">
       <div className="absolute top-0 right-0 text-5xl sm:text-7xl opacity-10 select-none pointer-events-none">🏆</div>
       <div className="absolute bottom-0 left-0 text-4xl sm:text-6xl opacity-10 select-none pointer-events-none rotate-12">⭐</div>
-      <div className="flex items-start gap-3 sm:gap-4">
-        <div className="text-2xl sm:text-4xl shrink-0 mt-1">{posIcon}</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg sm:text-2xl">🎉</span>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">Winner</span>
-          </div>
-          <h3 className="text-base sm:text-xl font-black text-app-heading mt-1 leading-tight">
-            Congratulations, {winnerInfo.name}!
-          </h3>
-          <p className="text-xs sm:text-sm text-app-muted-text mt-1 leading-relaxed">
-            The votes are in — and your vision won. Time to deliver.
-          </p>
-        </div>
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <span className="text-lg sm:text-2xl">🎉</span>
+        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">Election Results</span>
       </div>
-      <div className="mt-4 sm:mt-5 grid grid-cols-[auto_1fr] gap-3 sm:gap-4 rounded-xl border border-amber-400/20 bg-app-surface/80 px-4 sm:px-5 py-3 sm:py-4">
-        <div className="row-span-2 flex flex-col items-center gap-1.5 sm:gap-2">
-          {imgSrc ? (
-            <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full overflow-hidden border-2 border-amber-400/50 shrink-0">
-              <img src={imgSrc} alt="" className="h-full w-full object-cover" />
+      {isWinner && (
+        <h3 className="text-base sm:text-xl font-black text-app-heading mb-3 leading-tight">
+          Congratulations! You won!
+        </h3>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {winners.map((w, i) => {
+          const imgSrc = getImageUrl(w.photo || w.image_cid);
+          const isFemale = w.gender === "female";
+          const posIcon = w.position === "President" ? "🏛️" : w.position === "Secretary" ? "📜" : "👥";
+          const wWallet = (w.wallet_address || "").toLowerCase();
+          const isMe = wWallet && wWallet === myWallet;
+          return (
+            <div key={i} className={`rounded-xl border px-4 py-3 ${isMe ? "border-amber-400/60 bg-amber-400/10" : "border-amber-400/20 bg-app-surface/80"}`}>
+              <div className="flex items-start gap-3">
+                <div className="text-xl sm:text-2xl shrink-0 mt-0.5">{posIcon}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">{w.position}</span>
+                    {isMe && <span className="text-[9px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">You</span>}
+                  </div>
+                  <p className="text-sm sm:text-base font-black text-app-heading">{w.name}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    {w.year && <span className="text-[10px] font-mono font-bold text-app-muted-text">{fmtYear(w.year)}</span>}
+                    {w.gender && (
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                        isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
+                      }`}>{w.gender}</span>
+                    )}
+                    <span className="text-sm font-black text-app-heading">{Number(w.vote_count)} <span className="text-[10px] font-bold text-app-muted-text">votes</span></span>
+                  </div>
+                </div>
+                {imgSrc && (
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden border-2 border-amber-400/30 shrink-0">
+                    <img src={imgSrc} alt="" className="h-full w-full object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-600/10 border-2 border-amber-400/30 flex items-center justify-center shrink-0">
-              <span className="text-lg sm:text-2xl">🏆</span>
-            </div>
-          )}
-          <span className={`text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-bold uppercase tracking-wider ${
-            isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
-          }`}>{winnerInfo.gender || "—"}</span>
-        </div>
-        <div className="min-w-0 self-end">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
-            <span className="text-[11px] sm:text-sm font-black uppercase tracking-widest text-amber-400">{winnerInfo.position}</span>
-            <span className="w-1 h-1 rounded-full bg-amber-400/30 shrink-0" />
-            <span className="text-base sm:text-xl font-black text-app-heading">{Number(winnerInfo.voteCount)} <span className="text-[11px] sm:text-sm font-bold text-app-muted-text font-sans">vote{Number(winnerInfo.voteCount) !== 1 ? "s" : ""}</span></span>
-          </div>
-          <p className="text-sm sm:text-lg font-black text-app-heading mt-0.5">{winnerInfo.name}</p>
-        </div>
-        <div className="col-start-2 self-start">
-          {winnerInfo.year && (
-            <span className="text-[11px] sm:text-sm font-mono font-bold text-app-muted-text bg-app-muted/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md">{fmtYear(winnerInfo.year)}</span>
-          )}
-        </div>
+          );
+        })}
       </div>
       <p className="text-[10px] sm:text-xs text-app-muted-text mt-3 sm:mt-4 text-center border-t border-app/50 pt-3 sm:pt-4">
         The IT Club is yours to shape. Lead with purpose. ✨
