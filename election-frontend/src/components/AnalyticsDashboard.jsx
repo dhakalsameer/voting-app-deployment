@@ -119,6 +119,8 @@ export default function AnalyticsDashboard() {
       ? new Date(currentTab.data.snapshot_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       : null;
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   const downloadPDF = async () => {
     if (downloading) return;
     const el = reportRef.current;
@@ -126,11 +128,17 @@ export default function AnalyticsDashboard() {
       info("Report content not available yet");
       return;
     }
+
+    if (isMobile) {
+      window.print();
+      return;
+    }
+
     setDownloading(true);
     try {
       const canvas = await html2canvas(el, {
         backgroundColor: "#ffffff",
-        scale: 2,
+        scale: 1,
         logging: false,
         useCORS: true,
       });
@@ -332,7 +340,7 @@ export default function AnalyticsDashboard() {
           className="btn-secondary shrink-0 self-start sm:self-auto text-xs sm:text-sm"
         >
           <span aria-hidden="true">{downloading ? "⏳" : "📥"}</span>
-          {downloading ? "Generating PDF..." : "Download Audit Report"}
+          {downloading ? "Generating PDF..." : isMobile ? "Download PDF" : "Download Audit Report"}
         </button>
       </div>
 
