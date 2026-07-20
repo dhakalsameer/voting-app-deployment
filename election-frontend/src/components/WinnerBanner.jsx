@@ -80,7 +80,7 @@ export default function WinnerBanner() {
     return () => { cancelled = true; clearInterval(interval); };
   }, [myWallet]);
 
-  if (loading || !electionOver || winners.length === 0) return null;
+  if (loading || !electionOver || winners.length === 0 || !isWinner) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-yellow-500/10 p-4 sm:p-6 shadow-lg">
@@ -88,28 +88,28 @@ export default function WinnerBanner() {
       <div className="absolute bottom-0 left-0 text-4xl sm:text-6xl opacity-10 select-none pointer-events-none rotate-12">⭐</div>
       <div className="flex items-center gap-2 mb-3 sm:mb-4">
         <span className="text-lg sm:text-2xl">🎉</span>
-        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">Election Results</span>
+        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">Winner</span>
       </div>
-      {isWinner && (
-        <h3 className="text-base sm:text-xl font-black text-app-heading mb-3 leading-tight">
-          Congratulations! You won!
-        </h3>
-      )}
+      <h3 className="text-base sm:text-xl font-black text-app-heading mb-3 leading-tight">
+        Congratulations! You won!
+      </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {winners.map((w, i) => {
+        {winners
+          .filter((w) => {
+            const wWallet = (w.wallet_address || "").toLowerCase();
+            return wWallet && wWallet === myWallet;
+          })
+          .map((w, i) => {
           const imgSrc = getImageUrl(w.photo || w.image_cid);
           const isFemale = w.gender === "female";
           const posIcon = w.position === "President" ? "🏛️" : w.position === "Secretary" ? "📜" : "👥";
-          const wWallet = (w.wallet_address || "").toLowerCase();
-          const isMe = wWallet && wWallet === myWallet;
           return (
-            <div key={i} className={`rounded-xl border px-4 py-3 ${isMe ? "border-amber-400/60 bg-amber-400/10" : "border-amber-400/20 bg-app-surface/80"}`}>
+            <div key={i} className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3">
               <div className="flex items-start gap-3">
                 <div className="text-xl sm:text-2xl shrink-0 mt-0.5">{posIcon}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">{w.position}</span>
-                    {isMe && <span className="text-[9px] font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">You</span>}
                   </div>
                   <p className="text-sm sm:text-base font-black text-app-heading">{w.name}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -132,9 +132,6 @@ export default function WinnerBanner() {
           );
         })}
       </div>
-      <p className="text-[10px] sm:text-xs text-app-muted-text mt-3 sm:mt-4 text-center border-t border-app/50 pt-3 sm:pt-4">
-        The IT Club is yours to shape. Lead with purpose. ✨
-      </p>
     </div>
   );
 }
