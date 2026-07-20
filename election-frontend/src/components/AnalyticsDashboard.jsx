@@ -119,18 +119,11 @@ export default function AnalyticsDashboard() {
       ? new Date(currentTab.data.snapshot_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       : null;
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
   const downloadPDF = async () => {
     if (downloading) return;
     const el = reportRef.current;
     if (!el) {
       info("Report content not available yet");
-      return;
-    }
-
-    if (isMobile) {
-      window.print();
       return;
     }
 
@@ -174,7 +167,7 @@ export default function AnalyticsDashboard() {
       info("PDF audit report downloaded");
     } catch (err) {
       console.error("PDF generation failed:", err);
-      window.print();
+      showError("PDF generation failed on this device. Try from a desktop browser.");
     } finally {
       setDownloading(false);
     }
@@ -340,7 +333,7 @@ export default function AnalyticsDashboard() {
           className="btn-secondary shrink-0 self-start sm:self-auto text-xs sm:text-sm"
         >
           <span aria-hidden="true">{downloading ? "⏳" : "📥"}</span>
-          {downloading ? "Generating PDF..." : isMobile ? "Download PDF" : "Download Audit Report"}
+          {downloading ? "Generating PDF..." : "Download Audit Report"}
         </button>
       </div>
 

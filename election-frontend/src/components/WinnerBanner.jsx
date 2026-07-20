@@ -90,7 +90,17 @@ export default function WinnerBanner() {
   });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-amber-400/20 bg-black p-2 shadow-2xl">
+    <div
+      className="relative overflow-hidden rounded-2xl border border-amber-400/20 p-2 shadow-2xl"
+      style={{
+        background: "#000",
+        "--clr-heading": "#fbbf24",
+        "--clr-body": "#fcd34d",
+        "--clr-muted": "#d4a017",
+        "--clr-label": "#a78b5a",
+        "--clr-on-surface": "#fff",
+      }}
+    >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,200,50,0.12),transparent)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_120%,rgba(255,150,50,0.08),transparent)] pointer-events-none" />
 
@@ -116,13 +126,13 @@ export default function WinnerBanner() {
       <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.08)_45%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.08)_55%,transparent_70%)] pointer-events-none" />
 
       <div className="relative z-10 rounded-xl border border-amber-400/15 bg-gradient-to-b from-amber-400/8 to-transparent p-4 sm:p-6 backdrop-blur-[2px]">
-        {/* Top crown */}
+        {/* Trophy */}
         <div className="flex flex-col items-center mb-4">
-          <span className="text-3xl sm:text-5xl mb-1 drop-shadow-[0_0_15px_rgba(255,200,0,0.5)]">🏆</span>
-          <h3 className="text-2xl sm:text-4xl font-black leading-tight drop-shadow-[0_2px_8px_rgba(255,200,0,0.3)] text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200">
+          <span className="text-6xl sm:text-8xl mb-2 drop-shadow-[0_0_20px_rgba(255,200,0,0.6)]">🏆</span>
+          <h3 className="text-2xl sm:text-4xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200" style={{color: "var(--clr-heading)"}}>
             Congratulations!
           </h3>
-          <p className="text-sm sm:text-base font-semibold mt-0.5 text-amber-300/70">You won the election</p>
+          <p className="text-sm sm:text-base font-semibold mt-0.5" style={{color: "var(--clr-body)"}}>You won the election</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
@@ -172,13 +182,13 @@ export default function WinnerBanner() {
                     <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full inline-block ${badgeColors[posKey]} mb-1`}>
                       {w.position}
                     </div>
-                    <p className="text-base sm:text-lg font-black text-white leading-tight drop-shadow-sm">{w.name}</p>
+                    <p className="text-base sm:text-lg font-black leading-tight drop-shadow-sm" style={{color: "var(--clr-on-surface)"}}>{w.name}</p>
                   </div>
 
                   {/* Meta row */}
                   <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {w.year && (
-                      <span className="text-[9px] font-bold text-amber-200/60 bg-amber-400/10 px-2 py-0.5 rounded-full">{fmtYear(w.year)}</span>
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-400/10" style={{color: "var(--clr-body)"}}>{fmtYear(w.year)}</span>
                     )}
                     <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                       isFemale ? "text-pink-300 bg-pink-400/12" : "text-sky-300 bg-sky-400/12"
@@ -190,7 +200,7 @@ export default function WinnerBanner() {
                     <span className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">
                       {Number(w.vote_count)}
                     </span>
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider">votes</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider" style={{color: "var(--clr-label)"}}>votes</span>
                   </div>
                 </div>
               </div>
@@ -200,7 +210,7 @@ export default function WinnerBanner() {
 
         {/* Bottom flourish */}
         <div className="mt-4 text-center">
-          <p className="text-[10px] font-medium text-amber-300/40 italic">Decentralized &middot; Transparent &middot; Verifiable</p>
+          <p className="text-[10px] font-medium italic" style={{color: "var(--clr-muted)"}}>Decentralized &middot; Transparent &middot; Verifiable</p>
         </div>
       </div>
     </div>
