@@ -184,29 +184,6 @@ export function startBlockchainSync(io) {
           fromAddress: fromAddr,
           args: { newPhase: Number(log.args.newPhase) },
         });
-
-        // Notify all students with emails about phase change
-        try {
-          const newPhase = Number(log.args.newPhase);
-          const phaseResult = await db.query(
-            `SELECT s.email, s.name FROM students s WHERE s.email IS NOT NULL`
-          );
-          if (phaseResult.rows.length > 0) {
-            const currentElection = await electionContractV3.historyCount();
-            const promises = phaseResult.rows.map(row =>
-              sendPhaseChangeNotification({
-                email: row.email,
-                name: row.name,
-                newPhase,
-                electionNumber: Number(currentElection),
-              }).catch(err => console.error(`   → Phase email failed for ${row.email}: ${err.message}`))
-            );
-            await Promise.all(promises);
-            console.log(`   → Phase ${newPhase} notifications sent to ${phaseResult.rows.length} students`);
-          }
-        } catch (err) {
-          console.error("   → Phase notification error:", err.message);
-        }
       }
 
       // NewElectionStarted — no address arg
