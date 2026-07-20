@@ -149,19 +149,19 @@ export default function WinnerBanner() {
             return (
               <div
                 key={i}
-                className={`relative overflow-hidden rounded-xl border ${borderColors[posKey]} bg-white/5 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.25)] backdrop-blur-sm transition-transform hover:scale-[1.02] duration-300`}
+                className={`relative overflow-hidden rounded-xl border ${borderColors[posKey]} bg-amber-400/6 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.25)] backdrop-blur-sm transition-transform hover:scale-[1.02] duration-300`}
               >
                 <div className="absolute -top-6 -right-6 text-4xl opacity-8 select-none pointer-events-none">{posEmoji}</div>
                 <div className="flex flex-col items-center gap-2.5">
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-white/10 blur-[6px]" />
+                    <div className="absolute inset-0 rounded-full bg-amber-400/15 blur-[6px]" />
                     {imgSrc ? (
                       <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full overflow-hidden ring-3 ring-white/15 shadow-[0_0_20px_var(--glow)]" style={{"--glow": glowColors[posKey]} as React.CSSProperties}>
                         <img src={imgSrc} alt="" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full bg-white/10 ring-3 ring-white/15 flex items-center justify-center" style={{boxShadow: `0 0 20px ${glowColors[posKey]}`}}>
+                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full bg-amber-400/10 ring-3 ring-white/15 flex items-center justify-center" style={{boxShadow: `0 0 20px ${glowColors[posKey]}`}}>
                         <span className="text-xl">{posEmoji}</span>
                       </div>
                     )}
@@ -178,7 +178,7 @@ export default function WinnerBanner() {
                   {/* Meta row */}
                   <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {w.year && (
-                      <span className="text-[9px] font-bold text-white/50 bg-white/8 px-2 py-0.5 rounded-full">{fmtYear(w.year)}</span>
+                      <span className="text-[9px] font-bold text-amber-200/60 bg-amber-400/10 px-2 py-0.5 rounded-full">{fmtYear(w.year)}</span>
                     )}
                     <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
                       isFemale ? "text-pink-300 bg-pink-400/12" : "text-sky-300 bg-sky-400/12"
@@ -186,7 +186,7 @@ export default function WinnerBanner() {
                   </div>
 
                   {/* Votes pill */}
-                  <div className="flex items-center gap-1 bg-white/8 backdrop-blur-sm rounded-full px-3 py-1 border border-white/8">
+                  <div className="flex items-center gap-1 bg-amber-400/10 backdrop-blur-sm rounded-full px-3 py-1 border border-amber-400/10">
                     <span className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">
                       {Number(w.vote_count)}
                     </span>
