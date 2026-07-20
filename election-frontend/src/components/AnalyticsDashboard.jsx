@@ -166,7 +166,7 @@ export default function AnalyticsDashboard() {
       info("PDF audit report downloaded");
     } catch (err) {
       console.error("PDF generation failed:", err);
-      showError("Could not generate PDF. Try using Print (Ctrl+P) instead.");
+      window.print();
     } finally {
       setDownloading(false);
     }
@@ -354,10 +354,11 @@ export default function AnalyticsDashboard() {
         </div>
       )}
 
+      <div ref={reportRef}>
       {isLive ? (
         <LiveResults />
       ) : (
-      <div id="analytics-report" ref={reportRef} className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
+      <div id="analytics-report" className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
         <WinnersBanner />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app">
@@ -504,6 +505,7 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
       )}
+      </div>
     </div>
   );
 }
