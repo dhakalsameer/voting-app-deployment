@@ -118,7 +118,7 @@ export default function WinnerBanner() {
       <div className="relative z-10 rounded-xl border border-amber-400/15 bg-gradient-to-b from-amber-400/8 to-transparent p-4 sm:p-6 backdrop-blur-[2px]">
         {/* Top crown */}
         <div className="flex flex-col items-center mb-4">
-          <span className="text-3xl sm:text-5xl mb-1 drop-shadow-[0_0_15px_rgba(255,200,0,0.5)]">👑</span>
+          <span className="text-3xl sm:text-5xl mb-1 drop-shadow-[0_0_15px_rgba(255,200,0,0.5)]">🏆</span>
           <h3 className="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 leading-tight drop-shadow-[0_2px_8px_rgba(255,200,0,0.3)]">
             Congratulations!
           </h3>
