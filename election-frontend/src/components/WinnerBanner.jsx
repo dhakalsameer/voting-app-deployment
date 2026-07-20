@@ -16,7 +16,7 @@ function fmtYear(y) {
   return y;
 }
 
-const WINNER_EMOJIS = ["🏆", "👑", "🌟", "💫", "✨", "🎊", "🎉", "⭐", "💎", "🔥"];
+const WINNER_EMOJIS = ["🏆", "🌟", "💫", "✨", "🎊", "🎉", "⭐", "💎", "🔥"];
 
 export default function WinnerBanner() {
   const { wallet } = useContext(AuthContext);
@@ -90,9 +90,9 @@ export default function WinnerBanner() {
   });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-amber-300/30 bg-gradient-to-br from-yellow-950 via-amber-950 to-orange-950 p-2 shadow-2xl">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,200,50,0.3),transparent)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_120%,rgba(255,150,50,0.2),transparent)] pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl border border-amber-400/20 bg-black p-2 shadow-2xl">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,200,50,0.12),transparent)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_120%,rgba(255,150,50,0.08),transparent)] pointer-events-none" />
 
       {/* Animated floating emojis */}
       {WINNER_EMOJIS.map((emoji, i) => (
