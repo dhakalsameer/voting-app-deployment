@@ -82,55 +82,64 @@ export default function WinnerBanner() {
 
   if (loading || !electionOver || winners.length === 0 || !isWinner) return null;
 
+  const myWins = winners.filter((w) => {
+    const wWallet = (w.wallet_address || "").toLowerCase();
+    return wWallet && wWallet === myWallet;
+  });
+
+  const posIcon = (p) => p === "President" ? "🏛️" : p === "Secretary" ? "📜" : "👥";
+
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-yellow-500/10 p-4 sm:p-6 shadow-lg">
-      <div className="absolute top-0 right-0 text-5xl sm:text-7xl opacity-10 select-none pointer-events-none">🏆</div>
-      <div className="absolute bottom-0 left-0 text-4xl sm:text-6xl opacity-10 select-none pointer-events-none rotate-12">⭐</div>
-      <div className="flex items-center gap-2 mb-3 sm:mb-4">
-        <span className="text-lg sm:text-2xl">🎉</span>
-        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-400">Winner</span>
+    <div className="relative overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 p-6 sm:p-8 shadow-2xl">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(255,255,255,0.12)_0%,_transparent_60%)] pointer-events-none" />
+      <div className="absolute -top-10 -right-10 text-[8rem] sm:text-[12rem] opacity-15 select-none pointer-events-none leading-none">🏆</div>
+      <div className="absolute -bottom-8 -left-8 text-6xl sm:text-8xl opacity-15 select-none pointer-events-none rotate-12 leading-none">⭐</div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.06)_0%,_transparent_50%)] pointer-events-none" />
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1">
+        <span className="text-xs">🎉</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-white/90">Winner</span>
       </div>
-      <h3 className="text-base sm:text-xl font-black text-app-heading mb-3 leading-tight">
-        Congratulations! You won!
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {winners
-          .filter((w) => {
-            const wWallet = (w.wallet_address || "").toLowerCase();
-            return wWallet && wWallet === myWallet;
-          })
-          .map((w, i) => {
-          const imgSrc = getImageUrl(w.photo || w.image_cid);
-          const isFemale = w.gender === "female";
-          const posIcon = w.position === "President" ? "🏛️" : w.position === "Secretary" ? "📜" : "👥";
-          return (
-            <div key={i} className="rounded-xl border border-amber-400/60 bg-amber-400/10 px-4 py-3">
-              <div className="flex items-start gap-3">
-                <div className="text-xl sm:text-2xl shrink-0 mt-0.5">{posIcon}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">{w.position}</span>
-                  </div>
-                  <p className="text-sm sm:text-base font-black text-app-heading">{w.name}</p>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    {w.year && <span className="text-[10px] font-mono font-bold text-app-muted-text">{fmtYear(w.year)}</span>}
-                    {w.gender && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                        isFemale ? "text-pink-400 bg-pink-500/10" : "text-sky-400 bg-sky-500/10"
-                      }`}>{w.gender}</span>
-                    )}
-                    <span className="text-sm font-black text-app-heading">{Number(w.vote_count)} <span className="text-[10px] font-bold text-app-muted-text">votes</span></span>
-                  </div>
-                </div>
-                {imgSrc && (
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden border-2 border-amber-400/30 shrink-0">
+
+      <div className="relative z-10 flex flex-col items-center text-center">
+        <h3 className="text-2xl sm:text-4xl font-black text-white mb-2 leading-tight drop-shadow-lg">
+          Congratulations!
+        </h3>
+        <p className="text-base sm:text-lg font-bold text-white/80 mb-6">You won the election</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
+          {myWins.map((w, i) => {
+            const imgSrc = getImageUrl(w.photo || w.image_cid);
+            const isFemale = w.gender === "female";
+            return (
+              <div key={i} className="backdrop-blur-md bg-white/10 rounded-2xl border border-white/20 p-5 flex flex-col items-center gap-3 shadow-lg">
+                <div className="text-3xl">{posIcon(w.position)}</div>
+                {imgSrc ? (
+                  <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border-4 border-white/30 shadow-xl ring-2 ring-white/10">
                     <img src={imgSrc} alt="" className="h-full w-full object-cover" />
                   </div>
+                ) : (
+                  <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/20 border-4 border-white/30 flex items-center justify-center shadow-xl">
+                    <span className="text-3xl">{posIcon(w.position)}</span>
+                  </div>
                 )}
+                <div className="text-center">
+                  <div className="text-[11px] font-black uppercase tracking-widest text-amber-300 mb-1">{w.position}</div>
+                  <p className="text-lg sm:text-xl font-black text-white">{w.name}</p>
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                    {w.year && <span className="text-[11px] font-bold text-white/70 bg-white/10 px-2.5 py-1 rounded-full">{fmtYear(w.year)}</span>}
+                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
+                      isFemale ? "text-pink-200 bg-pink-400/20" : "text-sky-200 bg-sky-400/20"
+                    }`}>{w.gender}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-4 py-1.5 mt-1">
+                  <span className="text-xl sm:text-2xl font-black text-white">{Number(w.vote_count)}</span>
+                  <span className="text-[11px] font-bold text-white/60">votes</span>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
