@@ -95,7 +95,7 @@ export default function DataTable({
                   <span className="shrink-0 text-sm font-bold uppercase tracking-wider text-app-muted-text">
                     {col.label}
                   </span>
-                  <span className="text-base text-right text-app-body ml-2 overflow-hidden text-ellipsis">
+                  <span className="text-base text-right text-app-body ml-2 flex-1 min-w-0 break-words">
                     {cellValue(row, col)}
                   </span>
                 </div>
