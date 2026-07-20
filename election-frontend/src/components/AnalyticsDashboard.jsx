@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend 
 } from "recharts";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { API_URL } from "../config";
 import { useToast } from "./ui/Toast";
 import { LiveResults } from "./Results";
@@ -13,6 +15,8 @@ const MAX_VISIBLE = 8;
 
 export default function AnalyticsDashboard() {
   const { error: showError, info } = useToast();
+  const reportRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,11 +119,56 @@ export default function AnalyticsDashboard() {
       ? new Date(currentTab.data.snapshot_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })
       : null;
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
+    if (downloading) return;
+    const el = reportRef.current;
+    if (!el) {
+      info("Report content not available yet");
+      return;
+    }
+    setDownloading(true);
     try {
-      window.print();
-    } catch {
-      info("Use your browser's Print/PDF option (Ctrl+P or menu → Print) to save as PDF.");
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfW = 210;
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      let heightLeft = pdfH;
+      let position = 0;
+      const pageH = 297;
+
+      if (heightLeft <= pageH) {
+        pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
+      } else {
+        const pageW = pdfW;
+        const sliceH = (pageH * canvas.width) / pdfW;
+        let srcY = 0;
+        while (heightLeft > 0) {
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = Math.min(sliceH, canvas.height - srcY);
+          const ctx = sliceCanvas.getContext("2d");
+          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+          const sliceData = sliceCanvas.toDataURL("image/png");
+          if (position > 0) pdf.addPage();
+          pdf.addImage(sliceData, "PNG", 0, 0, pageW, (sliceCanvas.height * pageW) / canvas.width);
+          srcY += sliceH;
+          heightLeft -= (sliceCanvas.height * pageW) / canvas.width;
+          position++;
+        }
+      }
+      pdf.save(`audit-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+      info("PDF audit report downloaded");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      showError("Could not generate PDF. Try using Print (Ctrl+P) instead.");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -279,10 +328,11 @@ export default function AnalyticsDashboard() {
         </div>
         <button
           onClick={downloadPDF}
+          disabled={downloading}
           className="btn-secondary shrink-0 self-start sm:self-auto text-xs sm:text-sm"
         >
-          <span aria-hidden="true">📥</span>
-          Download Audit Report
+          <span aria-hidden="true">{downloading ? "⏳" : "📥"}</span>
+          {downloading ? "Generating PDF..." : "Download Audit Report"}
         </button>
       </div>
 
@@ -307,7 +357,7 @@ export default function AnalyticsDashboard() {
       {isLive ? (
         <LiveResults />
       ) : (
-      <div id="analytics-report" className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
+      <div id="analytics-report" ref={reportRef} className="space-y-6 sm:space-y-8 p-3 sm:p-6 rounded-2xl sm:rounded-3xl bg-app-bg border border-app">
         <WinnersBanner />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-app">
