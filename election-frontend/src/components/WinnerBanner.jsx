@@ -159,7 +159,7 @@ export default function WinnerBanner() {
                   <div className="relative">
                     <div className={`absolute inset-0 rounded-full ${isDark ? "bg-amber-400/15" : "bg-amber-300/30"} blur-[6px]`} />
                     {imgSrc ? (
-                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full overflow-hidden ring-3 ring-white/15 shadow-[0_0_20px_var(--glow)]" style={{"--glow": glowColors[posKey]} as React.CSSProperties}>
+                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full overflow-hidden ring-3 ring-white/15 shadow-[0_0_20px_var(--glow)]" style={{"--glow": glowColors[posKey]}}>
                         <img src={imgSrc} alt="" className="h-full w-full object-cover" />
                       </div>
                     ) : (
