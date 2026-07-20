@@ -115,77 +115,82 @@ export default function WinnerBanner() {
       {/* Shine sweep */}
       <div className="absolute inset-0 bg-[linear-gradient(105deg,transparent_30%,rgba(255,255,255,0.08)_45%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.08)_55%,transparent_70%)] pointer-events-none" />
 
-      <div className="relative z-10 rounded-xl border border-amber-400/20 bg-gradient-to-b from-amber-400/10 to-transparent p-6 sm:p-8 backdrop-blur-[2px]">
+      <div className="relative z-10 rounded-xl border border-amber-400/15 bg-gradient-to-b from-amber-400/8 to-transparent p-4 sm:p-6 backdrop-blur-[2px]">
         {/* Top crown */}
-        <div className="flex flex-col items-center mb-6">
-          <span className="text-5xl sm:text-7xl mb-2 drop-shadow-[0_0_20px_rgba(255,200,0,0.5)]">👑</span>
-          <h3 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 leading-tight drop-shadow-[0_2px_10px_rgba(255,200,0,0.3)]">
+        <div className="flex flex-col items-center mb-4">
+          <span className="text-3xl sm:text-5xl mb-1 drop-shadow-[0_0_15px_rgba(255,200,0,0.5)]">👑</span>
+          <h3 className="text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 leading-tight drop-shadow-[0_2px_8px_rgba(255,200,0,0.3)]">
             Congratulations!
           </h3>
-          <p className="text-base sm:text-lg font-semibold text-amber-300/80 mt-1">You won the election</p>
+          <p className="text-sm sm:text-base font-semibold text-amber-300/70 mt-0.5">You won the election</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
           {myWins.map((w, i) => {
             const imgSrc = getImageUrl(w.photo || w.image_cid);
             const isFemale = w.gender === "female";
             const posKey = w.position === "President" ? "prez" : w.position === "Secretary" ? "sec" : "gm";
-            const accentColors = {
-              prez: "from-yellow-400/30 via-amber-500/20 to-orange-500/30 border-yellow-400/40",
-              sec: "from-sky-400/30 via-blue-500/20 to-indigo-500/30 border-sky-400/40",
-              gm: "from-emerald-400/30 via-teal-500/20 to-cyan-500/30 border-emerald-400/40",
+            const borderColors = {
+              prez: "border-yellow-400/30",
+              sec: "border-sky-400/30",
+              gm: "border-emerald-400/30",
             };
             const badgeColors = {
-              prez: "bg-yellow-500/20 text-yellow-300 border-yellow-400/30",
-              sec: "bg-sky-500/20 text-sky-300 border-sky-400/30",
-              gm: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+              prez: "bg-yellow-500/15 text-yellow-300",
+              sec: "bg-sky-500/15 text-sky-300",
+              gm: "bg-emerald-500/15 text-emerald-300",
+            };
+            const glowColors = {
+              prez: "rgba(255,200,0,0.25)",
+              sec: "rgba(100,200,255,0.2)",
+              gm: "rgba(50,255,150,0.2)",
             };
             const posEmoji = w.position === "President" ? "🏛️" : w.position === "Secretary" ? "📜" : "👥";
             return (
               <div
                 key={i}
-                className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${accentColors[posKey]} p-5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-transform hover:scale-[1.02] duration-300`}
+                className={`relative overflow-hidden rounded-xl border ${borderColors[posKey]} bg-white/5 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.25)] backdrop-blur-sm transition-transform hover:scale-[1.02] duration-300`}
               >
-                <div className="absolute -top-8 -right-8 text-6xl opacity-10 select-none pointer-events-none">{posEmoji}</div>
-                <div className="flex flex-col items-center gap-3">
+                <div className="absolute -top-6 -right-6 text-4xl opacity-8 select-none pointer-events-none">{posEmoji}</div>
+                <div className="flex flex-col items-center gap-2.5">
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-white/5 blur-sm" />
+                    <div className="absolute inset-0 rounded-full bg-white/10 blur-[6px]" />
                     {imgSrc ? (
-                      <div className="relative h-22 w-22 sm:h-26 sm:w-26 rounded-full overflow-hidden ring-4 ring-white/20 shadow-[0_0_30px_rgba(255,200,0,0.3)]">
+                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full overflow-hidden ring-3 ring-white/15 shadow-[0_0_20px_var(--glow)]" style={{"--glow": glowColors[posKey]} as React.CSSProperties}>
                         <img src={imgSrc} alt="" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="relative h-22 w-22 sm:h-26 sm:w-26 rounded-full bg-gradient-to-br from-white/20 to-white/5 ring-4 ring-white/20 flex items-center justify-center shadow-[0_0_30px_rgba(255,200,0,0.3)]">
-                        <span className="text-3xl">{posEmoji}</span>
+                      <div className="relative h-16 w-16 sm:h-18 sm:w-18 rounded-full bg-white/10 ring-3 ring-white/15 flex items-center justify-center" style={{boxShadow: `0 0 20px ${glowColors[posKey]}`}}>
+                        <span className="text-xl">{posEmoji}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Position badge */}
-                  <div className={`text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border ${badgeColors[posKey]}`}>
-                    {w.position}
+                  {/* Position + Name */}
+                  <div className="text-center">
+                    <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full inline-block ${badgeColors[posKey]} mb-1`}>
+                      {w.position}
+                    </div>
+                    <p className="text-base sm:text-lg font-black text-white leading-tight drop-shadow-sm">{w.name}</p>
                   </div>
 
-                  {/* Name */}
-                  <p className="text-xl sm:text-2xl font-black text-white text-center leading-tight drop-shadow-md">{w.name}</p>
-
-                  {/* Meta */}
+                  {/* Meta row */}
                   <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {w.year && (
-                      <span className="text-[10px] font-bold text-white/60 bg-white/10 px-2.5 py-1 rounded-full">{fmtYear(w.year)}</span>
+                      <span className="text-[9px] font-bold text-white/50 bg-white/8 px-2 py-0.5 rounded-full">{fmtYear(w.year)}</span>
                     )}
-                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
-                      isFemale ? "text-pink-300 bg-pink-400/15" : "text-sky-300 bg-sky-400/15"
+                    <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                      isFemale ? "text-pink-300 bg-pink-400/12" : "text-sky-300 bg-sky-400/12"
                     }`}>{w.gender}</span>
                   </div>
 
-                  {/* Vote count */}
-                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2 border border-white/10">
-                    <span className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">
+                  {/* Votes pill */}
+                  <div className="flex items-center gap-1 bg-white/8 backdrop-blur-sm rounded-full px-3 py-1 border border-white/8">
+                    <span className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-200">
                       {Number(w.vote_count)}
                     </span>
-                    <span className="text-xs font-bold text-white/50 uppercase tracking-wider">votes</span>
+                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider">votes</span>
                   </div>
                 </div>
               </div>
@@ -194,8 +199,8 @@ export default function WinnerBanner() {
         </div>
 
         {/* Bottom flourish */}
-        <div className="mt-6 text-center">
-          <p className="text-sm font-medium text-amber-300/60 italic">Election {new Date().getFullYear()} &middot; Decentralized &middot; Transparent</p>
+        <div className="mt-4 text-center">
+          <p className="text-[10px] font-medium text-amber-300/40 italic">Decentralized &middot; Transparent &middot; Verifiable</p>
         </div>
       </div>
     </div>
