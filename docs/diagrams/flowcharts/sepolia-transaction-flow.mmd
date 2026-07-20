@@ -1,0 +1,38 @@
+---
+title: Sepolia Transaction Flow
+---
+flowchart TB
+    User([Voter / Developer])
+    Wallet[MetaMask Wallet]
+    TX[Transaction<br/>castVote or register]
+    
+    subgraph Sepolia_Nodes[Sepolia Network Nodes]
+        Node1[Node A<br/>Relay and Validate]
+        Node2[Node B<br/>Relay and Validate]
+        Node3[Node C<br/>Relay and Validate]
+    end
+    
+    subgraph Validators["Permissioned Validator Set"]
+        Proposer[Proposer<br/>Creates Block 1001]
+        Attesters[Attesters<br/>Verify and Attest]
+    end
+    
+    Block[New Block Added<br/>to Blockchain]
+    BC[Sepolia Blockchain]
+    Explorer[Sepolia Etherscan<br/>Blockchain Explorer]
+    
+    User -->|1. Connect| Wallet
+    Wallet -->|2. Submit TX| TX
+    TX -->|3. Broadcast| Sepolia_Nodes
+    Sepolia_Nodes -->|4. Gossip and Validate| Proposer
+    Proposer -->|5. Create Block| Block
+    Attesters -->|6. Verify and Attest| Block
+    Block -->|7. Add to Chain| BC
+    BC -->|8. Index and Display| Explorer
+    Explorer -->|9. View TX and Balance| User
+    
+    style Proposer fill:#4CAF50,color:#fff
+    style Attesters fill:#2196F3,color:#fff
+    style Block fill:#FF9800,color:#fff
+    style Explorer fill:#9C27B0,color:#fff
+    style BC fill:#607D8B,color:#fff

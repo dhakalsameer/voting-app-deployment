@@ -1,55 +1,46 @@
 ---
-title: Component Diagram — System Components
+title: Component Diagram — System Architecture
 ---
 flowchart TB
-    subgraph FRONTEND["Frontend (React + Tailwind)"]
-        VP[VotingPanelV3<br/>Multi-position ballot]
-        SP[StudentPortal<br/>Registration & auth]
-        AD[AdminDashboard<br/>Election management]
-        RP[Results<br/>Live vote counts]
-        LS[LiveStatsSidebar<br/>Turnout stats]
-        LB[LiveBlockchainDashboard<br/>Event timeline]
-        AC[AuthContext<br/>Wallet, voter status]
-        SC[Socket.IO Client<br/>Real-time events]
-        CI[ethers.js<br/>Contract interface]
+    subgraph PRESENTATION["Presentation Layer"]
+        direction TB
+        WA[Web Application<br/>React SPA + Tailwind CSS]
+        C1[Voting Panel]
+        C2[Student Portal]
+        C3[Admin Dashboard]
+        C4[Results & Activity]
     end
 
-    subgraph BACKEND["Backend (Express 5 + Node.js)"]
-        API[REST API<br/>12 route modules]
-        CT[Controllers<br/>10 modules]
-        MS[Merkle Service<br/>3 tree types]
-        SY[Sync Engine<br/>10s poll, dedup]
-        SI[Socket.IO Server<br/>4 event types]
-        ES[Email Service<br/>Nodemailer]
+    subgraph APPLICATION["Application Layer"]
+        direction TB
+        BE[Node.js Express 5]
+        S1[REST API]
+        S2[Socket.IO Server]
+        S3[Sync Engine]
+        S4[Merkle Service]
+        S5[Email Service]
     end
 
-    subgraph DATA["Data Layer"]
-        PDB[(PostgreSQL<br/>6 tables)]
-        E3[(Election3.sol<br/>Phase, votes, roots)]
-        IP[(IPFS / Pinata<br/>Photos)]
+    subgraph BLOCKCHAIN["Blockchain Layer"]
+        SC[Smart Contract<br/>Election3.sol<br/>Sepolia Testnet]
     end
 
-    subgraph EXTERNAL["External"]
-        MM[MetaMask<br/>Browser wallet]
-        RP[Alchemy RPC<br/>Sepolia node]
-        SM[SMTP Email]
+    subgraph STORAGE["Storage Layer"]
+        PG[(PostgreSQL)]
+        IPFS[(IPFS / Pinata)]
     end
 
-    VP -->|GET /api/voters/proof| API
-    VP -->|castVote| CI
-    SP -->|POST /api/auth/*| API
-    AD -->|POST /api/admin/*| API
-    RP -->|GET /api/results| API
+    subgraph EXTERNAL["External Integrations"]
+        MM[MetaMask Wallet]
+        AL[Alchemy RPC]
+        SMTP[SMTP / Resend]
+    end
 
-    API -->|delegates| CT
-    CT --> MS
-    CT --> ES
-    SY -->|queryFilter| RP
-    SY -->|upsert| PDB
-    SY -->|emit| SI
-    SI -->|real-time| SC
-    CI -->|sendTransaction| MM
-    MM -->|JSON-RPC| E3
-    CT --> PDB
-    MS -->|setMerkleRoot| E3
-    ES --> SM
+    WA -->|REST + WebSocket| BE
+    WA -->|ethers.js + MetaMask| SC
+    BE -->|SQL| PG
+    BE -->|Store CID| IPFS
+    BE -->|Events| SC
+    BE -->|Email| SMTP
+    SC -->|JSON-RPC| AL
+    MM -->|Wallet Connect| SC

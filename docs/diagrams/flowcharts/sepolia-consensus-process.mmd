@@ -1,0 +1,84 @@
+---
+title: Sepolia Validator Consensus Flow
+---
+flowchart TD
+    Slot[12-Second Slot Begins]
+    Select[Random Validator<br/>Selected as Proposer]
+    Proposer[Proposer gathers<br/>pending transactions<br/>from mempool]
+    Execute[Proposer executes<br/>transactions and<br/>creates new block]
+    Broadcast[Proposer broadcasts<br/>block to network]
+    
+    subgraph Committee[Attestation Committee]
+        V1[Validator A]
+        V2[Validator B]
+        V3[Validator C]
+        V4[Validator D]
+    end
+    
+    Check1{Are signatures<br/>valid}
+    Check2{Are transactions<br/>valid}
+    Check3{Is gas usage<br/>correct}
+    Check4{Follows protocol<br/>rules}
+    
+    Attest[Validators attest<br/>for the block]
+    
+    subgraph Finality[Casper FFG Finality]
+        Checkpoint[Checkpoint Block<br/>every 32 slots]
+        Vote{2/3+ of staked ETH<br/>voted for checkpoint}
+        Finalized[Block Finalized<br/>Permanent and Irreversible]
+        NotFinalized[Not yet finalized<br/>continues next epoch]
+    end
+    
+    Fork{Competing blocks}
+    ForkChoice[LMD-GHOST chooses<br/>chain with most<br/>attestation weight]
+    Slash{Possible<br/>Slashing}
+    Malicious{Validator acted<br/>maliciously}
+    Penalty[Validator slashed<br/>ETH destroyed]
+    
+    Slot --> Select
+    Select --> Proposer
+    Proposer --> Execute
+    Execute --> Broadcast
+    Broadcast --> Committee
+    
+    Committee --> V1
+    Committee --> V2
+    Committee --> V3
+    Committee --> V4
+    
+    V1 --> Check1
+    V2 --> Check1
+    V3 --> Check1
+    V4 --> Check1
+    
+    Check1 -->|Yes| Check2
+    Check1 -->|No| Slash
+    Check2 -->|Yes| Check3
+    Check2 -->|No| Slash
+    Check3 -->|Yes| Check4
+    Check3 -->|No| Slash
+    Check4 -->|Yes| Attest
+    Check4 -->|No| Slash
+    
+    Attest --> Fork
+    Fork -->|Yes| ForkChoice
+    Fork -->|No| Finality
+    
+    ForkChoice --> Finality
+    Finality --> Checkpoint
+    Checkpoint --> Vote
+    Vote -->|Yes| Finalized
+    Vote -->|No| NotFinalized
+    
+    Slash --> Malicious
+    Malicious -->|Yes| Penalty
+    
+    style Slot fill:#E91E63,color:#fff
+    style Select fill:#E91E63,color:#fff
+    style Proposer fill:#4CAF50,color:#fff
+    style Execute fill:#4CAF50,color:#fff
+    style Broadcast fill:#4CAF50,color:#fff
+    style Attest fill:#2196F3,color:#fff
+    style Finalized fill:#4CAF50,color:#fff
+    style Penalty fill:#f44336,color:#fff
+    style ForkChoice fill:#FF9800,color:#fff

@@ -1,14 +1,59 @@
+---
+title: Election Lifecycle Flow
+---
 flowchart LR
-    START([Start]) --> A[Phase 0: Created]
-    A -->|Admin calls startRegistration| B[Phase 1: Registration]
-    B -->|Students register and get verified| C{Registration deadline reached?}
-    C -->|Yes| D[Admin rebuilds Merkle trees]
-    D --> E[Admin submits Merkle root hash on-chain]
-    E -->|Admin calls startVoting| F[Phase 2: Voting]
-    F -->|Voters cast their ballots| G{Voting deadline reached?}
-    G -->|Yes| H[Admin calls endElection]
-    H --> I[Phase 3: Ended]
-    I --> J[Results are finalized on-chain]
-    J --> K[Admin calls startNewElection]
-    K --> L[Winners stored in election history]
-    L --> END([End])
+    subgraph P1["Setup"]
+        direction TB
+        S1([Start])
+        S2[Deploy Contract]
+        S3[Created Phase]
+        S4[startRegistration]
+        S5[Registration]
+        S6[Student Reg]
+        S7[Admin Verify]
+        S8[Merkle Rebuild]
+        S9[Candidate Reg]
+        S10{Ok?}
+        S11[startVoting]
+    end
+    
+    subgraph P2["Voting"]
+        direction TB
+        T1[Voting Phase]
+        T2[Connect Wallet]
+        T3[Merkle Proof]
+        T4[castVote Tx]
+        T5[Verify + Sync]
+        T6{Ok?}
+        T7[endElection]
+    end
+    
+    subgraph P3["End"]
+        direction TB
+        U1[Ended Phase]
+        U2[Winner Select]
+        U3[Finalize]
+        U4[Archive]
+        U5{Again?}
+        U6[New Cycle]
+        U7([Finish])
+    end
+    
+    S11 --> T1
+    T7 --> U1
+    S10 -->|No| S6
+    T6 -->|No| T2
+    
+    style S1 fill:#4CAF50,color:#fff
+    style U7 fill:#f44336,color:#fff
+    style S3 fill:#e3f2fd,color:#000
+    style S5 fill:#fff3e0,color:#000
+    style T1 fill:#e8f5e9,color:#000
+    style U1 fill:#fce4ec,color:#000
+    style U6 fill:#4CAF50,color:#fff
+    style S4 fill:#FF9800,color:#fff
+    style S11 fill:#FF9800,color:#fff
+    style T7 fill:#FF9800,color:#fff
+    style S10 fill:#fff9c4,color:#000
+    style T6 fill:#fff9c4,color:#000
+    style U5 fill:#fff9c4,color:#000
