@@ -174,6 +174,7 @@ function buildPhaseEmailHtml({ phaseLabel, electionNumber }) {
   const dateStr = new Date().toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
     hour: "2-digit", minute: "2-digit",
+    timeZone: "Asia/Kathmandu", timeZoneName: "short",
   });
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
