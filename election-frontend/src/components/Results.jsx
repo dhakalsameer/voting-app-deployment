@@ -716,7 +716,7 @@ export default function Results() {
           <button
             onClick={downloadPDF}
             disabled={downloading}
-            className="btn-secondary shrink-0 text-xs sm:text-sm"
+            className="hidden sm:inline-flex btn-secondary shrink-0 text-xs sm:text-sm"
           >
             <span aria-hidden="true">{downloading ? "⏳" : "📥"}</span>
             {downloading ? "Generating PDF..." : "Download Audit Report"}
