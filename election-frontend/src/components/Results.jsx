@@ -724,7 +724,20 @@ export default function Results() {
         </div>
 
         {tabs.length > 1 && (
-          <div className="flex flex-nowrap gap-1.5 mt-2 -mx-1 px-1 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+          <>
+          {/* Dropdown on mobile when 5+ tabs */}
+          {tabs.length > 5 && (
+            <select
+              value={selectedElection}
+              onChange={e => setSelectedElection(e.target.value)}
+              className="sm:hidden w-full mt-2 text-sm font-bold rounded-lg border border-app bg-app-surface text-app-heading px-3 py-2.5 cursor-pointer"
+            >
+              {tabs.map(tab => (
+                <option key={tab.key} value={tab.key}>{tab.label}</option>
+              ))}
+            </select>
+          )}
+          <div className="hidden sm:flex flex-nowrap gap-1.5 mt-2 -mx-1 px-1 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -739,6 +752,7 @@ export default function Results() {
               </button>
             ))}
           </div>
+          </>
         )}
       </div>
 
