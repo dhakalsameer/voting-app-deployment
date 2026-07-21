@@ -640,10 +640,11 @@ export default function Results() {
       return;
     }
     setDownloading(true);
+    const isMobile = window.innerWidth < 768;
     try {
       const canvas = await html2canvas(el, {
         backgroundColor: "#ffffff",
-        scale: 1,
+        scale: isMobile ? 0.5 : 1,
         logging: false,
         useCORS: true,
       });
@@ -678,7 +679,11 @@ export default function Results() {
       info("PDF audit report downloaded");
     } catch (err) {
       console.error("PDF generation failed:", err);
-      showError("PDF generation failed on this device. Try from a desktop browser.");
+      if (window.innerWidth < 768) {
+        window.print();
+      } else {
+        showError("PDF generation failed. Try from a desktop browser.");
+      }
     } finally {
       setDownloading(false);
     }
