@@ -169,17 +169,26 @@ export async function sendWinnerCongratulation({ email, name, position, voteCoun
 }
 
 function buildPhaseEmailHtml({ phaseLabel, electionNumber }) {
+  const appUrl = "https://gu-voting.vercel.app";
+  const dateStr = new Date().toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
       <div style="text-align:center;font-size:36px;margin-bottom:12px;">📢</div>
       <h2 style="color:#10b981;text-align:center;">Election Update</h2>
+      <p style="text-align:center;font-size:13px;color:#9ca3af;margin-bottom:16px;">${dateStr}</p>
       <p style="text-align:center;font-size:16px;color:#374151;">
         Election #${electionNumber} is now in the <strong>${phaseLabel}</strong> phase.
       </p>
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
-        <p style="font-size:14px;color:#166534;margin:0;">
+        <p style="font-size:14px;color:#166534;margin:0 0 12px 0;">
           Please check the voting platform for details and your next steps.
         </p>
+        <a href="${appUrl}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;font-weight:bold;padding:10px 24px;border-radius:6px;font-size:14px;">
+          Go to Voting Platform
+        </a>
       </div>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
       <p style="color:#6b7280;font-size:12px;text-align:center;">Gandaki University — IT Club Election Commission</p>

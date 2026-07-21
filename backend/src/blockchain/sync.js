@@ -744,26 +744,7 @@ export function startBlockchainSync(io) {
         await backfillElectionHistory();
 
         // Notify students of current phase (catches phase changes that happened before this server started)
-        try {
-          const phaseResult = await db.query(
-            `SELECT s.email, s.name FROM students s WHERE s.email IS NOT NULL`
-          );
-          if (phaseResult.rows.length > 0) {
-            const currentElection = await electionContractV3.historyCount();
-            const promises = phaseResult.rows.map(row =>
-              sendPhaseChangeNotification({
-                email: row.email,
-                name: row.name,
-                newPhase: prevPhase,
-                electionNumber: Number(currentElection),
-              }).catch(err => console.error(`   → Phase email failed for ${row.email}: ${err.message}`))
-            );
-            await Promise.all(promises);
-            console.log(`   → Phase ${prevPhase} notifications sent to ${phaseResult.rows.length} students`);
-          }
-        } catch (err) {
-          console.error("   → Phase notification error:", err.message);
-        }
+        // Skipped: handled by checkPhase() which detects real transitions. Startup sends would spam on every deploy.
       } catch (err) {
         console.error("Initial sync error:", err.message);
       }
