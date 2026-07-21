@@ -701,6 +701,11 @@ export default function Results() {
   }, [history]);
 
   const currentElection = tabs.find((t) => t.key === selectedElection);
+  const [tabPage, setTabPage] = useState(0);
+  const TABS_PER_PAGE = 4;
+  const tabPages = Math.max(1, Math.ceil((tabs.length - 1) / TABS_PER_PAGE));
+  const tabStart = tabPage * TABS_PER_PAGE + 1;
+  const visibleTabs = [tabs[0], ...tabs.slice(tabStart, tabStart + TABS_PER_PAGE)].filter(Boolean);
 
   return (
     <div className="rounded-xl border border-app bg-app-surface">
@@ -724,25 +729,12 @@ export default function Results() {
         </div>
 
         {tabs.length > 1 && (
-          <>
-          {/* Dropdown on mobile when 5+ tabs */}
-          {tabs.length > 5 && (
-            <select
-              value={selectedElection}
-              onChange={e => setSelectedElection(e.target.value)}
-              className="sm:hidden w-full mt-2 text-sm font-bold rounded-lg border border-app bg-app-surface text-app-heading px-3 py-2.5 cursor-pointer"
-            >
-              {tabs.map(tab => (
-                <option key={tab.key} value={tab.key}>{tab.label}</option>
-              ))}
-            </select>
-          )}
-          <div className="hidden sm:flex flex-nowrap gap-1.5 mt-2 -mx-1 px-1 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
-            {tabs.map((tab) => (
+          <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1">
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setSelectedElection(tab.key)}
-                className={`text-[11px] font-bold px-3 py-2 sm:py-1 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   selectedElection === tab.key
                     ? "bg-[var(--app-accent-soft)] text-[var(--app-accent)] border-[var(--app-accent-border)]"
                     : "bg-app-surface text-app-muted-text border-app hover:border-app-accent/30 hover:text-app-heading"
@@ -751,8 +743,22 @@ export default function Results() {
                 {tab.label}
               </button>
             ))}
+            {tabPages > 1 && (
+              <div className="flex items-center gap-0.5 ml-auto shrink-0">
+                <button
+                  onClick={() => setTabPage(p => Math.max(0, p - 1))}
+                  disabled={tabPage === 0}
+                  className="text-xs px-1.5 py-1 rounded border border-app text-app-muted-text disabled:opacity-30 hover:text-app-heading transition-all cursor-pointer disabled:cursor-not-allowed"
+                >◀</button>
+                <span className="text-[10px] font-mono text-app-muted-text px-1 min-w-[3ch] text-center">{tabPage + 1}/{tabPages}</span>
+                <button
+                  onClick={() => setTabPage(p => Math.min(tabPages - 1, p + 1))}
+                  disabled={tabPage >= tabPages - 1}
+                  className="text-xs px-1.5 py-1 rounded border border-app text-app-muted-text disabled:opacity-30 hover:text-app-heading transition-all cursor-pointer disabled:cursor-not-allowed"
+                >▶</button>
+              </div>
+            )}
           </div>
-          </>
         )}
       </div>
 
