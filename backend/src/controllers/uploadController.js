@@ -77,6 +77,13 @@ export async function uploadPhoto(req, res) {
     }
 
     const row = result.rows[0];
+    if (row.wallet_address) {
+      await db.query(
+        `UPDATE candidates SET image_cid = $1 WHERE wallet_address = $2`,
+        [cid, row.wallet_address]
+      );
+    }
+
     return res.json({
       success: true,
       image_cid: cid,
