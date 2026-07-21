@@ -346,7 +346,7 @@ export default function AnalyticsDashboard() {
       </div>
 
       {tabs.length > 1 && (
-        <div className="flex flex-wrap gap-1.5 mt-2 sm:mt-3 mb-3 sm:mb-4 overflow-x-auto">
+        <div className="flex flex-nowrap gap-1.5 mt-2 sm:mt-3 mb-3 sm:mb-4 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
           {tabs.map((tab) => (
             <button
               key={tab.key}
