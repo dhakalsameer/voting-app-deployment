@@ -1,6 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { API_URL } from "../config";
 import { getContractV3 } from "../contract";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { useToast } from "./ui/Toast";
 
 
 const POSITIONS = ["President", "Secretary", "General Member"];
@@ -557,6 +560,9 @@ function HistoryResults({ election }) {
 }
 
 export default function Results() {
+  const { info, error: showError } = useToast();
+  const reportRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
   const [history, setHistory] = useState([]);
   const [selectedElection, setSelectedElection] = useState("live");
 
@@ -626,6 +632,58 @@ export default function Results() {
     fetchHistory();
   }, []);
 
+  const downloadPDF = async () => {
+    if (downloading) return;
+    const el = reportRef.current;
+    if (!el) {
+      info("Report content not available yet");
+      return;
+    }
+    setDownloading(true);
+    try {
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#ffffff",
+        scale: 1,
+        logging: false,
+        useCORS: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfW = 210;
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      let heightLeft = pdfH;
+      let position = 0;
+      const pageH = 297;
+      if (heightLeft <= pageH) {
+        pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
+      } else {
+        const pageW = pdfW;
+        const sliceH = (pageH * canvas.width) / pdfW;
+        let srcY = 0;
+        while (heightLeft > 0) {
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = Math.min(sliceH, canvas.height - srcY);
+          const ctx = sliceCanvas.getContext("2d");
+          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+          const sliceData = sliceCanvas.toDataURL("image/png");
+          if (position > 0) pdf.addPage();
+          pdf.addImage(sliceData, "PNG", 0, 0, pageW, (sliceCanvas.height * pageW) / canvas.width);
+          srcY += sliceH;
+          heightLeft -= (sliceCanvas.height * pageW) / canvas.width;
+          position++;
+        }
+      }
+      pdf.save(`audit-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+      info("PDF audit report downloaded");
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      showError("PDF generation failed on this device. Try from a desktop browser.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const tabs = useMemo(() => {
     const t = [{ key: "live", label: "Live" }];
     for (const h of history) {
@@ -639,12 +697,22 @@ export default function Results() {
   return (
     <div className="rounded-xl border border-app bg-app-surface">
       <div className="px-4 sm:px-6 py-3 border-b border-app">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--app-accent)] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--app-accent)]" />
-          </span>
-          <h2 className="text-sm sm:text-base font-semibold text-app-heading">Results</h2>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--app-accent)] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--app-accent)]" />
+            </span>
+            <h2 className="text-sm sm:text-base font-semibold text-app-heading">Results</h2>
+          </div>
+          <button
+            onClick={downloadPDF}
+            disabled={downloading}
+            className="btn-secondary shrink-0 text-xs sm:text-sm"
+          >
+            <span aria-hidden="true">{downloading ? "⏳" : "📥"}</span>
+            {downloading ? "Generating PDF..." : "Download Audit Report"}
+          </button>
         </div>
 
         {tabs.length > 1 && (
@@ -666,6 +734,7 @@ export default function Results() {
         )}
       </div>
 
+      <div ref={reportRef}>
       <div className="p-3 sm:p-4 md:p-6">
         {selectedElection === "live" ? (
           <LiveResults />
@@ -676,6 +745,7 @@ export default function Results() {
             <p className="text-base text-app-muted-text italic">Election data not available</p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
