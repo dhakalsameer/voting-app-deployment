@@ -170,15 +170,19 @@ export async function sendWinnerCongratulation({ email, name, position, voteCoun
 
 function buildPhaseEmailHtml({ phaseLabel, electionNumber }) {
   const appUrl = "https://gu-voting.vercel.app";
+  const logoUrl = `${appUrl}/images/gu-logo-horizontal.png`;
   const dateStr = new Date().toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;">
-      <div style="text-align:center;font-size:36px;margin-bottom:12px;">📢</div>
-      <h2 style="color:#10b981;text-align:center;">Election Update</h2>
-      <p style="text-align:center;font-size:13px;color:#9ca3af;margin-bottom:16px;">${dateStr}</p>
+      <div style="text-align:center;margin-bottom:16px;">
+        <img src="${logoUrl}" alt="Gandaki University" style="max-width:200px;height:auto;" />
+      </div>
+      <div style="text-align:center;font-size:36px;margin-bottom:8px;">📢</div>
+      <h2 style="color:#10b981;text-align:center;margin:0 0 4px 0;">Election Update</h2>
+      <p style="text-align:center;font-size:13px;color:#9ca3af;margin:0 0 16px 0;">${dateStr}</p>
       <p style="text-align:center;font-size:16px;color:#374151;">
         Election #${electionNumber} is now in the <strong>${phaseLabel}</strong> phase.
       </p>
