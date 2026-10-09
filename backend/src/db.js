@@ -4,7 +4,17 @@ import dotenv from "dotenv";
 dotenv.config();
 
 function createPool(url) {
-  return new pg.Pool({ connectionString: url });
+  const config = { connectionString: url };
+  if (url) {
+    const u = new URL(url);
+    const sslmode = u.searchParams.get("sslmode");
+    if (sslmode && ["prefer", "require", "verify-ca"].includes(sslmode)) {
+      config.ssl = { rejectUnauthorized: false };
+      u.searchParams.set("sslmode", "verify-full");
+      config.connectionString = u.toString();
+    }
+  }
+  return new pg.Pool(config);
 }
 
 export let db = createPool(process.env.DATABASE_URL);
