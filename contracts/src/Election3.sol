@@ -247,24 +247,7 @@ contract Election3 {
         external
         inPhase(Phase.Voting)
     {
-        require(block.timestamp <= votingEnd, "Voting ended");
-        require(
-            votedInElection[msg.sender] != currentElectionId,
-            "Already voted"
-        );
-        require(candidates[currentElectionId][_candidateId].exists, "Invalid candidate");
-
-        // 🔐 Verify voter using Merkle Proof (address only)
-        bytes32 leaf = keccak256(abi.encodePacked(msg.sender));
-        require(
-            MerkleProof.verify(_proof, voterMerkleRoot, leaf),
-            "Not eligible voter"
-        );
-
-        votedInElection[msg.sender] = currentElectionId;
-        candidates[currentElectionId][_candidateId].voteCount++;
-
-        emit VoteCast(msg.sender, _candidateId);
+        revert("vote() deprecated; use castVote(...)");
     }
 
     // =========================

@@ -277,49 +277,54 @@ contract Election3Test is Test {
         vm.warp(regEnd + 2);
     }
 
-    function testVote() public {
-        _setupForVoting();
-
-        vm.prank(student1);
-        election.vote(1, new bytes32[](0));
-
-        Election3.Candidate memory c = election.getCandidate(1);
-        assertEq(c.voteCount, 1);
-        assertTrue(election.hasVoted(student1));
-    }
+      function testVote() public {
+          _setupForVoting();
+  
+          vm.prank(student1);
+          uint256[] memory gm = new uint256[](0);
+          election.castVote(1, 0, gm, new bytes32[](0));
+  
+          Election3.Candidate memory c = election.getCandidate(1);
+          assertEq(c.voteCount, 1);
+          assertTrue(election.hasVoted(student1));
+      }
 
     function testCannotVoteTwice() public {
         _setupForVoting();
 
-        vm.startPrank(student1);
-        election.vote(1, new bytes32[](0));
+          vm.startPrank(student1);
+          uint256[] memory gm = new uint256[](0);
+          election.castVote(1, 0, gm, new bytes32[](0));
 
-        vm.expectRevert("Already voted");
-        election.vote(1, new bytes32[](0));
-        vm.stopPrank();
+          vm.expectRevert("Already voted");
+          election.castVote(1, 0, gm, new bytes32[](0));
+          vm.stopPrank();
     }
 
     function testCannotVoteForInvalidCandidate() public {
         _setupForVoting();
 
-        vm.prank(student1);
-        vm.expectRevert("Invalid candidate");
-        election.vote(99, new bytes32[](0));
+          vm.prank(student1);
+          vm.expectRevert("Invalid president");
+          uint256[] memory gm = new uint256[](0);
+          election.castVote(99, 0, gm, new bytes32[](0));
     }
 
     function testCannotVoteWithInvalidProof() public {
         _setupForVoting();
 
         // student2 is not in the voter tree
-        vm.prank(student2);
-        vm.expectRevert("Not eligible voter");
-        election.vote(1, new bytes32[](0));
+          vm.prank(student2);
+          vm.expectRevert("Not eligible voter");
+          uint256[] memory gm = new uint256[](0);
+          election.castVote(1, 0, gm, new bytes32[](0));
     }
 
     function testCannotVoteOutsideVotingPhase() public {
-        vm.prank(student1);
-        vm.expectRevert("Wrong phase");
-        election.vote(1, new bytes32[](0));
+          vm.prank(student1);
+          vm.expectRevert("Wrong phase");
+          uint256[] memory gm = new uint256[](0);
+          election.castVote(1, 0, gm, new bytes32[](0));
     }
 
     // =========================
@@ -375,12 +380,13 @@ contract Election3Test is Test {
         bytes32[] memory vproof2 = new bytes32[](1);
         vproof2[0] = vLeaf1;
 
-        // Both vote for candidate 1 (President)
-        vm.prank(student1);
-        election.vote(1, vproof1);
+          // Both vote for candidate 1 (President)
+          vm.prank(student1);
+          uint256[] memory gm0 = new uint256[](0);
+          election.castVote(1, 0, gm0, vproof1);
 
-        vm.prank(student2);
-        election.vote(1, vproof2);
+          vm.prank(student2);
+          election.castVote(1, 0, gm0, vproof2);
 
         vm.warp(voteEnd + 1);
         election.endElection();

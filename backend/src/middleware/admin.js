@@ -1,5 +1,17 @@
 import { electionContractV3 } from "../blockchain/electionContract.js";
 
+function compareAddresses(a, b) {
+  if (!a || !b) return false;
+  const sa = String(a).toLowerCase();
+  const sb = String(b).toLowerCase();
+  if (sa.length !== sb.length) return false;
+  let ok = true;
+  for (let i = 0; i < sa.length; i++) {
+    if (sa[i] !== sb[i]) ok = false;
+  }
+  return ok;
+}
+
 export async function verifyAdmin(req, res, next) {
   const adminWallet = req.body?.adminWallet || req.query?.adminWallet;
 
@@ -9,7 +21,7 @@ export async function verifyAdmin(req, res, next) {
 
   try {
     const onChainAdmin = await electionContractV3.admin();
-    if (adminWallet.toLowerCase() !== onChainAdmin.toLowerCase()) {
+    if (!compareAddresses(adminWallet, onChainAdmin)) {
       return res.status(403).json({ error: "Unauthorized: caller is not the contract admin" });
     }
     next();

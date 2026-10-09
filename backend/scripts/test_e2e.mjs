@@ -2,9 +2,26 @@ import { ethers } from "ethers";
 import fs from "fs";
 
 const ABI = JSON.parse(fs.readFileSync("src/abi/Election3.json", "utf8")).abi;
-const RPC = "https://eth-sepolia.g.alchemy.com/v2/95pRrhpYhS2hhiYfaqfDw";
-const PK = "0x4c54307a0f284fb4493ecf28b1f3fc3e05623c4293672c7081077e8187749d63";
-const ADDR = "0x15a91b2edCA17b2Fdad714a262824FccE88cD6bf";
+const RPC = process.env.RPC_URL || process.env.SEPOLIA_RPC || "";
+const PK = process.env.PRIVATE_KEY || "";
+const ADDR = process.env.CONTRACT_ADDRESS_V3 || "";
+
+if (!RPC) {
+  console.error("Missing RPC_URL (or SEPOLIA_RPC)");
+  process.exit(1);
+}
+if (!PK) {
+  console.error("Missing PRIVATE_KEY");
+  process.exit(1);
+}
+if (!ADDR) {
+  console.error("Missing CONTRACT_ADDRESS_V3");
+  process.exit(1);
+}
+if (!PK.startsWith("0x") || PK.length !== 66) {
+  console.error("PRIVATE_KEY format invalid (expect 0x + 64 hex)");
+  process.exit(1);
+}
 
 const provider = new ethers.JsonRpcProvider(RPC);
 const wallet = new ethers.Wallet(PK, provider);
@@ -74,4 +91,5 @@ async function main() {
   console.log("  5. Admin clicks 'Start New Election'");
 }
 
-main().catch(console.error);
+  console.log("\n[SECURITY NOTE] Uses PRIVATE_KEY from env. Never commit keys.");
+  main().catch(console.error);

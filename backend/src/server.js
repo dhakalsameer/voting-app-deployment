@@ -84,10 +84,15 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests — try again later." },
-  // The browser sends a CORS preflight before a cross-origin POST. Counting
-  // it meant each login attempt cost two requests against the budget, and the
-  // preflight itself could be answered with a 429 -- which the browser then
-  // reports as "Failed to fetch" because it never sends the real POST.
+  skip: (req) => req.method === "OPTIONS",
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many admin requests — try again later." },
   skip: (req) => req.method === "OPTIONS",
 });
 
@@ -127,7 +132,9 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/voters", voterRoutes);
 app.use("/api/results", resultsRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminLimiter);
 app.use("/api/admin", registrationCodeRoutes);
+app.use("/api/distribution", adminLimiter);
 app.use("/api/distribution", distributionRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/contract", contractRoutes);
